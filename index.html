@@ -4,87 +4,381 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CyberDelve · Ultimate Bug Hunter Pro</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+    <script src="https://cdn.tailwindcss.com">
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-        :root{
-            --bg-deep:#0a0f1d;--bg-card:#111827;--neon-red:#ff0055;--neon-red-glow:rgba(255,0,85,0.35);
-            --neon-green:#00ff88;--neon-green-glow:rgba(0,255,136,0.30);--neon-cyan:#00d4ff;
-            --neon-orange:#ff8800;--neon-purple:#a855f7;--text-primary:#e6edf3;--text-secondary:#8b949e;--border-dim:#1e2a3a;
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
-        body{font-family:'Inter',system-ui,sans-serif;background:var(--bg-deep);color:var(--text-primary);min-height:100vh;
-            background-image:radial-gradient(ellipse 80% 60% at 50% -10%,rgba(255,0,85,0.05) 0%,transparent 70%),
-            radial-gradient(ellipse 60% 50% at 80% 90%,rgba(0,255,136,0.04) 0%,transparent 70%),
-            radial-gradient(ellipse 40% 40% at 10% 80%,rgba(168,85,247,0.03) 0%,transparent 60%)}
-        .font-mono-custom{font-family:'JetBrains Mono',monospace}
-        .glass-card{background:rgba(17,24,39,0.75);backdrop-filter:blur(16px) saturate(1.3);border:1px solid rgba(255,255,255,0.04);box-shadow:0 8px 32px rgba(0,0,0,0.45)}
-        .glass-card:hover{border-color:rgba(255,0,85,0.15)}
-        .btn-scan{background:linear-gradient(135deg,#ff0055 0%,#cc0044 100%);transition:all 0.25s ease;box-shadow:0 4px 20px rgba(255,0,85,0.25)}
-        .btn-scan:hover{transform:translateY(-2px) scale(1.02);box-shadow:0 8px 35px rgba(255,0,85,0.4)}
-        .btn-scan:disabled{opacity:0.6;transform:none;cursor:not-allowed}
-        .btn-primary-sm{background:rgba(255,0,85,0.12);border:1px solid rgba(255,0,85,0.2);transition:all 0.2s ease;color:#ff3366}
-        .btn-primary-sm:hover{background:rgba(255,0,85,0.2)}
-        .btn-primary-sm:disabled{opacity:0.4;cursor:not-allowed}
-        .btn-ghost-sm{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);transition:all 0.2s ease;color:#ccc}
-        .btn-ghost-sm:hover{background:rgba(255,255,255,0.08)}
-        .btn-live{background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.12);transition:all 0.2s ease;color:#00d4ff}
-        .btn-live:hover{background:rgba(0,212,255,0.16)}
-        .btn-live:disabled{opacity:0.4;cursor:not-allowed}
-        .drop-zone{border:2px dashed rgba(255,255,255,0.08);transition:all 0.3s ease;background:rgba(255,255,255,0.02)}
-        .drop-zone:hover{border-color:var(--neon-green);background:rgba(0,255,136,0.03)}
-        .drop-zone.drag-over{border-color:var(--neon-green);background:rgba(0,255,136,0.08);box-shadow:0 0 40px rgba(0,255,136,0.12)}
-        .badge-endpoint{display:inline-block;padding:2px 8px;border-radius:9999px;font-size:0.6rem;font-weight:600;letter-spacing:0.04em;background:rgba(0,255,136,0.10);color:#00ff88;border:1px solid rgba(0,255,136,0.15)}
-        .badge-secret{display:inline-block;padding:2px 8px;border-radius:9999px;font-size:0.6rem;font-weight:600;background:rgba(255,0,85,0.10);color:#ff3366;border:1px solid rgba(255,0,85,0.15)}
-        .badge-risk{display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.6rem;font-weight:600}
-        .badge-risk.critical{background:rgba(255,0,85,0.15);color:#ff3366;border:1px solid rgba(255,0,85,0.2)}
-        .badge-risk.high{background:rgba(255,136,0,0.15);color:#ff8800;border:1px solid rgba(255,136,0,0.2)}
-        .badge-risk.medium{background:rgba(255,200,0,0.10);color:#ffcc00;border:1px solid rgba(255,200,0,0.15)}
-        .badge-risk.low{background:rgba(255,255,255,0.04);color:#8b949e;border:1px solid rgba(255,255,255,0.06)}
-        .badge-source{display:inline-block;padding:2px 6px;border-radius:4px;font-size:0.55rem;font-weight:500;background:rgba(0,212,255,0.08);color:#00d4ff;border:1px solid rgba(0,212,255,0.10);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-        .status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:3px}
-        .status-dot.online{background:#00ff88;box-shadow:0 0 6px rgba(0,255,136,0.4)}
-        .status-dot.offline{background:#ff0055;box-shadow:0 0 6px rgba(255,0,85,0.4)}
-        .status-dot.unknown{background:#555}
-        .status-dot.loading{background:#ff8800;animation:pulse-orange 0.8s ease-in-out infinite}
-        @keyframes pulse-orange{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.3;transform:scale(0.6)}}
-        .value-truncate{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-        @media(max-width:640px){.value-truncate{max-width:120px}}
-        .toast-alert{position:fixed;top:24px;right:24px;z-index:9999;max-width:480px;transform:translateX(120%);transition:transform 0.45s cubic-bezier(0.16,1,0.3,1)}
-        .toast-alert.show{transform:translateX(0)}
-        ::-webkit-scrollbar{width:5px;height:5px}
-        ::-webkit-scrollbar-track{background:var(--bg-deep)}
-        ::-webkit-scrollbar-thumb{background:#2a3a4a;border-radius:99px}
-        .pulse-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--neon-red);animation:pulse-red 1.8s ease-in-out infinite;box-shadow:0 0 12px var(--neon-red-glow)}
-        @keyframes pulse-red{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.75)}}
-        .stat-num{font-variant-numeric:tabular-nums}
-        .spinner{width:18px;height:18px;border-radius:50%;border:2.5px solid rgba(255,255,255,0.08);border-top-color:var(--neon-red);animation:spin 0.7s linear infinite}
-        @keyframes spin{to{transform:rotate(360deg)}}
-        .fade-in{animation:fadeIn 0.35s ease forwards}
-        @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-        .filter-btn.active-filter{background:rgba(255,0,85,0.15);color:#ff3366;border-color:rgba(255,0,85,0.3)}
-        .risk-filter-btn.active-risk{background:rgba(0,212,255,0.12);color:#00d4ff;border-color:rgba(0,212,255,0.25)}
-        .tab-btn{transition:all 0.2s ease}
-        .tab-btn.active-tab{background:rgba(255,0,85,0.12);color:#ff3366;border-color:rgba(255,0,85,0.25)}
-        .vuln-critical{border-left:3px solid #ff0055}
-        .vuln-high{border-left:3px solid #ff8800}
-        .vuln-medium{border-left:3px solid #ffcc00}
-        .vuln-low{border-left:3px solid rgba(255,255,255,0.08)}
-        .ai-thinking{background:rgba(168,85,247,0.05);border:1px solid rgba(168,85,247,0.1)}
-        .scan-log{max-height:80px;overflow-y:auto;font-size:0.6rem;line-height:1.3}
-        .scan-log::-webkit-scrollbar{width:3px}
-        pre{white-space:pre-wrap;word-break:break-all}
-        .pulse-purple{animation:pulse-purple 1.5s ease-in-out infinite}
-        @keyframes pulse-purple{0%,100%{box-shadow:0 0 10px rgba(168,85,247,0.1)}50%{box-shadow:0 0 25px rgba(168,85,247,0.25)}}
-        select{background:rgba(0,0,0,0.3)}
-        select option{background:#111827}
+        :root {
+            --bg-deep: #0a0f1d;
+            --bg-card: #111827;
+            --neon-red: #ff0055;
+            --neon-red-glow: rgba(255, 0, 85, 0.35);
+            --neon-green: #00ff88;
+            --neon-green-glow: rgba(0, 255, 136, 0.30);
+            --neon-cyan: #00d4ff;
+            --neon-orange: #ff8800;
+            --neon-purple: #a855f7;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --border-dim: #1e2a3a;
+        }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            min-height: 100vh;
+            background-image:
+                radial-gradient(ellipse 80% 60% at 50% -10%, rgba(255, 0, 85, 0.05) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 50% at 80% 90%, rgba(0, 255, 136, 0.04) 0%, transparent 70%),
+                radial-gradient(ellipse 40% 40% at 10% 80%, rgba(168, 85, 247, 0.03) 0%, transparent 60%);
+        }
+        .font-mono-custom {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .glass-card {
+            background: rgba(17, 24, 39, 0.75);
+            backdrop-filter: blur(16px) saturate(1.3);
+            -webkit-backdrop-filter: blur(16px) saturate(1.3);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+        }
+        .glass-card:hover {
+            border-color: rgba(255, 0, 85, 0.15);
+        }
+        .btn-scan {
+            background: linear-gradient(135deg, #ff0055 0%, #cc0044 100%);
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 20px rgba(255, 0, 85, 0.25);
+        }
+        .btn-scan:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 35px rgba(255, 0, 85, 0.4);
+        }
+        .btn-scan:disabled {
+            opacity: 0.6;
+            transform: none;
+            cursor: not-allowed;
+        }
+        .btn-primary-sm {
+            background: rgba(255, 0, 85, 0.12);
+            border: 1px solid rgba(255, 0, 85, 0.2);
+            transition: all 0.2s ease;
+            color: #ff3366;
+        }
+        .btn-primary-sm:hover {
+            background: rgba(255, 0, 85, 0.2);
+        }
+        .btn-primary-sm:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .btn-ghost-sm {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.2s ease;
+            color: #ccc;
+        }
+        .btn-ghost-sm:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .btn-live {
+            background: rgba(0, 212, 255, 0.08);
+            border: 1px solid rgba(0, 212, 255, 0.12);
+            transition: all 0.2s ease;
+            color: #00d4ff;
+        }
+        .btn-live:hover {
+            background: rgba(0, 212, 255, 0.16);
+        }
+        .btn-live:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .drop-zone {
+            border: 2px dashed rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .drop-zone:hover {
+            border-color: var(--neon-green);
+            background: rgba(0, 255, 136, 0.03);
+        }
+        .drop-zone.drag-over {
+            border-color: var(--neon-green);
+            background: rgba(0, 255, 136, 0.08);
+            box-shadow: 0 0 40px rgba(0, 255, 136, 0.12);
+        }
+        .badge-endpoint {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-size: 0.6rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            background: rgba(0, 255, 136, 0.10);
+            color: #00ff88;
+            border: 1px solid rgba(0, 255, 136, 0.15);
+        }
+        .badge-secret {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-size: 0.6rem;
+            font-weight: 600;
+            background: rgba(255, 0, 85, 0.10);
+            color: #ff3366;
+            border: 1px solid rgba(255, 0, 85, 0.15);
+        }
+        .badge-risk {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.6rem;
+            font-weight: 600;
+        }
+        .badge-risk.critical {
+            background: rgba(255, 0, 85, 0.15);
+            color: #ff3366;
+            border: 1px solid rgba(255, 0, 85, 0.2);
+        }
+        .badge-risk.high {
+            background: rgba(255, 136, 0, 0.15);
+            color: #ff8800;
+            border: 1px solid rgba(255, 136, 0, 0.2);
+        }
+        .badge-risk.medium {
+            background: rgba(255, 200, 0, 0.10);
+            color: #ffcc00;
+            border: 1px solid rgba(255, 200, 0, 0.15);
+        }
+        .badge-risk.low {
+            background: rgba(255, 255, 255, 0.04);
+            color: #8b949e;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .badge-source {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.55rem;
+            font-weight: 500;
+            background: rgba(0, 212, 255, 0.08);
+            color: #00d4ff;
+            border: 1px solid rgba(0, 212, 255, 0.10);
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .status-dot {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            margin-right: 3px;
+        }
+        .status-dot.online {
+            background: #00ff88;
+            box-shadow: 0 0 6px rgba(0, 255, 136, 0.4);
+        }
+        .status-dot.offline {
+            background: #ff0055;
+            box-shadow: 0 0 6px rgba(255, 0, 85, 0.4);
+        }
+        .status-dot.unknown {
+            background: #555;
+        }
+        .status-dot.loading {
+            background: #ff8800;
+            animation: pulse-orange 0.8s ease-in-out infinite;
+        }
+        @keyframes pulse-orange {
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.3;
+                transform: scale(0.6);
+            }
+        }
+        .value-truncate {
+            max-width: 260px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        @media (max-width: 640px) {
+            .value-truncate {
+                max-width: 120px;
+            }
+        }
+        .toast-alert {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 9999;
+            max-width: 480px;
+            transform: translateX(120%);
+            transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .toast-alert.show {
+            transform: translateX(0);
+        }
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-deep);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2a3a4a;
+            border-radius: 99px;
+        }
+        .pulse-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--neon-red);
+            animation: pulse-red 1.8s ease-in-out infinite;
+            box-shadow: 0 0 12px var(--neon-red-glow);
+        }
+        @keyframes pulse-red {
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.4;
+                transform: scale(0.75);
+            }
+        }
+        .stat-num {
+            font-variant-numeric: tabular-nums;
+        }
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2.5px solid rgba(255, 255, 255, 0.08);
+            border-top-color: var(--neon-red);
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        .fade-in {
+            animation: fadeIn 0.35s ease forwards;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .filter-btn.active-filter {
+            background: rgba(255, 0, 85, 0.15);
+            color: #ff3366;
+            border-color: rgba(255, 0, 85, 0.3);
+        }
+        .risk-filter-btn.active-risk {
+            background: rgba(0, 212, 255, 0.12);
+            color: #00d4ff;
+            border-color: rgba(0, 212, 255, 0.25);
+        }
+        .tab-btn {
+            transition: all 0.2s ease;
+        }
+        .tab-btn.active-tab {
+            background: rgba(255, 0, 85, 0.12);
+            color: #ff3366;
+            border-color: rgba(255, 0, 85, 0.25);
+        }
+        .vuln-critical {
+            border-left: 3px solid #ff0055;
+        }
+        .vuln-high {
+            border-left: 3px solid #ff8800;
+        }
+        .vuln-medium {
+            border-left: 3px solid #ffcc00;
+        }
+        .vuln-low {
+            border-left: 3px solid rgba(255, 255, 255, 0.08);
+        }
+        .ai-thinking {
+            background: rgba(168, 85, 247, 0.05);
+            border: 1px solid rgba(168, 85, 247, 0.1);
+        }
+        .scan-log {
+            max-height: 80px;
+            overflow-y: auto;
+            font-size: 0.6rem;
+            line-height: 1.3;
+        }
+        .scan-log::-webkit-scrollbar {
+            width: 3px;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .pulse-purple {
+            animation: pulse-purple 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse-purple {
+            0%,
+            100% {
+                box-shadow: 0 0 10px rgba(168, 85, 247, 0.1);
+            }
+            50% {
+                box-shadow: 0 0 25px rgba(168, 85, 247, 0.25);
+            }
+        }
+        select {
+            background: rgba(0, 0, 0, 0.3);
+        }
+        select option {
+            background: #111827;
+        }
+        .lang-btn {
+            transition: all 0.2s ease;
+        }
+        .lang-btn.active-lang {
+            background: rgba(255, 0, 85, 0.15);
+            color: #ff3366;
+            border-color: rgba(255, 0, 85, 0.3);
+        }
+        .help-panel {
+            background: rgba(17, 24, 39, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .glow-text {
+            text-shadow: 0 0 20px rgba(255, 0, 85, 0.3);
+        }
     </style>
 </head>
 <body>
-
     <!-- Toast -->
     <div id="toast" class="toast-alert glass-card rounded-xl p-4 pr-5 border border-red-900/30 shadow-2xl">
         <div class="flex items-start gap-3">
@@ -98,82 +392,93 @@
     </div>
 
     <!-- Main -->
-    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
 
-        <!-- Header -->
-        <header class="flex flex-col sm:flex-row items-center justify-between gap-3 mb-6 fade-in">
+        <!-- Header with Language Switcher -->
+        <header class="flex flex-col sm:flex-row items-center justify-between gap-3 mb-5 fade-in">
             <div class="flex items-center gap-4">
                 <div class="relative flex items-center justify-center w-11 h-11 rounded-xl bg-[#111827] border border-white/5 shadow-lg">
                     <span class="text-xl font-bold font-mono-custom" style="background:linear-gradient(135deg,#ff0055,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">CD</span>
                     <span class="pulse-dot absolute -top-1 -right-1"></span>
                 </div>
                 <div>
-                    <h1 class="text-lg sm:text-2xl font-extrabold tracking-tight">
+                    <h1 class="text-lg sm:text-2xl font-extrabold tracking-tight glow-text">
                         <span style="background:linear-gradient(135deg,#ff0055 0%,#a855f7 60%,#00ff88 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">CyberDelve</span>
                         <span class="text-gray-300 font-light hidden sm:inline"> · </span>
-                        <span class="text-sm sm:text-base font-medium text-gray-400 hidden sm:inline">Ultimate BH Pro</span>
+                        <span class="text-sm sm:text-base font-medium text-gray-400 hidden sm:inline" id="header-subtitle">Ultimate BH Pro</span>
                     </h1>
-                    <p class="text-[0.6rem] text-gray-500 mt-0.5 font-mono-custom">v6.0 · ai-assisted hybrid bug hunting platform</p>
+                    <p class="text-[0.6rem] text-gray-500 mt-0.5 font-mono-custom" id="header-version">v7.0 · ən güclü bug hunting platformu</p>
                 </div>
             </div>
-            <div class="flex items-center gap-2 text-[0.6rem] text-gray-500 font-mono-custom">
-                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500 shadow-lg shadow-green-500/30"></span>client-side</span>
-                <span class="hidden sm:inline">|</span>
-                <span class="hidden sm:inline">hybrid engine</span>
+            <div class="flex items-center gap-2">
+                <button id="lang-az" class="lang-btn active-lang px-2 py-1 rounded text-[0.6rem] border border-white/5 text-gray-400">AZ</button>
+                <button id="lang-en" class="lang-btn px-2 py-1 rounded text-[0.6rem] border border-white/5 text-gray-400">EN</button>
+                <button id="btn-help" class="btn-ghost-sm px-2 py-1 rounded text-[0.6rem] flex items-center gap-1">❓ Kömək</button>
             </div>
         </header>
 
+        <!-- Help Panel -->
+        <div id="help-panel" class="hidden help-panel rounded-2xl p-4 mb-5 fade-in">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-xs font-semibold uppercase tracking-widest text-gray-400" id="help-title">📖 Köməklik / Yardım</h3>
+                <button id="btn-help-close" class="text-gray-500 hover:text-white text-lg">&times;</button>
+            </div>
+            <div id="help-content" class="text-xs text-gray-300 leading-relaxed space-y-2 max-h-96 overflow-y-auto"></div>
+        </div>
+
         <!-- Stats -->
-        <div class="grid grid-cols-6 gap-2 mb-5 fade-in">
+        <div class="grid grid-cols-6 gap-2 mb-4 fade-in">
             <div class="glass-card rounded-xl py-2 px-2 text-center">
                 <p class="text-lg sm:text-2xl font-bold font-mono-custom text-green-400 stat-num" id="stat-endpoints">0</p>
-                <p class="text-[0.5rem] sm:text-[0.65rem] text-gray-500 uppercase tracking-wider">Endpoints</p>
+                <p class="text-[0.5rem] sm:text-[0.65rem] text-gray-500 uppercase tracking-wider" id="stat-label-endpoints">Endpoints</p>
             </div>
             <div class="glass-card rounded-xl py-2 px-2 text-center">
                 <p class="text-lg sm:text-2xl font-bold font-mono-custom text-red-400 stat-num" id="stat-secrets">0</p>
-                <p class="text-[0.5rem] sm:text-[0.65rem] text-gray-500 uppercase tracking-wider">Secrets</p>
+                <p class="text-[0.5rem] sm:text-[0.65rem] text-gray-500 uppercase tracking-wider" id="stat-label-secrets">Secrets</p>
             </div>
             <div class="glass-card rounded-xl py-2 px-2 text-center">
                 <p class="text-lg sm:text-2xl font-bold font-mono-custom text-orange-400 stat-num" id="stat-vulns">0</p>
-                <p class="text-[0.5rem] sm:text-[0.65rem] text-gray-500 uppercase tracking-wider">Zəiflik</p>
+                <p class="text-[0.5rem] sm:text-[0.65rem] text-gray-500 uppercase tracking-wider" id="stat-label-vulns">Zəiflik</p>
             </div>
             <div class="glass-card rounded-xl py-2 px-2 text-center">
                 <p class="text-lg sm:text-2xl font-bold font-mono-custom text-purple-400 stat-num" id="stat-highrisk">0</p>
-                <p class="text-[0.5rem] sm:text-[0.65rem] text-gray-500 uppercase tracking-wider">🔥 Yüksək</p>
+                <p class="text-[0.5rem] sm:text-[0.65rem] text-gray-500 uppercase tracking-wider" id="stat-label-highrisk">🔥 Yüksək</p>
             </div>
             <div class="glass-card rounded-xl py-2 px-2 text-center">
                 <p class="text-lg sm:text-2xl font-bold font-mono-custom text-cyan-400 stat-num" id="stat-files">0</p>
-                <p class="text-[0.5rem] sm:text-[0.65rem] text-gray-500 uppercase tracking-wider">Fayllar</p>
+                <p class="text-[0.5rem] sm:text-[0.65rem] text-gray-500 uppercase tracking-wider" id="stat-label-files">Fayllar</p>
             </div>
             <div class="glass-card rounded-xl py-2 px-2 text-center">
                 <p class="text-lg sm:text-2xl font-bold font-mono-custom text-gray-300 stat-num" id="stat-lines">0</p>
-                <p class="text-[0.5rem] sm:text-[0.65rem] text-gray-500 uppercase tracking-wider">Sətirlər</p>
+                <p class="text-[0.5rem] sm:text-[0.65rem] text-gray-500 uppercase tracking-wider" id="stat-label-lines">Sətirlər</p>
             </div>
         </div>
 
         <!-- Input -->
-        <div class="grid md:grid-cols-2 gap-4 mb-5 fade-in">
+        <div class="grid md:grid-cols-2 gap-4 mb-4 fade-in">
             <div class="glass-card rounded-2xl p-4 sm:p-5">
                 <div class="flex items-center gap-2 mb-3">
                     <span class="text-red-400 text-lg">🌐</span>
-                    <h2 class="text-xs font-semibold uppercase tracking-widest text-gray-400">Sayt URL-i ilə Skandala</h2>
+                    <h2 class="text-xs font-semibold uppercase tracking-widest text-gray-400" id="input-url-title">Sayt URL-i ilə Skandala</h2>
                 </div>
+                <p class="text-[0.6rem] text-gray-500 mb-2 font-mono-custom" id="input-url-desc">**YALNIZ HTML yükləmək üçün** — CORS olan saytlar işləyər. Olmazsa, faylı endirib atın.</p>
                 <div class="flex gap-2">
                     <input id="url-input" type="url" placeholder="https://hedef.com" class="flex-1 bg-black/40 border border-white/5 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 outline-none transition focus:border-red-500/40 focus:ring-1 focus:ring-red-500/20 font-mono-custom">
                     <button id="btn-scan-url" class="btn-scan px-4 py-2.5 rounded-xl text-white text-sm font-semibold tracking-wide flex items-center gap-2 whitespace-nowrap">
-                        <span>Skan</span><span>→</span>
+                        <span id="btn-scan-text">Skan</span><span>→</span>
                     </button>
                 </div>
             </div>
             <div class="glass-card rounded-2xl p-4 sm:p-5">
                 <div class="flex items-center gap-2 mb-3">
                     <span class="text-green-400 text-lg">📂</span>
-                    <h2 class="text-xs font-semibold uppercase tracking-widest text-gray-400">Faylı Sürüşdür &amp; Burax</h2>
+                    <h2 class="text-xs font-semibold uppercase tracking-widest text-gray-400" id="input-drop-title">Faylı Sürüşdür &amp; Burax</h2>
                 </div>
+                <p class="text-[0.6rem] text-gray-500 mb-2 font-mono-custom" id="input-drop-desc">HTML faylını (Ctrl+U) endirin, sonra bura atın. JS faylı da dəstəklənir.</p>
                 <div id="drop-zone" class="drop-zone rounded-xl p-4 sm:p-6 text-center cursor-pointer transition">
                     <div class="flex flex-col items-center gap-1 pointer-events-none">
                         <div class="text-2xl text-gray-600">⬆</div>
-                        <p class="text-xs text-gray-400">HTML/JS faylını atın</p>
+                        <p class="text-xs text-gray-400" id="drop-text">HTML/JS faylını atın</p>
                     </div>
                     <input id="file-input" type="file" accept=".html,.htm,.js,.mjs,.cjs,.jsx,.ts,.tsx,.json,.apk,.ipa" class="hidden">
                 </div>
@@ -183,7 +488,7 @@
         <!-- Progress -->
         <div id="progress-section" class="hidden glass-card rounded-2xl p-3 mb-4 fade-in">
             <div class="flex items-center justify-between mb-1">
-                <span class="text-[0.6rem] font-semibold uppercase tracking-widest text-gray-500">Proses</span>
+                <span class="text-[0.6rem] font-semibold uppercase tracking-widest text-gray-500" id="progress-title">Proses</span>
                 <span id="progress-label" class="text-[0.6rem] font-mono-custom text-gray-500">0/0</span>
             </div>
             <div class="w-full bg-black/40 rounded-full h-1 mb-1">
@@ -192,21 +497,21 @@
             <div id="scan-log" class="scan-log text-gray-500 font-mono-custom"></div>
         </div>
 
-        <!-- Tab Navigation -->
+        <!-- Tabs -->
         <div class="flex flex-wrap gap-1 mb-4 border-b border-white/5 pb-2">
-            <button data-tab="results" class="tab-btn active-tab px-3 py-1.5 rounded-lg text-[0.65rem] border border-white/5 text-gray-400">📊 Nəticələr</button>
-            <button data-tab="vulns" class="tab-btn px-3 py-1.5 rounded-lg text-[0.65rem] border border-white/5 text-gray-400">🔴 Zəifliklər</button>
-            <button data-tab="history" class="tab-btn px-3 py-1.5 rounded-lg text-[0.65rem] border border-white/5 text-gray-400">🕰️ Wayback</button>
-            <button data-tab="ai" class="tab-btn px-3 py-1.5 rounded-lg text-[0.65rem] border border-white/5 text-gray-400">🤖 AI Analiz</button>
-            <button data-tab="templates" class="tab-btn px-3 py-1.5 rounded-lg text-[0.65rem] border border-white/5 text-gray-400">📜 Template-lər</button>
-            <button data-tab="report" class="tab-btn px-3 py-1.5 rounded-lg text-[0.65rem] border border-white/5 text-gray-400">📝 Report</button>
+            <button data-tab="results" class="tab-btn active-tab px-3 py-1.5 rounded-lg text-[0.65rem] border border-white/5 text-gray-400">📊 <span class="tab-label" data-key="tab-results">Nəticələr</span></button>
+            <button data-tab="vulns" class="tab-btn px-3 py-1.5 rounded-lg text-[0.65rem] border border-white/5 text-gray-400">🔴 <span class="tab-label" data-key="tab-vulns">Zəifliklər</span></button>
+            <button data-tab="history" class="tab-btn px-3 py-1.5 rounded-lg text-[0.65rem] border border-white/5 text-gray-400">🕰️ <span class="tab-label" data-key="tab-wayback">Wayback</span></button>
+            <button data-tab="ai" class="tab-btn px-3 py-1.5 rounded-lg text-[0.65rem] border border-white/5 text-gray-400">🤖 <span class="tab-label" data-key="tab-ai">AI Analiz</span></button>
+            <button data-tab="templates" class="tab-btn px-3 py-1.5 rounded-lg text-[0.65rem] border border-white/5 text-gray-400">📜 <span class="tab-label" data-key="tab-templates">Template-lər</span></button>
+            <button data-tab="report" class="tab-btn px-3 py-1.5 rounded-lg text-[0.65rem] border border-white/5 text-gray-400">📝 <span class="tab-label" data-key="tab-report">Report</span></button>
         </div>
 
-        <!-- === TAB: Results === -->
+        <!-- Results Tab -->
         <div id="tab-results" class="tab-content fade-in">
             <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
                 <div class="flex items-center gap-2">
-                    <span class="text-xs font-semibold uppercase tracking-widest text-gray-400">Kəşflər</span>
+                    <span class="text-xs font-semibold uppercase tracking-widest text-gray-400" id="results-title">Kəşflər</span>
                     <span id="result-count" class="text-[0.6rem] font-mono-custom text-gray-500 bg-white/5 px-2 py-0.5 rounded-full">0</span>
                 </div>
                 <div class="flex items-center flex-wrap gap-1">
@@ -244,180 +549,359 @@
                                 <th class="text-[0.55rem] uppercase tracking-widest text-gray-500 p-2 border-b border-white/5 w-14">Status</th>
                                 <th class="hidden sm:table-cell text-[0.55rem] uppercase tracking-widest text-gray-500 p-2 border-b border-white/5 w-12">Sətir</th>
                                 <th class="hidden md:table-cell text-[0.55rem] uppercase tracking-widest text-gray-500 p-2 border-b border-white/5 w-28">Mənbə</th>
-                                <th class="text-[0.55rem] uppercase tracking-widest text-gray-500 p-2 border-b border-white/5 w-28">Əməl.</th>
+                                <th class="text-[0.55rem] uppercase tracking-widest text-gray-500 p-2 border-b border-white/5 w-28">Detal</th>
                             </tr>
                         </thead>
                         <tbody id="results-body"></tbody>
                     </table>
                 </div>
                 <div id="empty-state" class="hidden py-10 text-center">
-                    <p class="text-gray-500 text-xs">Nəticə yoxdur</p>
+                    <p class="text-gray-500 text-xs" id="empty-text">Nəticə yoxdur</p>
                 </div>
             </div>
         </div>
 
-        <!-- === TAB: Vulns === -->
+        <!-- Vulns Tab -->
         <div id="tab-vulns" class="tab-content hidden fade-in">
             <div class="flex items-center justify-between mb-3">
-                <h3 class="text-xs font-semibold uppercase tracking-widest text-gray-400">🔴 Aşkarlanan Zəifliklər</h3>
+                <h3 class="text-xs font-semibold uppercase tracking-widest text-gray-400" id="vulns-title">🔴 Aşkarlanan Zəifliklər</h3>
                 <span id="vuln-count" class="text-[0.6rem] font-mono-custom text-gray-500 bg-white/5 px-2 py-0.5 rounded-full">0</span>
             </div>
             <div id="vulns-list" class="space-y-2">
-                <div class="text-center text-gray-600 text-xs py-6">Zəiflik aşkarlanmayıb. Əvvəlcə skan edin.</div>
+                <div class="text-center text-gray-600 text-xs py-6" id="vulns-empty">Zəiflik aşkarlanmayıb. Əvvəlcə skan edin.</div>
             </div>
         </div>
 
-        <!-- === TAB: Wayback === -->
+        <!-- Wayback Tab -->
         <div id="tab-history" class="tab-content hidden fade-in">
             <div class="flex items-center gap-3 mb-3">
-                <h3 class="text-xs font-semibold uppercase tracking-widest text-gray-400">🕰️ Wayback Machine Tarixçəsi</h3>
+                <h3 class="text-xs font-semibold uppercase tracking-widest text-gray-400" id="wayback-title">🕰️ Wayback Machine Tarixçəsi</h3>
                 <button id="btn-wayback" class="btn-primary-sm px-3 py-1 rounded text-[0.6rem]">Çək</button>
                 <span id="wayback-status" class="text-[0.55rem] text-gray-500"></span>
             </div>
             <div id="wayback-list" class="glass-card rounded-2xl p-4 max-h-80 overflow-y-auto">
-                <p class="text-gray-600 text-xs text-center py-4">Hələ yüklənməyib. "Çək" düyməsinə basın.</p>
+                <p class="text-gray-600 text-xs text-center py-4" id="wayback-empty">Hələ yüklənməyib. "Çək" düyməsinə basın.</p>
             </div>
         </div>
 
-        <!-- === TAB: AI === -->
+        <!-- AI Tab -->
         <div id="tab-ai" class="tab-content hidden fade-in">
             <div class="flex items-center gap-3 mb-3">
-                <h3 class="text-xs font-semibold uppercase tracking-widest text-gray-400">🤖 AI Köməkçi</h3>
+                <h3 class="text-xs font-semibold uppercase tracking-widest text-gray-400" id="ai-title">🤖 AI Köməkçi</h3>
                 <button id="btn-ai-analyze" class="btn-primary-sm px-3 py-1 rounded text-[0.6rem]">Analiz et</button>
                 <span id="ai-status" class="text-[0.55rem] text-gray-500"></span>
             </div>
             <div id="ai-result" class="glass-card rounded-2xl p-4 ai-thinking pulse-purple min-h-[100px]">
-                <p class="text-gray-500 text-xs italic">AI analizi üçün skan edin, sonra "Analiz et" düyməsini basın.</p>
+                <p class="text-gray-500 text-xs italic" id="ai-empty">AI analizi üçün skan edin, sonra "Analiz et" düyməsini basın.</p>
             </div>
         </div>
 
-        <!-- === TAB: Templates === -->
+        <!-- Templates Tab -->
         <div id="tab-templates" class="tab-content hidden fade-in">
             <div class="flex items-center justify-between mb-3">
-                <h3 class="text-xs font-semibold uppercase tracking-widest text-gray-400">📜 Community Templates</h3>
+                <h3 class="text-xs font-semibold uppercase tracking-widest text-gray-400" id="templates-title">📜 Community Templates</h3>
                 <button id="btn-add-template" class="btn-primary-sm px-3 py-1 rounded text-[0.6rem]">+ Əlavə et</button>
             </div>
             <div id="templates-list" class="space-y-1 max-h-80 overflow-y-auto">
-                <div class="text-gray-600 text-xs text-center py-4">Hələ template yoxdur. "Əlavə et" ilə öz template-inizi yaradın.</div>
+                <div class="text-gray-600 text-xs text-center py-4" id="templates-empty">Hələ template yoxdur.</div>
             </div>
         </div>
 
-        <!-- === TAB: Report === -->
+        <!-- Report Tab -->
         <div id="tab-report" class="tab-content hidden fade-in">
             <div class="flex items-center justify-between mb-3">
-                <h3 class="text-xs font-semibold uppercase tracking-widest text-gray-400">📝 Bug Bounty Report</h3>
+                <h3 class="text-xs font-semibold uppercase tracking-widest text-gray-400" id="report-title">📝 Bug Bounty Report</h3>
                 <div class="flex gap-2">
                     <button id="btn-gen-report" class="btn-primary-sm px-3 py-1 rounded text-[0.6rem]">Yarat</button>
                     <button id="btn-export-report" class="btn-ghost-sm px-3 py-1 rounded text-[0.6rem]">Endir</button>
                 </div>
             </div>
             <div id="report-content" class="glass-card rounded-2xl p-4 font-mono-custom text-xs text-gray-300 max-h-96 overflow-y-auto leading-relaxed">
-                <p class="text-gray-500 text-center py-4">Report yaratmaq üçün əvvəlcə skan edin, sonra "Yarat" düyməsini basın.</p>
+                <p class="text-gray-500 text-center py-4" id="report-empty">Report yaratmaq üçün əvvəlcə skan edin.</p>
             </div>
         </div>
 
-        <footer class="mt-10 text-center text-[0.55rem] text-gray-700 font-mono-custom border-t border-white/[0.02] pt-4">
-            CyberDelve Ultimate BH Pro v6.0 · İcazəli pentest üçün · Yalnız qanuni məqsədlər üçün istifadə edin
+        <footer class="mt-8 text-center text-[0.55rem] text-gray-700 font-mono-custom border-t border-white/[0.02] pt-4">
+            CyberDelve Ultimate BH Pro v7.0 · İcazəli pentest üçün · Yalnız qanuni məqsədlər üçün istifadə edin
         </footer>
     </div>
 
     <script>
-        (function () {
+        // ===================================================================
+        // CYBERDELVE ULTIMATE BUG HUNTER PRO v7.0
+        // ===================================================================
+        (function() {
             'use strict';
 
-            // ── DOM refs ──────────────────────────────────────────────────────────
+            // ── DOM ─────────────────────────────────────────────────────────
             const $ = id => document.getElementById(id);
-            const urlInput        = $('url-input');
-            const btnScan         = $('btn-scan-url');
-            const dropZone        = $('drop-zone');
-            const fileInput       = $('file-input');
-            const resultsBody     = $('results-body');
-            const emptyState      = $('empty-state');
-            const resultCount     = $('result-count');
-            const searchInput     = $('search-input');
-            const filterBtns      = document.querySelectorAll('.filter-btn');
-            const riskFilterBtns  = document.querySelectorAll('.risk-filter-btn');
-            const tabBtns         = document.querySelectorAll('.tab-btn');
-            const tabContents     = document.querySelectorAll('.tab-content');
-            const toast           = $('toast');
-            const toastMsg        = $('toast-msg');
+            const urlInput = $('url-input');
+            const btnScan = $('btn-scan-url');
+            const dropZone = $('drop-zone');
+            const fileInput = $('file-input');
+            const resultsBody = $('results-body');
+            const emptyState = $('empty-state');
+            const resultCount = $('result-count');
+            const searchInput = $('search-input');
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            const riskFilterBtns = document.querySelectorAll('.risk-filter-btn');
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const toast = $('toast');
+            const toastMsg = $('toast-msg');
             const progressSection = $('progress-section');
-            const progressBar     = $('progress-bar');
-            const progressLabel   = $('progress-label');
-            const scanLog         = $('scan-log');
-            const liveStatus      = $('live-status');
-            const waybackList     = $('wayback-list');
-            const waybackStatus   = $('wayback-status');
-            const vulnsList       = $('vulns-list');
-            const vulnCount       = $('vuln-count');
-            const aiResult        = $('ai-result');
-            const aiStatus        = $('ai-status');
-            const reportContent   = $('report-content');
-            const templatesList   = $('templates-list');
-            const statEndpoints   = $('stat-endpoints');
-            const statSecrets     = $('stat-secrets');
-            const statVulns       = $('stat-vulns');
-            const statHighRisk    = $('stat-highrisk');
-            const statFiles       = $('stat-files');
-            const statLines       = $('stat-lines');
+            const progressBar = $('progress-bar');
+            const progressLabel = $('progress-label');
+            const scanLog = $('scan-log');
+            const liveStatus = $('live-status');
+            const waybackList = $('wayback-list');
+            const waybackStatus = $('wayback-status');
+            const vulnsList = $('vulns-list');
+            const vulnCount = $('vuln-count');
+            const aiResult = $('ai-result');
+            const aiStatus = $('ai-status');
+            const reportContent = $('report-content');
+            const templatesList = $('templates-list');
+            const helpPanel = $('help-panel');
+            const helpContent = $('help-content');
+            const langAz = $('lang-az');
+            const langEn = $('lang-en');
 
-            // ── State ─────────────────────────────────────────────────────────────
-            let allResults        = [];
-            let allVulns          = [];
-            let discoveredParams  = new Set();
-            let waybackUrls       = [];
-            let currentFilter     = 'all';
+            // Stats
+            const sEP = $('stat-endpoints');
+            const sSec = $('stat-secrets');
+            const sVuln = $('stat-vulns');
+            const sHR = $('stat-highrisk');
+            const sFiles = $('stat-files');
+            const sLines = $('stat-lines');
+
+            // ── State ───────────────────────────────────────────────────────
+            let allResults = [];
+            let allVulns = [];
+            let discoveredParams = new Set();
+            let waybackUrls = [];
+            let currentFilter = 'all';
             let currentRiskFilter = 'all';
-            let currentSearch     = '';
-            let scannedFiles      = new Set();
-            let totalFiles        = 0, completedFiles = 0;
+            let currentSearch = '';
+            let scannedFiles = new Set();
+            let totalFiles = 0,
+                completedFiles = 0;
             let liveCheckInProgress = false;
-            let templates         = [];
-            let scanSource        = '';
+            let templates = [];
+            let scanSource = '';
+            let currentLang = 'az';
 
-            // ── FIX 1: Removed duplicate const HIGH_RISK — keep only the full one ─
-            const HIGH_RISK = [
-                'admin','delete','edit','config','upload','graphql','env','backup','debug','panel',
-                'login','signup','auth','token','oauth','callback','webhook','reset','password','grant','root',
-                'sudo','exec','cmd','shell','database','db','sql','query','export','import','migrate','firebase',
-                'aws','s3','bucket','storage','cdn-admin','internal','private','secret','credential','key',
-                'api-key','payment','checkout','order','invoice','billing','websocket','realtime','stream',
-                'swagger','openapi','api-docs','docs','health','metrics','prometheus','grafana','jenkins','jira',
-                'confluence','gitlab','bitbucket','swf','flex','amf','soap','xmlrpc','actuator','swagger-ui',
-                'graphiql','voyager','playground'
-            ];
+            // ── Translations ────────────────────────────────────────────────
+            const LANG = {
+                az: {
+                    headerSubtitle: 'Ultimate BH Pro',
+                    headerVersion: 'v7.0 · ən güclü bug hunting platformu',
+                    inputUrlTitle: 'Sayt URL-i ilə Skandala',
+                    inputUrlDesc: '**YALNIZ HTML yükləmək üçün** — CORS olan saytlar işləyər. Olmazsa, faylı endirib atın.',
+                    inputDropTitle: 'Faylı Sürüşdür & Burax',
+                    inputDropDesc: 'HTML faylını (Ctrl+U) endirin, sonra bura atın. JS faylı da dəstəklənir.',
+                    dropText: 'HTML/JS faylını atın',
+                    btnScan: 'Skan',
+                    progressTitle: 'Proses',
+                    tabResults: 'Nəticələr',
+                    tabVulns: 'Zəifliklər',
+                    tabWayback: 'Wayback',
+                    tabAi: 'AI Analiz',
+                    tabTemplates: 'Template-lər',
+                    tabReport: 'Report',
+                    resultsTitle: 'Kəşflər',
+                    vulnsTitle: '🔴 Aşkarlanan Zəifliklər',
+                    waybackTitle: '🕰️ Wayback Machine Tarixçəsi',
+                    aiTitle: '🤖 AI Köməkçi',
+                    templatesTitle: '📜 Community Templates',
+                    reportTitle: '📝 Bug Bounty Report',
+                    emptyText: 'Nəticə yoxdur',
+                    vulnsEmpty: 'Zəiflik aşkarlanmayıb. Əvvəlcə skan edin.',
+                    waybackEmpty: 'Hələ yüklənməyib. "Çək" düyməsinə basın.',
+                    aiEmpty: 'AI analizi üçün skan edin, sonra "Analiz et" düyməsini basın.',
+                    templatesEmpty: 'Hələ template yoxdur.',
+                    reportEmpty: 'Report yaratmaq üçün əvvəlcə skan edin.',
+                    helpTitle: '📖 Köməklik / Yardım',
+                    helpContent: `
+                <div class="space-y-3">
+                  <div class="bg-white/5 rounded-lg p-3">
+                    <p class="text-cyan-400 font-semibold text-[0.7rem] mb-1">🎯 CyberDelve nədir?</p>
+                    <p class="text-gray-400">CyberDelve, JavaScript fayllarını skan edərək API endpoint-ləri, gizli açarlar, JWT token-lər, kredit kartı nömrələri və potensial zəiflikləri aşkarlayan ən güclü client-side bug hunting platformudur.</p>
+                  </div>
+                  <div class="bg-white/5 rounded-lg p-3">
+                    <p class="text-cyan-400 font-semibold text-[0.7rem] mb-1">🌐 URL ilə skan (CORS məhdudiyyəti)</p>
+                    <p class="text-gray-400">Saytın URL-ni yazıb "Skan" edirsiniz. Əgər sayt CORS siyasətinə görə bloklanırsa, xəbərdarlıq çıxır və sizə HTML faylını endirib Drag & Drop etmək tövsiyə olunur.</p>
+                    <p class="text-gray-500 mt-1 text-[0.55rem]">✅ CORS açıq saytlar: hedef.com JS fayllarını avtomatik yükləyər.<br>❌ CORS qapalı saytlar: Ctrl+U → HTML endir → bura at.</p>
+                  </div>
+                  <div class="bg-white/5 rounded-lg p-3">
+                    <p class="text-cyan-400 font-semibold text-[0.7rem] mb-1">📂 Drag & Drop (HTML faylı)</p>
+                    <p class="text-gray-400">Brauzerdə saytı açın → Ctrl+U (səhifə mənbəyi) → Ctrl+S (yadda saxla) → .html faylını bura atın. Tool bütün JS referanslarını tapıb analiz edər.</p>
+                  </div>
+                  <div class="bg-white/5 rounded-lg p-3">
+                    <p class="text-cyan-400 font-semibold text-[0.7rem] mb-1">🔍 Düymələr nə işə yarayır?</p>
+                    <ul class="text-gray-400 list-disc list-inside space-y-1">
+                      <li><span class="text-green-400">🔍 Hamısını Yoxla</span> — bütün endpoint-lərə canlı sorğu atar, işləyənləri yaşıl göstərər</li>
+                      <li><span class="text-orange-400">⚡ Param Fuzz</span> — URL-lərə gizli parametr əlavə edib test edər (Arjun kimi)</li>
+                      <li><span class="text-red-400">🔐 Auth Bypass</span> — login/admin endpoint-lərində auth bypass payload-larını test edər</li>
+                      <li><span class="text-cyan-400">📄 .txt / 📋 .json / 📊 .csv</span> — nəticələri export edər</li>
+                      <li><span class="text-purple-400">⚡ Nuclei YAML / 🕷️ Burp JSON</span> — digər alətlərə uyğun formatda export</li>
+                    </ul>
+                  </div>
+                  <div class="bg-white/5 rounded-lg p-3">
+                    <p class="text-cyan-400 font-semibold text-[0.7rem] mb-1">🔑 Secret / API Key tapılanda nə olur?</p>
+                    <p class="text-gray-400">Secret tapıldıqda cədvəldə qırmızı rənglə göstərilir. Həmçinin "Detal" sütununda:<br>
+                    • **Nədir?** — API key, JWT token, password və s.<br>
+                    • **Haradan tapıldı?** — hansı fayl və sətir nömrəsi<br>
+                    • **Nə işə yarayır?** — AI analiz bölməsində izah olunur<br>
+                    • **Risk səviyyəsi** — 🔥 Kritik (real key) / ⚠ Orta (test keyi) / ● Aşağı (placeholder)</p>
+                  </div>
+                  <div class="bg-white/5 rounded-lg p-3">
+                    <p class="text-cyan-400 font-semibold text-[0.7rem] mb-1">💳 Kredit kartı tapılanda?</p>
+                    <p class="text-gray-400">Kart nömrəsi aşkarlanarsa, "Zəifliklər" tabında 🔴 Kritik olaraq göstərilir. Kartın tipi (Visa, MasterCard, AMEX) və haradan tapıldığı qeyd olunur.</p>
+                  </div>
+                  <div class="bg-white/5 rounded-lg p-3">
+                    <p class="text-cyan-400 font-semibold text-[0.7rem] mb-1">🕰️ Wayback Machine nədir?</p>
+                    <p class="text-gray-400">Skan edilmiş saytın köhnə, silinmiş, unudulmuş URL-lərini web.archive.org-dan çəkər. Köhnə endpoint-lər çox vaxt zəif olur.</p>
+                  </div>
+                  <div class="bg-white/5 rounded-lg p-3">
+                    <p class="text-cyan-400 font-semibold text-[0.7rem] mb-1">🤖 AI Analiz necə işləyir?</p>
+                    <p class="text-gray-400">Tapılan nəticələri analiz edib sizə tövsiyələr verir: "Bu endpoint IDOR ola bilər", "Bu API key real görünür", "Bu GraphQL introspection-a açıqdır" və s.</p>
+                  </div>
+                </div>`
+                },
+                en: {
+                    headerSubtitle: 'Ultimate BH Pro',
+                    headerVersion: 'v7.0 · the most powerful bug hunting platform',
+                    inputUrlTitle: 'Scan with URL',
+                    inputUrlDesc: '**For HTML loading only** — CORS-enabled sites work. Otherwise, download the file and drop it.',
+                    inputDropTitle: 'Drag & Drop File',
+                    inputDropDesc: 'Download the HTML file (Ctrl+U), then drop it here. JS files also supported.',
+                    dropText: 'Drop HTML/JS file here',
+                    btnScan: 'Scan',
+                    progressTitle: 'Progress',
+                    tabResults: 'Results',
+                    tabVulns: 'Vulnerabilities',
+                    tabWayback: 'Wayback',
+                    tabAi: 'AI Analysis',
+                    tabTemplates: 'Templates',
+                    tabReport: 'Report',
+                    resultsTitle: 'Discoveries',
+                    vulnsTitle: '🔴 Detected Vulnerabilities',
+                    waybackTitle: '🕰️ Wayback Machine History',
+                    aiTitle: '🤖 AI Assistant',
+                    templatesTitle: '📜 Community Templates',
+                    reportTitle: '📝 Bug Bounty Report',
+                    emptyText: 'No results found',
+                    vulnsEmpty: 'No vulnerabilities detected. Please scan first.',
+                    waybackEmpty: 'Not loaded yet. Click "Fetch".',
+                    aiEmpty: 'Scan first, then click "Analyze" button.',
+                    templatesEmpty: 'No templates yet.',
+                    reportEmpty: 'Scan first to generate a report.',
+                    helpTitle: '📖 Help / Documentation',
+                    helpContent: `
+                <div class="space-y-3">
+                  <div class="bg-white/5 rounded-lg p-3">
+                    <p class="text-cyan-400 font-semibold text-[0.7rem] mb-1">🎯 What is CyberDelve?</p>
+                    <p class="text-gray-400">CyberDelve is the most powerful client-side bug hunting platform that scans JavaScript files to discover API endpoints, secrets, JWT tokens, credit card numbers, and potential vulnerabilities.</p>
+                  </div>
+                  <div class="bg-white/5 rounded-lg p-3">
+                    <p class="text-cyan-400 font-semibold text-[0.7rem] mb-1">🌐 URL Scan (CORS limitation)</p>
+                    <p class="text-gray-400">Enter a URL and click "Scan". If CORS blocks the request, a warning appears suggesting to download the HTML file and use Drag & Drop.</p>
+                    <p class="text-gray-500 mt-1 text-[0.55rem]">✅ CORS-enabled sites: auto-downloads all JS files.<br>❌ CORS-blocked sites: Ctrl+U → save HTML → drop here.</p>
+                  </div>
+                  <div class="bg-white/5 rounded-lg p-3">
+                    <p class="text-cyan-400 font-semibold text-[0.7rem] mb-1">📂 Drag & Drop (HTML file)</p>
+                    <p class="text-gray-400">Open the site in browser → Ctrl+U (view source) → Ctrl+S (save) → drop the .html file here. The tool finds and analyzes all JS references.</p>
+                  </div>
+                  <div class="bg-white/5 rounded-lg p-3">
+                    <p class="text-cyan-400 font-semibold text-[0.7rem] mb-1">🔍 What do the buttons do?</p>
+                    <ul class="text-gray-400 list-disc list-inside space-y-1">
+                      <li><span class="text-green-400">🔍 Check All Live</span> — sends live requests to all endpoints, shows working ones in green</li>
+                      <li><span class="text-orange-400">⚡ Param Fuzz</span> — adds hidden parameters to URLs and tests them (like Arjun)</li>
+                      <li><span class="text-red-400">🔐 Auth Bypass</span> — tests auth bypass payloads on login/admin endpoints</li>
+                      <li><span class="text-cyan-400">📄 .txt / 📋 .json / 📊 .csv</span> — export results</li>
+                      <li><span class="text-purple-400">⚡ Nuclei YAML / 🕷️ Burp JSON</span> — export for other tools</li>
+                    </ul>
+                  </div>
+                  <div class="bg-white/5 rounded-lg p-3">
+                    <p class="text-cyan-400 font-semibold text-[0.7rem] mb-1">🔑 When a Secret / API Key is found?</p>
+                    <p class="text-gray-400">Secrets are shown in red in the table. The "Detail" column shows:<br>
+                    • **What?** — API key, JWT token, password, etc.<br>
+                    • **Found where?** — file name and line number<br>
+                    • **What does it do?** — explained in the AI analysis section<br>
+                    • **Risk level** — 🔥 Critical (real key) / ⚠ Medium (test key) / ● Low (placeholder)</p>
+                  </div>
+                  <div class="bg-white/5 rounded-lg p-3">
+                    <p class="text-cyan-400 font-semibold text-[0.7rem] mb-1">💳 When a Credit Card is found?</p>
+                    <p class="text-gray-400">Card numbers are shown as 🔴 Critical in the "Vulnerabilities" tab. The card type (Visa, MasterCard, AMEX) and source location are displayed.</p>
+                  </div>
+                  <div class="bg-white/5 rounded-lg p-3">
+                    <p class="text-cyan-400 font-semibold text-[0.7rem] mb-1">🕰️ What is Wayback Machine?</p>
+                    <p class="text-gray-400">Fetches old, deleted, forgotten URLs of the scanned site from web.archive.org. Old endpoints are often vulnerable.</p>
+                  </div>
+                  <div class="bg-white/5 rounded-lg p-3">
+                    <p class="text-cyan-400 font-semibold text-[0.7rem] mb-1">🤖 How does AI Analysis work?</p>
+                    <p class="text-gray-400">Analyzes findings and gives recommendations: "This endpoint might be IDOR", "This API key looks real", "This GraphQL endpoint has introspection enabled", etc.</p>
+                  </div>
+                </div>`
+                }
+            };
 
-            const MEDIUM_RISK = [
-                'api','v1','v2','v3','rest','service','proxy','gateway','endpoint','data','user',
-                'profile','account','settings','search','filter','list','get','post','put','patch','update',
-                'create','add','remove','status','notification','email','sms','message','comment','review',
-                'rating','feedback','report','verify','validate','confirm','approve','reject','session','device',
-                'location','feature','flag','toggle','config/','configuration','middleware','hook','event',
-                'webhook/','callback/'
-            ];
+            // ── Apply Language ──────────────────────────────────────────────
+            function applyLang(lang) {
+                currentLang = lang;
+                const t = LANG[lang];
+                document.getElementById('header-subtitle').textContent = t.headerSubtitle;
+                document.getElementById('header-version').textContent = t.headerVersion;
+                document.getElementById('input-url-title').textContent = t.inputUrlTitle;
+                document.getElementById('input-url-desc').textContent = t.inputUrlDesc;
+                document.getElementById('input-drop-title').textContent = t.inputDropTitle;
+                document.getElementById('input-drop-desc').textContent = t.inputDropDesc;
+                document.getElementById('drop-text').textContent = t.dropText;
+                document.getElementById('btn-scan-text').textContent = t.btnScan;
+                document.getElementById('progress-title').textContent = t.progressTitle;
+                document.querySelectorAll('.tab-label').forEach(el => {
+                    const key = el.dataset.key;
+                    if (t[key]) el.textContent = t[key];
+                });
+                document.getElementById('results-title').textContent = t.resultsTitle;
+                document.getElementById('vulns-title').textContent = t.vulnsTitle;
+                document.getElementById('wayback-title').textContent = t.waybackTitle;
+                document.getElementById('ai-title').textContent = t.aiTitle;
+                document.getElementById('templates-title').textContent = t.templatesTitle;
+                document.getElementById('report-title').textContent = t.reportTitle;
+                document.getElementById('empty-text').textContent = t.emptyText;
+                document.getElementById('vulns-empty').textContent = t.vulnsEmpty;
+                document.getElementById('wayback-empty').textContent = t.waybackEmpty;
+                document.getElementById('ai-empty').textContent = t.aiEmpty;
+                document.getElementById('templates-empty').textContent = t.templatesEmpty;
+                document.getElementById('report-empty').textContent = t.reportEmpty;
+                document.getElementById('help-title').textContent = t.helpTitle;
+                helpContent.innerHTML = t.helpContent;
 
-            const XSS_PAYLOADS         = ['<script>alert(1)<\/script>','"><script>alert(1)<\/script>','"><img src=x onerror=alert(1)>','{{constructor.constructor("alert(1)")()}}','javascript:alert(1)'];
-            const SQLI_PAYLOADS        = ["' OR '1'='1","' OR 1=1--","'; DROP TABLE users--","' UNION SELECT 1,2,3--","1' AND 1=1--","1' AND 1=2--"];
-            const LFI_PAYLOADS         = ['../../../etc/passwd','..\\..\\..\\windows\\win.ini','/etc/passwd','....//....//....//etc/passwd'];
-            const SSTI_PAYLOADS        = ['{{7*7}}','${7*7}','#{7*7}','*{7*7}','{{config}}','${system("id")}'];
-            const AUTH_BYPASS_PAYLOADS = ["admin'--","admin' OR '1'='1","admin'","root'--","test@test.com","nonexistent@test.com"];
-            const PARAM_WORDS          = [
-                'id','user','admin','debug','test','token','key','file','page','redirect','url',
-                'path','action','mode','type','cmd','exec','order','limit','offset','sort','filter','search',
-                'q','query','name','email','password','pass','secret','api','callback','next','prev','lang',
-                'locale','format','raw','ajax','live','preview','edit','delete','create','update','upload',
-                'download','export','import','config','env','db','sql','table','schema','trace','log',
-                'error','exception','stack'
-            ];
+                langAz.classList.toggle('active-lang', lang === 'az');
+                langEn.classList.toggle('active-lang', lang === 'en');
+            }
 
-            // ── Utilities ─────────────────────────────────────────────────────────
+            langAz.addEventListener('click', () => applyLang('az'));
+            langEn.addEventListener('click', () => applyLang('en'));
+
+            // ── Help Panel ──────────────────────────────────────────────────
+            document.getElementById('btn-help').addEventListener('click', () => {
+                helpPanel.classList.toggle('hidden');
+            });
+            document.getElementById('btn-help-close').addEventListener('click', () => {
+                helpPanel.classList.add('hidden');
+            });
+
+            // ── Utility ─────────────────────────────────────────────────────
             function escapeHtml(s) {
                 const d = document.createElement('div');
                 d.textContent = String(s);
                 return d.innerHTML;
             }
 
-            window.dismissToast = function () { toast.classList.remove('show'); };
+            window.dismissToast = function() { toast.classList.remove('show'); };
 
             function showToast(m) {
                 toastMsg.textContent = m;
@@ -434,7 +918,8 @@
 
             function resetProgress() {
                 scannedFiles.clear();
-                totalFiles = 0; completedFiles = 0;
+                totalFiles = 0;
+                completedFiles = 0;
                 progressBar.style.width = '0%';
                 progressLabel.textContent = '0/0';
                 scanLog.innerHTML = '';
@@ -447,7 +932,6 @@
                 progressLabel.textContent = completedFiles + '/' + totalFiles;
             }
 
-            // ── FIX 2: switchTab + tab event listeners (were completely missing) ──
             function switchTab(name) {
                 tabBtns.forEach(b => b.classList.toggle('active-tab', b.dataset.tab === name));
                 tabContents.forEach(c => c.classList.toggle('hidden', c.id !== 'tab-' + name));
@@ -455,643 +939,1139 @@
 
             tabBtns.forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
 
-            // ── Risk assessment ───────────────────────────────────────────────────
+            // ── Risk Assessment ─────────────────────────────────────────────
+            const HIGH_RISK = ['admin', 'delete', 'edit', 'config', 'upload', 'graphql', 'env', 'backup', 'debug', 'panel',
+                'login', 'signup', 'auth', 'token', 'oauth', 'callback', 'webhook', 'reset', 'password', 'grant', 'root',
+                'sudo', 'exec', 'cmd', 'shell', 'database', 'db', 'sql', 'query', 'migrate', 'firebase',
+                'aws', 's3', 'bucket', 'storage', 'cdn-admin', 'internal', 'private', 'secret', 'credential', 'key',
+                'api-key', 'payment', 'checkout', 'order', 'invoice', 'billing', 'websocket', 'realtime', 'stream',
+                'swagger', 'openapi', 'api-docs', 'docs', 'actuator', 'graphiql', 'voyager', 'playground'
+            ];
+            const MEDIUM_RISK = ['api', 'v1', 'v2', 'v3', 'rest', 'service', 'proxy', 'gateway', 'endpoint', 'data', 'user',
+                'profile', 'account', 'settings', 'search', 'filter', 'list', 'get', 'post', 'put', 'patch', 'update',
+                'create', 'add', 'remove', 'status', 'notification', 'email', 'sms', 'verify', 'validate', 'confirm',
+                'session', 'device', 'location', 'feature', 'flag', 'toggle', 'config/', 'configuration', 'middleware',
+                'hook', 'event'
+            ];
+            const AUTH_BYPASS_PAYLOADS = ["admin'--", "admin' OR '1'='1", "admin'", "root'--", "test@test.com",
+                "nonexistent@test.com"
+            ];
+            const PARAM_WORDS = ['id', 'user', 'admin', 'debug', 'test', 'token', 'key', 'file', 'page', 'redirect', 'url',
+                'path', 'action', 'mode', 'type', 'cmd', 'exec', 'order', 'limit', 'offset', 'sort', 'filter', 'search',
+                'q', 'query', 'name', 'email', 'password', 'pass', 'secret', 'api', 'callback', 'lang', 'locale', 'format',
+                'raw', 'ajax', 'live', 'preview', 'edit', 'delete', 'create', 'update', 'upload',
+                'download', 'export', 'import', 'config', 'env', 'db', 'sql', 'table', 'schema', 'trace', 'log',
+                'error', 'exception', 'stack'
+            ];
+
             function assessRisk(v) {
                 const l = v.toLowerCase();
-                for (const k of HIGH_RISK)   { if (l.includes(k)) return { level:'high',   label:'🔥 Yüksək Risk', cls:'critical' }; }
-                for (const k of MEDIUM_RISK)  { if (l.includes(k)) return { level:'medium', label:'⚠ Orta Risk',   cls:'high'     }; }
-                const staticPat = ['.jpg','.jpeg','.png','.gif','.svg','.webp','.ico','.css','.woff','.woff2','.ttf','.eot','.mp4','.webm','.mp3','.pdf','.zip','.tar','.gz','.rar','static/','assets/','public/','dist/','build/','fonts/','images/','img/','media/','favicon','robots.txt','sitemap.xml','manifest.json','sw.js','service-worker.js'];
-                for (const p of staticPat)    { if (l.includes(p)) return { level:'low',    label:'● Aşağı Risk',  cls:'low'      }; }
-                if (l.includes('/api/')||l.includes('/v1/')||l.includes('/v2/')||l.includes('/rest/')) {
-                    return { level:'medium', label:'⚠ Orta Risk', cls:'high' };
-                }
-                return { level:'low', label:'● Aşağı Risk', cls:'low' };
+                for (const k of HIGH_RISK) { if (l.includes(k)) return { level: 'high', label: '🔥 Yüksək Risk',
+                        cls: 'critical' }; }
+                for (const k of MEDIUM_RISK) { if (l.includes(k)) return { level: 'medium', label: '⚠ Orta Risk',
+                        cls: 'high' }; }
+                const staticPat = ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp', '.ico', '.css', '.woff', '.woff2',
+                    '.ttf', '.eot', '.mp4', '.webm', '.mp3', '.pdf', '.zip', '.tar', '.gz', '.rar', 'static/', 'assets/',
+                    'public/', 'dist/', 'build/', 'fonts/', 'images/', 'img/', 'media/', 'favicon', 'robots.txt',
+                    'sitemap.xml', 'manifest.json', 'sw.js', 'service-worker.js'
+                ];
+                for (const p of staticPat) { if (l.includes(p)) return { level: 'low', label: '● Aşağı Risk',
+                        cls: 'low' }; }
+                if (l.includes('/api/') || l.includes('/v1/') || l.includes('/v2/') || l.includes('/rest/')) return { level: 'medium',
+                    label: '⚠ Orta Risk', cls: 'high' };
+                return { level: 'low', label: '● Aşağı Risk', cls: 'low' };
             }
 
-            // ── Drop zone ─────────────────────────────────────────────────────────
-            dropZone.addEventListener('click', () => fileInput.click());
-            dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-            dropZone.addEventListener('drop', e => {
-                e.preventDefault(); dropZone.classList.remove('drag-over');
-                if (e.dataTransfer.files.length) processFile(e.dataTransfer.files[0]);
+            // ── Detail / Analysis for Secrets ───────────────────────────────
+            function analyzeSecretValue(value, source, line) {
+                const lower = value.toLowerCase();
+                let type = 'Unknown Secret';
+                let explanation = 'Bu dəyər naməlum tipdədir.';
+                let riskNote = '';
+
+                if (lower.startsWith('eyj') || value.includes('.')) {
+                    const parts = value.split('.');
+                    if (parts.length === 3) {
+                        type = 'JWT Token';
+                        explanation = '
+                            if (parts.length === 3) {
+    type = 'JWT Token';
+    explanation = 'Bu JWT token tapıldı. JWT (JSON Web Token) — autentifikasiya üçün istifadə olunur. Payload hissəsini decode edib içinə baxın.';
+    riskNote = '🔥 **Kritik** — real token ola bilər, dərhal dəyişdirilməlidir.';
+}
+} else if (/^[A-Za-z0-9+/]{20,}={0,2}$/.test(value) && value.length > 20) {
+    type = 'API Key / Secret Key';
+    explanation = 'Bu, API xidmətinə giriş açarı ola bilər (AWS, Firebase, Google, GitHub, Slack, Discord, Telegram, Stripe və s.). Hacker bu açarı ələ keçirsə, sizin adınıza sorğular edə bilər.';
+    riskNote = '🔥 **Kritik** — real API key ehtimalı yüksəkdir. Dərhal söndürün və yeniləyin.';
+} else if (/^gh[ps]_[A-Za-z0-9]{36}/.test(value)) {
+    type = 'GitHub Personal Access Token';
+    explanation = 'Bu GitHub Personal Access Token-dir. Repozitoriyalarınıza tam giriş imkanı verə bilər.';
+    riskNote = '🔥 **Kritik** — real token, dərhal revoke edilməlidir.';
+} else if (/^sk_live_/.test(value) || /^pk_live_/.test(value)) {
+    type = 'Stripe Live API Key';
+    explanation = 'Bu Stripe ödəniş sisteminin **canlı** API açarıdır. Ödəniş məlumatlarına giriş imkanı verir.';
+    riskNote = '🔥 **Kritik** — real Stripe live key! Dərhal revoke edin.';
+} else if (/^xox[baprs]-/.test(value)) {
+    type = 'Slack Token';
+    explanation = 'Bu Slack API tokenidir. Qrup mesajlarını oxumaq, göndərmək, fayl yükləmək imkanı verir.';
+    riskNote = '🔥 **Kritik** — real Slack token. Dərhal revoke edilməlidir.';
+} else if (lower.includes('password') || lower.includes('passwd') || lower.includes('pwd')) {
+    type = 'Password / Credential';
+    explanation = 'Bu, parol və ya hesab məlumatı ola bilər.';
+    riskNote = '⚠ **Yüksək Risk** — real parol ehtimalı var, dərhal dəyişdirilməlidir.';
+} else if (/^(sk_test_|pk_test_)/.test(value)) {
+    type = 'Stripe Test API Key';
+    explanation = 'Bu Stripe test API açarıdır. Test mühitindədir, lakin yenə də real mühitə sıza bilər.';
+    riskNote = '⚠ **Orta Risk** — test açarı, amma diqqətli olun.';
+} else if (/^AIza[0-9A-Za-z_-]{35}/.test(value)) {
+    type = 'Firebase API Key';
+    explanation = 'Bu Firebase API açarıdır. Firebase məlumat bazasına, authentication servisinə giriş imkanı verə bilər.';
+    riskNote = '🔥 **Yüksək Risk** — real Firebase key. Məlumat bazasına giriş ola bilər.';
+} else if (/^AKIA[0-9A-Z]{16}/.test(value)) {
+    type = 'AWS Access Key ID';
+    explanation = 'Bu AWS Access Key ID-dir. AWS hesabınızdakı resurslara giriş imkanı verə bilər.';
+    riskNote = '🔥 **Kritik** — real AWS key. Hesab təhlükəsizliyi üçün dərhal revoke edin.';
+} else if (/^-----BEGIN (RSA |EC )?PRIVATE KEY-----/.test(value)) {
+    type = 'Private Key / SSL Key';
+    explanation = 'Bu şəxsi açar (private key) faylıdır. HTTPS trafikini decrypt etmək, server-ə giriş imkanı verir.';
+    riskNote = '🔥 **Kritik** — real private key. Dərhal dəyişdirilməlidir.';
+} else if (/^(5937|5[1-5][0-9]{14}|4[0-9]{12}(?:[0-9]{3})?|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})/.test(
+value.replace(/\s+/g, ''))) {
+    type = 'Credit Card Number (Kredit Kartı)';
+    const cc = value.replace(/\s+/g, '');
+    let cardType = 'Unknown';
+    if (/^4/.test(cc)) cardType = 'Visa';
+    else if (/^5[1-5]/.test(cc)) cardType = 'MasterCard';
+    else if (/^3[47]/.test(cc)) cardType = 'American Express';
+    else if (/^6(011|5)/.test(cc)) cardType = 'Discover';
+    explanation = `Bu ${cardType} kredit kartı nömrəsidir. Kart sahibinin məlumatları risk altındadır.` + (line ?
+    ` Sətir: ${line}` : '');
+    riskNote = '🔥 **KRİTİK** — real kredit kartı nömrəsi. PCI-DSS pozuntusu. Dərhal məlumatlandırın.';
+} else {
+    explanation = 'Bu naməlum tipdə gizli məlumatdır. Təhlükəsizlik baxımından araşdırılmalıdır.';
+    riskNote = '⚠ **Orta Risk** — dəyər şübhəlidir, yoxlanmalıdır.';
+}
+
+return { type, explanation, riskNote };
+}
+
+// ── Scanner Engine ──────────────────────────────────────────────────────────
+const PATTERNS = {
+    endpoints: [
+        { regex: /["'`]https?:\/\/[^"'\s`]+["'`]/gi, weight: 2 },
+        { regex: /["'`]\/(?:api|v[0-9]|rest|graphql|auth|admin|panel|login|signup|callback|webhook|upload|download|config|env|debug|health|status|swagger|docs|static|assets|public|private|internal)[^"'\s`]*["'`]/gi,
+            weight: 3 },
+        { regex: /["'`](?:get|post|put|patch|delete|fetch|axios|ajax|request|call|invoke|trigger|emit)\(["'`][^"'`]*["'`]/gi,
+            weight: 1 },
+        { regex: /["'`](?:url|uri|endpoint|path|route|link|href|src|action|formaction|data-url|api-url)["'`]\s*[:=]\s*["'`][^"'`]+["'`]/gi,
+            weight: 2 },
+        { regex: /["'`]\/(?:ws|wss|mqtt|stomp|sse|stream|realtime|socket|push|pull|subscribe|publish)[^"'\s`]*["'`]/gi,
+            weight: 3 },
+        { regex: /["'`](?:function|class|const|let|var)\s+\w+\s*[=:]\s*["'`][^"'`]+["'`]/gi, weight: 1 },
+        { regex: /["'`](?:baseURL|base_url|basePath|base_path|root|prefix|namespace|scope)[^:]*[:=]\s*["'`][^"'`]+["'`]/gi,
+            weight: 2 },
+        { regex: /\/(?:index|main|app|server|client|bundle|chunk|module|component|service|provider|middleware|helper|utils)\.[a-z]+/gi,
+            weight: 1 },
+    ],
+    secrets: [
+        { regex: /(?:AIza[0-9A-Za-z_-]{35})/g, type: 'Firebase API Key', risk: 'critical' },
+        { regex: /(?:AKIA[0-9A-Z]{16})/g, type: 'AWS Access Key', risk: 'critical' },
+        { regex: /(?:gh[ps]_[A-Za-z0-9]{36})/g, type: 'GitHub Token', risk: 'critical' },
+        { regex: /(?:sk_live_[0-9a-zA-Z]{24,})/g, type: 'Stripe Live Key', risk: 'critical' },
+        { regex: /(?:pk_live_[0-9a-zA-Z]{24,})/g, type: 'Stripe Live Publishable', risk: 'critical' },
+        { regex: /(?:sk_test_[0-9a-zA-Z]{24,})/g, type: 'Stripe Test Key', risk: 'medium' },
+        { regex: /(?:xox[baprs]-[0-9a-zA-Z-]{10,})/g, type: 'Slack Token', risk: 'critical' },
+        { regex: /(?:-----BEGIN (?:RSA |EC )?PRIVATE KEY-----)/g, type: 'Private Key', risk: 'critical' },
+        { regex: /["'`]eyJ[a-zA-Z0-9_-]+?\.[a-zA-Z0-9_-]+?\.[a-zA-Z0-9_-]+?["'`]/g, type: 'JWT Token', risk: 'critical' },
+        { regex: /(?:5937|5[1-5][0-9]{14}|4[0-9]{12}(?:[0-9]{3})?|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})/g,
+            type: 'Credit Card Number', risk: 'critical' },
+        { regex: /["'`](?:password|passwd|pwd|secret|api[_-]?key|token|auth[_-]?token|access[_-]?token)["']*\s*[:=]\s*["'][^"']+["']/gi,
+            type: 'Credential', risk: 'high' },
+        { regex: /["'`](?:mongodb|postgres|mysql|redis|amqp|rabbitmq)://[^"'\s`]+/gi, type: 'Database URI', risk: 'high' },
+        { regex: /["'`]https?://[^"'\s`]*(?:api[_-]?key=|token=|secret=|password=|pass=|auth=)[^"'\s`&]+/gi,
+            type: 'URL With Secret', risk: 'critical' },
+        { regex: /(?:[A-Za-z0-9+/]{40,}={0,2})/g, type: 'Base64 (potential key)', risk: 'medium' },
+    ],
+    vulns: [
+        { regex: /\.innerHTML\s*=/g, type: 'DOM XSS (innerHTML)', severity: 'critical' },
+        { regex: /document\.write\s*\(/g, type: 'DOM XSS (document.write)', severity: 'critical' },
+        { regex: /eval\s*\(/g, type: 'Code Injection (eval)', severity: 'critical' },
+        { regex: /setTimeout\s*\(\s*["'`]/g, type: 'Code Injection (setTimeout string)', severity: 'high' },
+        { regex: /new Function\s*\(/g, type: 'Code Injection (Function)', severity: 'critical' },
+        { regex: /location\s*=\s*["'`]/g, type: 'Open Redirect (location)', severity: 'medium' },
+        { regex: /location\.href\s*=\s*["'`]/g, type: 'Open Redirect (location.href)', severity: 'medium' },
+        { regex: /window\.location\s*=\s*["'`]/g, type: 'Open Redirect (window.location)', severity: 'medium' },
+        { regex: /\.src\s*=\s*["'`]/g, type: 'DOM-based (src assignment)', severity: 'medium' },
+        { regex: /postMessage\s*\(/g, type: 'postMessage vulnerability', severity: 'medium' },
+        { regex: /JSON\.parse\s*\(\s*["'`]/g, type: 'JSON Injection', severity: 'medium' },
+        { regex: /localStorage\.setItem\s*\(\s*["'`]/g, type: 'Sensitive data in localStorage', severity: 'medium' },
+        { regex: /sessionStorage\.setItem\s*\(\s*["'`]/g, type: 'Sensitive data in sessionStorage', severity: 'medium' },
+        { regex: /document\.cookie\s*=/g, type: 'Cookie manipulation', severity: 'medium' },
+        { regex: /fetch\s*\(\s*["'`]\/\/[^"']+["'`]/g, type: 'Mixed content / insecure fetch', severity: 'high' },
+        { regex: /http:\/\/localhost/g, type: 'Localhost reference', severity: 'low' },
+        { regex: /debugger\s*;/g, type: 'Debugger statement', severity: 'low' },
+        { regex: /console\.log\s*\(/g, type: 'Console log (info leak)', severity: 'low' },
+        { regex: /__proto__/g, type: 'Prototype pollution potential', severity: 'high' },
+        { regex: /constructor\.prototype/g, type: 'Prototype pollution potential', severity: 'high' },
+    ]
+};
+
+// ── Scanning Function ───────────────────────────────────────────────────────
+async function scanFile(content, filename) {
+    if (scannedFiles.has(filename)) return [];
+    scannedFiles.add(filename);
+
+    totalFiles++;
+    updateProgress();
+
+    const results = [];
+    const fileVulns = [];
+    const lines = content.split('\n');
+
+    // Endpoint scanning
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (!line.trim()) continue;
+
+        for (const pattern of PATTERNS.endpoints) {
+            pattern.regex.lastIndex = 0;
+            let match;
+            while ((match = pattern.regex.exec(line)) !== null) {
+                let raw = match[0].replace(/["'`]/g, '').trim();
+                if (raw.length < 4 || raw.startsWith('//') || raw.startsWith('/*')) continue;
+
+                let url = raw;
+                // Convert relative paths
+                if (url.startsWith('/')) {
+                    // Keep relative
+                } else if (url.startsWith('http')) {
+                    // absolute - keep
+                } else if (url.startsWith('.')) {
+                    url = '/' + url;
+                } else if (url.includes('.') && !url.includes(' ')) {
+                    url = '/' + url;
+                }
+
+                const risk = assessRisk(url);
+                results.push({
+                    type: 'endpoint',
+                    value: url,
+                    line: i + 1,
+                    file: filename,
+                    risk: risk,
+                    category: risk.level === 'high' ? '🔴' : risk.level === 'medium' ? '🟡' : '🟢',
+                    detail: risk.label
+                });
+            }
+        }
+    }
+
+    // Secret scanning
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (!line.trim()) continue;
+
+        for (const secret of PATTERNS.secrets) {
+            secret.regex.lastIndex = 0;
+            let match;
+            while ((match = secret.regex.exec(line)) !== null) {
+                const value = match[0];
+                const analysis = analyzeSecretValue(value, filename, i + 1);
+                results.push({
+                    type: 'secret',
+                    value: value.substring(0, 80) + (value.length > 80 ? '...' : ''),
+                    fullValue: value,
+                    line: i + 1,
+                    file: filename,
+                    secretType: secret.type,
+                    risk: { level: secret.risk, label: secret.risk === 'critical' ? '🔥 Kritik' : secret.risk === 'high' ?
+                            '⚠ Yüksək' : '● Orta', cls: secret.risk === 'critical' ? 'critical' : 'high' },
+                    category: '🔑',
+                    detail: analysis.explanation + ' ' + analysis.riskNote
+                });
+            }
+        }
+    }
+
+    // Vulnerability scanning
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (!line.trim()) continue;
+
+        for (const vuln of PATTERNS.vulns) {
+            vuln.regex.lastIndex = 0;
+            let match;
+            while ((match = vuln.regex.exec(line)) !== null) {
+                const context = line.substring(Math.max(0, match.index - 30), match.index + match[0].length + 30).trim();
+                fileVulns.push({
+                    type: vuln.type,
+                    severity: vuln.severity,
+                    line: i + 1,
+                    file: filename,
+                    context: context
+                });
+            }
+        }
+    }
+
+    // LFI detection
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (/(include|require|file_get_contents|readfile|fopen)\s*\(/.test(line) && /[\$\{]/.test(line)) {
+            const context = line.substring(0, 120).trim();
+            fileVulns.push({
+                type: 'Potential LFI / File Inclusion',
+                severity: 'high',
+                line: i + 1,
+                file: filename,
+                context: context
             });
-            fileInput.addEventListener('change', () => { if (fileInput.files.length) processFile(fileInput.files[0]); });
+        }
+    }
 
-            // ── FIX 3: processFile was referenced but never defined ───────────────
-            async function processFile(file) {
-                resetProgress();
-                scanSource = file.name;
-                log('📂 Fayl oxunur: ' + file.name);
-                totalFiles = 1;
-                updateProgress();
-                return new Promise(resolve => {
-                    const reader = new FileReader();
-                    reader.onload = async e => {
-                        scannedFiles.add(file.name);
-                        completedFiles = 1;
-                        updateProgress();
-                        statFiles.textContent = 1;
-                        await analyzeText(e.target.result, file.name);
-                        setTimeout(() => progressSection.classList.add('hidden'), 1500);
-                        resolve();
-                    };
-                    reader.onerror = () => {
-                        showToast('Fayl oxunarkən xəta baş verdi.');
-                        progressSection.classList.add('hidden');
-                        resolve();
-                    };
-                    reader.readAsText(file);
-                });
-            }
+    completedFiles++;
+    updateProgress();
+    log(`✅ ${filename}: ${results.length} endpoint/secret, ${fileVulns.length} vuln`);
 
-            // ── URL scan ──────────────────────────────────────────────────────────
-            btnScan.addEventListener('click', handleUrlScan);
-            urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') handleUrlScan(); });
+    allVulns.push(...fileVulns);
+    return results;
+}
 
-            async function handleUrlScan() {
-                const url = urlInput.value.trim();
-                if (!url) { showToast('URL daxil edin.'); return; }
-                try { new URL(url); } catch { showToast('Düzgün URL daxil edin.'); return; }
-                btnScan.disabled = true;
-                btnScan.innerHTML = '<span class="spinner"></span><span>Yüklənir...</span>';
-                resetProgress();
-                log('🔍 Yüklənir: ' + url);
+function processResults(results) {
+    // Deduplicate
+    const seen = new Set();
+    const unique = [];
+    for (const r of results) {
+        const key = r.value + (r.line || '') + (r.file || '');
+        if (!seen.has(key)) {
+            seen.add(key);
+            unique.push(r);
+        }
+    }
+
+    allResults = unique;
+    renderResults();
+    renderStats();
+
+    // Switch to results tab
+    switchTab('results');
+    showToast(`✅ ${allResults.length} nəticə tapıldı, ${allVulns.length} zəiflik aşkarlandı`);
+}
+
+function renderStats() {
+    const endpoints = allResults.filter(r => r.type === 'endpoint');
+    const secrets = allResults.filter(r => r.type === 'secret');
+    const highRisk = allResults.filter(r => r.risk && r.risk.level === 'high');
+
+    sEP.textContent = endpoints.length;
+    sSec.textContent = secrets.length;
+    sVuln.textContent = allVulns.length;
+    sHR.textContent = highRisk.length;
+    sFiles.textContent = scannedFiles.size;
+    const totalLines = allResults.reduce((sum, r) => sum + 1, 0);
+    sLines.textContent = totalLines;
+
+    vulnCount.textContent = allVulns.length;
+}
+
+function renderResults() {
+    const results = allResults;
+    const filtered = [];
+
+    for (const r of results) {
+        // Type filter
+        if (currentFilter === 'endpoint' && r.type !== 'endpoint') continue;
+        if (currentFilter === 'secret' && r.type !== 'secret') continue;
+        if (currentFilter === 'all') {}
+
+        // Risk filter
+        if (currentRiskFilter !== 'all') {
+            if (!r.risk || r.risk.level !== currentRiskFilter) continue;
+        }
+
+        // Search
+        if (currentSearch) {
+            const s = currentSearch.toLowerCase();
+            const match = r.value.toLowerCase().includes(s) ||
+                (r.file && r.file.toLowerCase().includes(s)) ||
+                (r.detail && r.detail.toLowerCase().includes(s)) ||
+                (r.secretType && r.secretType.toLowerCase().includes(s));
+            if (!match) continue;
+        }
+
+        filtered.push(r);
+    }
+
+    if (filtered.length === 0) {
+        emptyState.classList.remove('hidden');
+        resultsBody.classList.add('hidden');
+        resultCount.textContent = '0 nəticə';
+        return;
+    }
+
+    emptyState.classList.add('hidden');
+    resultsBody.classList.remove('hidden');
+
+    let html = '';
+    for (const r of filtered) {
+        const riskCls = r.risk ? r.risk.cls : 'low';
+        const riskLabel = r.risk ? r.risk.label : '';
+        const isSecret = r.type === 'secret';
+        const typeBadge = isSecret ? 'badge-secret' : 'badge-endpoint';
+        const typeLabel = isSecret ? (r.secretType || 'Secret') : 'Endpoint';
+
+        html += `<tr class="border-b border-white/5 hover:bg-white/[0.02] transition">
+          <td class="p-2 text-[0.6rem]">${r.category || (isSecret ? '🔑' : '🌐')}</td>
+          <td class="p-2">
+            <span class="${typeBadge}">${escapeHtml(typeLabel)}</span>
+          </td>
+          <td class="p-2 font-mono-custom text-[0.6rem] text-gray-200 max-w-[180px] overflow-hidden text-ellipsis whitespace-nowrap" title="${escapeHtml(r.value)}">
+            ${escapeHtml(r.value.substring(0, 80))}
+          </td>
+          <td class="p-2">
+            <span class="badge-risk ${riskCls}">${riskLabel}</span>
+          </td>
+          <td class="p-2 font-mono-custom text-[0.55rem] text-gray-500 max-w-[140px] overflow-hidden text-ellipsis" title="${escapeHtml(r.file || '')}">
+            ${escapeHtml((r.file || '').substring(0, 30))}
+            ${r.line ? ':' + r.line : ''}
+          </td>
+          <td class="p-2 font-mono-custom text-[0.55rem] text-gray-400 max-w-[200px] overflow-hidden text-ellipsis" title="${escapeHtml(r.detail || '')}">
+            ${escapeHtml((r.detail || '').substring(0, 60))}
+          </td>
+        </tr>`;
+    }
+    resultsBody.innerHTML = html;
+    resultCount.textContent = filtered.length + ' / ' + results.length + ' nəticə';
+}
+
+// ── Filter Events ──────────────────────────────────────────────────────────
+filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        filterBtns.forEach(b => b.classList.remove('active-filter'));
+        btn.classList.add('active-filter');
+        currentFilter = btn.dataset.filter;
+        renderResults();
+    });
+});
+
+riskFilterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        riskFilterBtns.forEach(b => b.classList.remove('active-filter'));
+        btn.classList.add('active-filter');
+        currentRiskFilter = btn.dataset.risk || 'all';
+        renderResults();
+    });
+});
+
+searchInput.addEventListener('input', () => {
+    currentSearch = searchInput.value;
+    renderResults();
+});
+
+// ── URL Scan ────────────────────────────────────────────────────────────────
+btnScan.addEventListener('click', async () => {
+    let url = urlInput.value.trim();
+    if (!url) {
+        showToast('⚠ Zəhmət olmasa URL daxil edin');
+        return;
+    }
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'https://' + url;
+    }
+
+    resetProgress();
+    scanSource = 'url';
+    resultsBody.innerHTML = '';
+    emptyState.classList.remove('hidden');
+    allResults = [];
+    allVulns = [];
+    waybackUrls = [];
+
+    btnScan.disabled = true;
+    btnScan.textContent = '⏳ Yüklənir...';
+
+    try {
+        log(`🔍 Yüklənir: ${url}`);
+
+        // Fetch the HTML
+        const resp = await fetch(url, { mode: 'cors' });
+        if (!resp.ok) {
+            throw new Error(`HTTP ${resp.status}`);
+        }
+        const html = await resp.text();
+        log(`✅ HTML yükləndi (${html.length} bytes)`);
+
+        // Extract JS URLs
+        const jsUrls = new Set();
+        const scriptRegex = /<script[^>]*src=["']([^"']+)["']/gi;
+        let match;
+        while ((match = scriptRegex.exec(html)) !== null) {
+            let src = match[1];
+            if (src.startsWith('//')) src = 'https:' + src;
+            else if (src.startsWith('/')) src = new URL(src, url).href;
+            else if (!src.startsWith('http')) src = new URL(src, url).href;
+            jsUrls.add(src);
+        }
+
+        log(`📦 ${jsUrls.size} JS faylı tapıldı`);
+
+        if (jsUrls.size === 0) {
+            // Try to scan the HTML itself
+            log('⚠ Heç bir JS faylı tapılmadı, HTML-i skan edirəm...');
+            const results = await scanFile(html, url);
+            processResults(results);
+        } else {
+            // Fetch all JS files
+            let allResults = [];
+            for (const jsUrl of jsUrls) {
                 try {
-                    const r = await fetch(url, { mode: 'cors' });
-                    if (!r.ok) throw new Error('HTTP ' + r.status);
-                    const html = await r.text();
-                    log('✅ HTML yükləndi (' + html.length + ' bayt)');
-                    await processHtmlContent(html, url);
-                    scanSource = url;
-                } catch (err) {
-                    showToast('CORS xətası. HTML faylı endirib atın.');
-                    log('❌ Xəta: ' + err.message);
-                    progressSection.classList.add('hidden');
-                }
-                btnScan.disabled = false;
-                // ── FIX 4: innerHTML string was not closed; extractScripts body was pasted here ──
-                btnScan.innerHTML = '<span>Skan</span><span>→</span>';
-            }
-
-            // ── FIX 5: extractScripts — was accidentally inside btnScan.innerHTML string ──
-            function extractScripts(html, baseUrl) {
-                const urls = [];
-                let m;
-                const re1 = /<script[^>]+src=["']([^"']+)["']/gi;
-                while ((m = re1.exec(html)) !== null) {
-                    let s = m[1].trim();
-                    if (baseUrl && !s.startsWith('http') && !s.startsWith('//')) {
-                        try { const b = baseUrl.endsWith('/') ? baseUrl : baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1); s = new URL(s, b).href; } catch { /* */ }
-                    } else if (s.startsWith('//')) s = 'https:' + s;
-                    if (s) urls.push(s);
-                }
-                const re2 = /(?:import\s+(?:["'][^"']+["']|\{[^}]*\}\s+from\s+["']([^"']+)["'])|import\s+["']([^"']+)["'])/g;
-                re2.lastIndex = 0;
-                while ((m = re2.exec(html)) !== null) {
-                    let s = (m[1] || m[2] || '').trim();
-                    if (s && (s.endsWith('.js') || s.includes('/'))) {
-                        if (baseUrl && !s.startsWith('http') && !s.startsWith('//')) {
-                            try { const b = baseUrl.endsWith('/') ? baseUrl : baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1); s = new URL(s, b).href; } catch { /* */ }
-                        }
-                        if (s) urls.push(s);
-                    }
-                }
-                const re3 = /import\s*\(\s*["']([^"']+)["']\s*\)/g;
-                re3.lastIndex = 0;
-                while ((m = re3.exec(html)) !== null) {
-                    let s = m[1].trim();
-                    if (baseUrl && !s.startsWith('http') && !s.startsWith('//')) {
-                        try { const b = baseUrl.endsWith('/') ? baseUrl : baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1); s = new URL(s, b).href; } catch { /* */ }
-                    }
-                    if (s) urls.push(s);
-                }
-                const re4 = /<script[^>]*>([\s\S]*?)<\/script>/gi;
-                re4.lastIndex = 0;
-                while ((m = re4.exec(html)) !== null) {
-                    const c = m[1];
-                    const re5 = /(?:from\s+["']([^"']+\.js[^"']*)["']|import\s+["']([^"']+\.js[^"']*)["'])/g;
-                    let im;
-                    while ((im = re5.exec(c)) !== null) {
-                        let s = (im[1] || im[2] || '').trim();
-                        if (s && baseUrl) {
-                            if (!s.startsWith('http') && !s.startsWith('//')) {
-                                try { const b = baseUrl.endsWith('/') ? baseUrl : baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1); s = new URL(s, b).href; } catch { /* */ }
-                            }
-                            if (s) urls.push(s);
-                        }
-                    }
-                }
-                return [...new Set(urls)];
-            }
-
-            // ── Process HTML ──────────────────────────────────────────────────────
-            async function processHtmlContent(html, source) {
-                const base = source.startsWith('http') ? source : null;
-                const urls = extractScripts(html, base);
-                log('🔗 Script sayı: ' + urls.length);
-                if (urls.length === 0) {
-                    log('⚠ Xarici script yoxdur. HTML inline analiz...');
-                    const re = /<script[^>]*>([\s\S]*?)<\/script>/gi;
-                    let allJs = ''; let m;
-                    while ((m = re.exec(html)) !== null) allJs += m[1] + '\n';
-                    if (allJs.trim().length > 0) await analyzeText(allJs, source + ' (inline)');
-                    else await analyzeText(html, source);
-                    progressSection.classList.add('hidden');
-                    return;
-                }
-                totalFiles = urls.length; completedFiles = 0;
-                updateProgress();
-                let allJs = '';
-                for (let i = 0; i < urls.length; i++) {
-                    const u = urls[i];
-                    const short = u.split('/').pop() || 'script-' + (i + 1) + '.js';
-                    log('⬇ [' + (i + 1) + '/' + totalFiles + '] ' + short);
-                    try {
-                        const r = await fetch(u, { mode: 'cors' });
-                        if (r.ok) { const c = await r.text(); allJs += '\n\n// === ' + short + ' ===\n\n' + c; scannedFiles.add(u); log('  ✅ ' + c.length + ' B'); }
-                        else log('  ⚠ HTTP ' + r.status);
-                    } catch { log('  ⚠ Xəta'); }
-                    completedFiles++; updateProgress();
-                }
-                log('📊 Ümumi: ' + allJs.length + ' B, ' + scannedFiles.size + ' fayl');
-                if (allJs.trim().length === 0) { showToast('JS yüklənmədi.'); progressSection.classList.add('hidden'); return; }
-                await analyzeText(allJs, source + ' (' + scannedFiles.size + ' fayl)');
-                setTimeout(() => progressSection.classList.add('hidden'), 1500);
-            }
-
-            // ── Core analyser ─────────────────────────────────────────────────────
-            async function analyzeText(text, source) {
-                const lines      = text.split('\n');
-                const totalLines = lines.length;
-                const endpointMap = new Map();
-                const secretMap   = new Map();
-                const vulns       = [];
-
-                const urlRe = /(?:https?:\/\/[^\s"'`<>]+(?:\.[^\s"'`<>]+)+)|(?:\/[a-zA-Z_][a-zA-Z0-9_\-./]*?(?:api|v[0-9]+|graphql|rest|auth|login|signup|user|admin|config|token|oauth|callback|webhook|upload|download|static|endpoint|service|proxy|gateway|backend|health|metrics|debug|panel|s3|bucket|firebase|aws|swagger|docs|graphiql|voyager|playground|actuator|jenkins|gitlab|prometheus|grafana|soap|xmlrpc|amf|flex)[a-zA-Z0-9_\-/.]*)/gi;
-
-                const secretRe = /(?:"(?:api_key|apikey|secret|token|password|jwt|access_key|secret_key|private_key|auth_token|refresh_token|session_secret|client_secret|apiSecret|apiKey|passwd|pass)"\s*:\s*"([^"]+)")|(?:'(?:api_key|apikey|secret|token|password|jwt|access_key|secret_key|private_key|auth_token|refresh_token|session_secret|client_secret|apiSecret|apiKey|passwd|pass)'\s*:\s*'([^']+)')|(?:["'](?:api_key|apikey|secret|token|password|jwt|access_key|secret_key|private_key|auth_token|refresh_token|session_secret|client_secret|apiSecret|apiKey|passwd|pass)["']\s*[=:]\s*["']([^"']+)["'])/gi;
-
-                const ccRe = /\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})\b/g;
-
-                for (let i = 0; i < lines.length; i++) {
-                    const line = lines[i];
-                    const ln   = i + 1;
-
-                    urlRe.lastIndex = 0;
-                    let m;
-                    while ((m = urlRe.exec(line)) !== null) {
-                        const v = m[0].trim();
-                        if (v.length > 3) { const k = v + '_' + source + '_' + ln; if (!endpointMap.has(k)) endpointMap.set(k, { value: v, line: ln, source }); }
-                    }
-
-                    secretRe.lastIndex = 0;
-                    while ((m = secretRe.exec(line)) !== null) {
-                        const c = m[1] || m[2] || m[3];
-                        if (c && c.trim().length > 0 && !c.includes('${') && !c.startsWith('process.') && !c.startsWith('YOUR_')) {
-                            const k = c + '_' + source + '_' + ln;
-                            if (!secretMap.has(k)) secretMap.set(k, { value: c, line: ln, source });
-                        }
-                    }
-
-                    const ltRe = /["'](?:token|bearer|auth|session|access|refresh|secret|key|jwt|apikey|api_key)["']\s*[:=]\s*["']([a-zA-Z0-9_\-\.]{16,})["']/gi;
-                    ltRe.lastIndex = 0;
-                    while ((m = ltRe.exec(line)) !== null) {
-                        const c = m[1];
-                        if (c) { const k = 'loose_' + source + '_' + c.substring(0, 10) + '_' + ln; if (!secretMap.has(k)) secretMap.set(k, { value: c, line: ln, source }); }
-                    }
-
-                    const jwtRe = /["']([a-zA-Z0-9_\-]{20,}\.[a-zA-Z0-9_\-]{4,}\.[a-zA-Z0-9_\-]{4,})["']/g;
-                    jwtRe.lastIndex = 0;
-                    while ((m = jwtRe.exec(line)) !== null) {
-                        const c = m[1];
-                        if (c && c.split('.').length === 3) { const k = 'jwt_' + source + '_' + c.substring(0, 16) + '_' + ln; if (!secretMap.has(k)) secretMap.set(k, { value: c, line: ln, source }); }
-                    }
-
-                    ccRe.lastIndex = 0;
-                    while ((m = ccRe.exec(line)) !== null) {
-                        const c = m[0];
-                        const k = 'cc_' + c + '_' + ln;
-                        if (!secretMap.has(k)) secretMap.set(k, { value: c, line: ln, source });
-                        vulns.push({ type: 'Sensitive Data', severity: 'high', detail: 'Kredit kartı: ' + c, endpoint: c, line: ln });
-                    }
-                }
-
-                const endpoints  = Array.from(endpointMap.values());
-                const secrets    = Array.from(secretMap.values());
-
-                for (const ep of endpoints) {
-                    const v = ep.value.toLowerCase();
-                    if (v.includes('swagger')||v.includes('openapi')||v.includes('api-docs')||v.includes('swagger-ui')||v.includes('api/docs')||v.includes('spec')) {
-                        vulns.push({ type:'OpenAPI/Swagger', severity:'high', detail:'API Schema aşkarlandı', endpoint:ep.value, line:ep.line });
-                    }
-                    if (v.includes('graphql')||v.includes('graphiql')||v.includes('voyager')||v.includes('playground')) {
-                        vulns.push({ type:'GraphQL', severity:'medium', detail:'GraphQL endpoint aşkarlandı', endpoint:ep.value, line:ep.line });
-                    }
-                    if (v.includes('actuator')||(v.includes('health')&&v.includes('/health'))) {
-                        vulns.push({ type:'Spring Boot Actuator', severity:'high', detail:'Actuator endpoint aşkarlandı', endpoint:ep.value, line:ep.line });
-                    }
-                }
-
-                for (const ep of endpoints) {
-                    const v = ep.value;
-                    if (!v.includes('?') && !v.includes('{') && !v.includes(':') && v.match(/\/[a-zA-Z]+\/[a-zA-Z]+$/)) {
-                        discoveredParams.add(v);
-                    }
-                }
-
-                const withRisk    = endpoints.map(r => ({ type:'endpoint', value:r.value, line:r.line, source:r.source, risk:assessRisk(r.value) }));
-                const secWithRisk = secrets.map(r  => ({ type:'secret',   value:r.value, line:r.line, source:r.source, risk:{ level:'high', label:'🔑 Gizli Açar', cls:'critical' } }));
-
-                allResults = [...withRisk, ...secWithRisk];
-                allVulns   = vulns;
-
-                const highCount = allResults.filter(r => r.risk.level === 'high').length;
-                statEndpoints.textContent = endpoints.length;
-                statSecrets.textContent   = secrets.length;
-                statVulns.textContent     = vulns.length;
-                statHighRisk.textContent  = highCount;
-                statFiles.textContent     = scannedFiles.size > 0 ? scannedFiles.size : 1;
-                statLines.textContent     = totalLines.toLocaleString();
-
-                renderResults();
-                renderVulns();
-                renderAllTabs();   // FIX 6: now defined below
-                switchTab('results');
-                log('✅ Tamam. ' + endpoints.length + ' EP, ' + secrets.length + ' secret, ' + vulns.length + ' zəiflik.');
-            }
-
-            // ── FIX 6: renderAllTabs was called but never defined ─────────────────
-            function renderAllTabs() {
-                // individual renderers already called; placeholder for future tabs
-            }
-
-            // ── FIX 7 & 8: renderResults — srcShort & liveBtn were undefined,
-            //    table row HTML was incomplete/truncated ───────────────────────────
-            function renderResults() {
-                let filtered = allResults.filter(r => {
-                    if (currentFilter !== 'all' && r.type !== currentFilter) return false;
-                    if (currentRiskFilter !== 'all' && r.risk.level !== currentRiskFilter) return false;
-                    if (currentSearch) {
-                        const q = currentSearch.toLowerCase();
-                        return r.value.toLowerCase().includes(q) || String(r.line).includes(q) || (r.source||'').toLowerCase().includes(q);
-                    }
-                    return true;
-                });
-
-                const order = { high:0, medium:1, low:2 };
-                filtered.sort((a, b) => (order[a.risk.level]||99) - (order[b.risk.level]||99));
-                resultCount.textContent = filtered.length;
-
-                if (filtered.length === 0) { resultsBody.innerHTML = ''; emptyState.classList.remove('hidden'); return; }
-                emptyState.classList.add('hidden');
-
-                let html = '';
-                for (const r of filtered) {
-                    const isEP     = r.type === 'endpoint';
-                    const badge    = isEP ? 'badge-endpoint' : 'badge-secret';
-                    const label    = isEP ? 'URL' : 'SEC';
-                    const rowCls   = r.risk.level === 'high' ? 'vuln-critical' : r.risk.level === 'medium' ? 'vuln-high' : 'vuln-low';
-                    const escaped  = escapeHtml(r.value);
-
-                    // ── FIX: srcShort properly assigned ──────────────────────────
-                    const rawSrc   = (r.source || '');
-                    const srcShort = escapeHtml((rawSrc.split('/').pop() || rawSrc || 'unknown').substring(0, 20));
-
-                    const statusDot   = r.status === 'online' ? 'online' : r.status === 'offline' ? 'offline' : 'unknown';
-                    const statusLabel = r.status === 'online' ? 'Canlı' : r.status === 'offline' ? 'Qapalı' : '—';
-
-                    // ── FIX: liveBtn properly defined ─────────────────────────────
-                    const liveBtn = isEP
-                        ? `<button class="live-btn btn-live px-1.5 py-0.5 rounded text-[0.5rem]" data-ep="${escaped}">🔍</button>`
-                        : '<span class="text-gray-600 text-[0.5rem]">—</span>';
-
-                    // ── FIX: complete table row HTML ──────────────────────────────
-                    html += `<tr class="${rowCls} border-b border-white/[0.03] hover:bg-white/[0.015] transition">
-                        <td class="p-2"><span class="${badge}">${label}</span></td>
-                        <td class="p-2"><span class="badge-risk ${r.risk.cls}">${r.risk.label}</span></td>
-                        <td class="p-2 font-mono-custom"><span class="value-truncate block text-gray-300 text-[0.6rem]" title="${escaped}">${escaped}</span></td>
-                        <td class="p-2 text-[0.55rem]"><span class="status-dot ${statusDot}"></span><span class="text-gray-400">${statusLabel}</span></td>
-                        <td class="hidden sm:table-cell p-2 text-[0.55rem] text-gray-500 font-mono-custom">${r.line || '—'}</td>
-                        <td class="hidden md:table-cell p-2"><span class="badge-source" title="${escapeHtml(rawSrc)}">${srcShort}</span></td>
-                        <td class="p-2 text-[0.55rem]">${liveBtn}</td>
-                    </tr>`;
-                }
-                resultsBody.innerHTML = html;
-
-                document.querySelectorAll('.live-btn').forEach(btn => {
-                    btn.addEventListener('click', async function () {
-                        if (this.disabled) return;
-                        await liveCheckEndpoint(this.dataset.ep, this);
-                    });
-                });
-            }
-
-            // ── Live check ────────────────────────────────────────────────────────
-            async function liveCheckEndpoint(url, btn) {
-                if (btn.disabled) return;
-                btn.disabled = true; btn.innerHTML = '⏳';
-                const result = allResults.find(r => r.value === url);
-                if (result) result.status = 'loading';
-                updateRowStatus(url, 'loading', 'Yoxlanılır...', 'loading');
-                try {
-                    const ctrl = new AbortController(); setTimeout(() => ctrl.abort(), 8000);
-                    await fetch(url, { method:'HEAD', mode:'no-cors', signal:ctrl.signal });
-                    if (result) { result.status = 'online'; updateRowStatus(url,'online','Canlı','online'); btn.innerHTML='✅'; }
-                } catch {
-                    try {
-                        const ctrl = new AbortController(); setTimeout(() => ctrl.abort(), 8000);
-                        await fetch(url, { method:'GET', mode:'no-cors', signal:ctrl.signal });
-                        if (result) { result.status='online'; updateRowStatus(url,'online','Canlı','online'); btn.innerHTML='✅'; }
-                    } catch {
-                        if (result) { result.status='offline'; updateRowStatus(url,'offline','Xəta/Qapalı','offline'); btn.innerHTML='❌'; }
-                    }
-                }
-                btn.disabled = false;
-            }
-
-            function updateRowStatus(url, status, label, dotClass) {
-                document.querySelectorAll('#results-body tr').forEach(row => {
-                    const btn = row.querySelector('.live-btn');
-                    if (btn && btn.dataset.ep === url) {
-                        const td = row.querySelector('td:nth-child(4)');
-                        if (td) td.innerHTML = `<span class="status-dot ${dotClass}"></span><span class="text-[0.55rem]">${label}</span>`;
-                    }
-                });
-            }
-
-            // ── Live all ──────────────────────────────────────────────────────────
-            $('btn-live-all').addEventListener('click', async function () {
-                if (liveCheckInProgress) return;
-                liveCheckInProgress = true; this.disabled = true;
-                this.innerHTML = '<span class="spinner" style="width:12px;height:12px;"></span> Yoxlanılır...';
-                const eps = allResults.filter(r => r.type === 'endpoint');
-                liveStatus.classList.remove('hidden'); liveStatus.textContent = '0/' + eps.length;
-                let done = 0;
-                for (const ep of eps) {
-                    const btns = document.querySelectorAll(`.live-btn[data-ep="${CSS.escape(ep.value)}"]`);
-                    if (btns.length) await liveCheckEndpoint(ep.value, btns[0]);
-                    done++; liveStatus.textContent = done + '/' + eps.length;
-                    await new Promise(r => setTimeout(r, 200));
-                }
-                liveStatus.textContent = '✅ Tamam: ' + done;
-                this.innerHTML = '🔍 Hamısını Yoxla'; this.disabled = false; liveCheckInProgress = false;
-                setTimeout(() => liveStatus.classList.add('hidden'), 4000);
-            });
-
-            // ── Render vulns ──────────────────────────────────────────────────────
-            function renderVulns() {
-                if (allVulns.length === 0) {
-                    vulnsList.innerHTML = '<div class="text-center text-gray-600 text-xs py-6">Zəiflik aşkarlanmayıb.</div>';
-                    vulnCount.textContent = '0'; return;
-                }
-                vulnCount.textContent = allVulns.length;
-                let html = '';
-                for (const v of allVulns) {
-                    const sevCls   = v.severity==='high'?'vuln-critical':v.severity==='medium'?'vuln-high':'vuln-low';
-                    const sevBadge = v.severity==='high'?'🔴 Kritik':v.severity==='medium'?'🟠 Yüksək':'🟡 Orta';
-                    html += `<div class="${sevCls} glass-card rounded-lg p-3 text-xs flex items-start gap-3">
-                        <span class="shrink-0 mt-0.5 text-[0.7rem]">${sevBadge}</span>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-gray-200 font-semibold">${escapeHtml(v.type)}</p>
-                            <p class="text-gray-400 mt-0.5">${escapeHtml(v.detail)}</p>
-                            <p class="text-gray-600 mt-0.5 font-mono-custom text-[0.55rem]">${escapeHtml(v.endpoint)} (sətir ${v.line})</p>
-                        </div>
-                    </div>`;
-                }
-                vulnsList.innerHTML = html;
-            }
-
-            // ── Search & filter ───────────────────────────────────────────────────
-            searchInput.addEventListener('input', e => { currentSearch = e.target.value.trim(); renderResults(); });
-            filterBtns.forEach(btn => btn.addEventListener('click', () => {
-                filterBtns.forEach(b => b.classList.remove('active-filter'));
-                btn.classList.add('active-filter'); currentFilter = btn.dataset.filter; renderResults();
-            }));
-            riskFilterBtns.forEach(btn => btn.addEventListener('click', () => {
-                riskFilterBtns.forEach(b => b.classList.remove('active-risk'));
-                btn.classList.add('active-risk'); currentRiskFilter = btn.dataset.risk; renderResults();
-            }));
-
-            // ── Wayback ───────────────────────────────────────────────────────────
-            $('btn-wayback').addEventListener('click', async function () {
-                const target = scanSource || urlInput.value.trim();
-                if (!target || !target.startsWith('http')) { showToast('Əvvəlcə URL skan edin.'); return; }
-                this.disabled = true; this.innerHTML = '<span class="spinner" style="width:12px;height:12px;"></span>';
-                waybackStatus.textContent = 'Sorğu göndərilir...';
-                try {
-                    const domain = new URL(target).hostname;
-                    const resp = await fetch(`https://web.archive.org/cdx/search/cdx?url=${domain}/*&output=json&fl=original,timestamp&limit=500&collapse=urlkey`, { mode:'cors' });
-                    if (!resp.ok) throw new Error('HTTP ' + resp.status);
-                    const data = await resp.json();
-                    waybackUrls = data.slice(1).map(r => ({ url:r[0], date:r[1] }));
-                    if (waybackUrls.length === 0) {
-                        waybackList.innerHTML = '<p class="text-gray-600 text-xs text-center py-4">Heç nə tapılmadı.</p>';
+                    log(`⬇ Yüklənir: ${jsUrl}`);
+                    const jsResp = await fetch(jsUrl, { mode: 'cors' });
+                    if (jsResp.ok) {
+                        const jsContent = await jsResp.text();
+                        const results = await scanFile(jsContent, jsUrl);
+                        allResults.push(...results);
                     } else {
-                        let html = `<p class="text-gray-400 text-xs mb-2">${waybackUrls.length} URL tapıldı</p><div class="space-y-0.5">`;
-                        waybackUrls.slice(0, 100).forEach(w => {
-                            html += `<div class="flex items-center gap-2 text-[0.6rem] py-0.5"><span class="text-gray-600 w-20 font-mono-custom">${w.date}</span><a href="${escapeHtml(w.url)}" target="_blank" class="text-cyan-400 hover:underline truncate">${escapeHtml(w.url)}</a></div>`;
-                        });
-                        html += '</div>';
-                        if (waybackUrls.length > 100) html += `<p class="text-gray-600 text-[0.55rem] mt-2">+ ${waybackUrls.length-100} daha</p>`;
-                        waybackList.innerHTML = html;
-                        waybackUrls.forEach(w => {
-                            const risk = assessRisk(w.url);
-                            if (!allResults.find(r => r.value === w.url)) allResults.push({ type:'endpoint', value:w.url, line:0, source:'wayback-machine', risk });
-                        });
-                        renderResults();
-                        showToast(waybackUrls.length + ' URL Wayback-dən əlavə edildi.');
+                        log(`❌ ${jsUrl} — HTTP ${jsResp.status}`);
                     }
-                    waybackStatus.textContent = '✅ ' + waybackUrls.length + ' URL';
-                } catch (err) {
-                    waybackStatus.textContent = '❌ Xəta: ' + err.message;
-                    showToast('Wayback xətası: ' + err.message);
+                } catch (e) {
+                    log(`❌ ${jsUrl} — ${e.message}`);
                 }
-                this.disabled = false; this.innerHTML = '🕰️ Çək';
-            });
+            }
+            processResults(allResults);
+        }
 
-            // ── AI analysis ───────────────────────────────────────────────────────
-            $('btn-ai-analyze').addEventListener('click', function () {
-                if (allResults.length === 0) { showToast('Əvvəlcə skan edin.'); return; }
-                this.disabled = true; this.innerHTML = '<span class="spinner" style="width:12px;height:12px;"></span>';
-                aiStatus.textContent = 'Analiz edilir...';
-                const highRisk = allResults.filter(r => r.risk.level === 'high');
-                let analysis = '📊 Ümumi Statistik:\n';
-                analysis += `- ${allResults.filter(r=>r.type==='endpoint').length} endpoint, ${allResults.filter(r=>r.type==='secret').length} secret\n`;
-                analysis += `- ${highRisk.length} yüksək risk, ${allVulns.length} potensial zəiflik\n\n`;
-                analysis += '🔥 Yüksək Risk Endpoint-lər:\n';
-                highRisk.slice(0,15).forEach(r => { analysis += `- \`${r.value}\` (${r.risk.label})\n`; });
-                if (highRisk.length > 15) analysis += `- ...və ${highRisk.length-15} daha\n`;
-                if (allVulns.length > 0) { analysis += '\n🔴 Aşkarlanan Zəifliklər:\n'; allVulns.forEach(v => { analysis += `- **${v.type}** (${v.severity}): ${v.detail}\n`; }); }
-                analysis += '\n🎯 Tövsiyələr:\n';
-                if (highRisk.some(r=>r.value.includes('admin')))    analysis += '- Admin panellərini brute-force ilə test edin\n';
-                if (highRisk.some(r=>r.value.includes('graphql')))  analysis += '- GraphQL introspection: `{__schema{types{name}}}`\n';
-                if (highRisk.some(r=>r.value.includes('upload')))   analysis += '- File upload shell yükləməyi test edin\n';
-                if (highRisk.some(r=>r.value.includes('swagger')))  analysis += '- Swagger schema-nı endirib API test edin\n';
-                if (highRisk.some(r=>r.value.includes('actuator'))) analysis += '- Actuator endpoint-lərini yoxlayın\n';
-                if (allVulns.some(v=>v.type==='Sensitive Data'))    analysis += '- Kredit kartı məlumatlarını təmizləyin\n';
-                analysis += '\n⚠ IDOR testi: Parametrləri dəyişdirin\n';
-                analysis += '⚠ CORS testi: Origin başlığı ilə yoxlayın\n';
-                aiResult.innerHTML = `<pre class="text-xs text-gray-300 leading-relaxed whitespace-pre-wrap">${escapeHtml(analysis)}</pre>`;
-                aiStatus.textContent = '✅ Hazır';
-                this.disabled = false; this.innerHTML = '🤖 Analiz et';
-                switchTab('ai');
-            });
+    } catch (e) {
+        if (e.message.includes('CORS') || e.message.includes('Failed to fetch')) {
+            log('❌ CORS bloklaması! Sayt URL-i CORS siyasətinə görə birbaşa yüklənə bilmir.');
+            showToast('❌ CORS xətası! HTML faylını endirib Drag & Drop edin.');
+        } else {
+            log(`❌ Xəta: ${e.message}`);
+            showToast(`❌ Xəta: ${e.message.substring(0, 80)}`);
+        }
+    } finally {
+        btnScan.disabled = false;
+        btnScan.textContent = 'Skan';
+        progressSection.classList.add('hidden');
+    }
+});
 
-            // ── Report ────────────────────────────────────────────────────────────
-            $('btn-gen-report').addEventListener('click', function () {
-                if (allResults.length === 0) { showToast('Əvvəlcə skan edin.'); return; }
-                const highRisk = allResults.filter(r => r.risk.level === 'high');
-                let report = '========================================\n  CYBERDELVE BUG BOUNTY REPORT\n========================================\n\n';
-                report += `Tarix: ${new Date().toISOString()}\n`;
-                report += `Hədəf: ${scanSource || urlInput.value.trim() || 'Bilinmir'}\n\n`;
-                report += `Endpoint: ${allResults.filter(r=>r.type==='endpoint').length}\n`;
-                report += `Secret: ${allResults.filter(r=>r.type==='secret').length}\n`;
-                report += `Yüksək Risk: ${highRisk.length}\nZəiflik: ${allVulns.length}\n\n`;
-                if (allVulns.length>0) { report += '--- ZƏİFLİKLƏR ---\n'; allVulns.forEach((v,i)=>{ report+=`${i+1}. [${v.severity.toUpperCase()}] ${v.type}: ${v.detail}\n`; }); }
-                report += '\n--- ENDPOINT-LƏR ---\n'; highRisk.forEach((r,i)=>{ report+=`${i+1}. ${r.value}\n`; });
-                report += '\n--- REMEDIATION ---\n1. Admin panellərini məhdudlaşdırın\n2. API authentication tətbiq edin\n3. CORS konfiqurasiyasını yoxlayın\n4. Key-ləri koddan çıxarın\n';
-                reportContent.textContent = report;
-                showToast('✅ Report yaradıldı'); switchTab('report');
-            });
+// ── Drag & Drop ─────────────────────────────────────────────────────────────
+dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('drag-over');
+});
+dropZone.addEventListener('dragleave', () => {
+    dropZone.classList.remove('drag-over');
+});
+dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    handleFiles(e.dataTransfer.files);
+});
+dropZone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length) handleFiles(e.target.files);
+});
 
-            // ── Export ────────────────────────────────────────────────────────────
-            function downloadFile(content, filename, mime) {
-                const blob = new Blob([content], { type:mime });
-                const url  = URL.createObjectURL(blob);
-                const a    = document.createElement('a');
-                a.href = url; a.download = filename; a.click();
-                URL.revokeObjectURL(url);
+async function handleFiles(files) {
+    resetProgress();
+    scanSource = 'file';
+    resultsBody.innerHTML = '';
+    emptyState.classList.remove('hidden');
+    allResults = [];
+    allVulns = [];
+
+    let allResults = [];
+
+    for (const file of files) {
+        const content = await file.text();
+        log(`📂 Fayl: ${file.name} (${content.length} bytes)`);
+
+        if (file.name.endsWith('.html') || file.name.endsWith('.htm')) {
+            // Extract JS from HTML
+            const jsUrls = new Set();
+            const baseUrl = 'https://example.com/';
+            const scriptRegex = /<script[^>]*src=["']([^"']+)["']/gi;
+            let match;
+            while ((match = scriptRegex.exec(content)) !== null) {
+                let src = match[1];
+                if (src.startsWith('//')) src = 'https:' + src;
+                else if (src.startsWith('/')) src = src;
+                else if (!src.startsWith('http')) src = '/' + src;
+                jsUrls.add(src);
             }
 
-            $('btn-export-txt').addEventListener('click', () => {
-                const eps  = allResults.filter(r=>r.type==='endpoint').map(r=>r.value);
-                const secs = allResults.filter(r=>r.type==='secret').map(r=>r.value);
-                downloadFile('# CyberDelve Export\n# ' + new Date().toISOString() + '\n\n=== ENDPOINTS ===\n' + eps.join('\n') + '\n\n=== SECRETS ===\n' + secs.join('\n'), 'cyberdelve-endpoints.txt', 'text/plain');
-                showToast('✅ ' + eps.length + ' endpoint endirildi');
-            });
-            $('btn-export-json').addEventListener('click', () => {
-                downloadFile(JSON.stringify({ exportDate:new Date().toISOString(), results:allResults.map(r=>({type:r.type,value:r.value,line:r.line,source:r.source,risk:r.risk})), vulns:allVulns }, null, 2), 'cyberdelve-export.json', 'application/json');
-                showToast('✅ JSON endirildi');
-            });
-            $('btn-export-csv').addEventListener('click', () => {
-                let csv = 'Tip,Risk,Dəyər,Sətir,Mənbə\n';
-                allResults.forEach(r => { csv += [r.type, r.risk.label, '"'+r.value.replace(/"/g,'""')+'"', r.line, '"'+(r.source||'').replace(/"/g,'""')+'"'].join(',') + '\n'; });
-                downloadFile(csv, 'cyberdelve-export.csv', 'text/csv');
-                showToast('✅ CSV endirildi');
-            });
-            $('btn-export-nuclei').addEventListener('click', () => {
-                let yaml = '';
-                allResults.forEach(r => {
-                    if (r.type==='endpoint' && r.risk.level!=='low') {
-                        const sid = r.value.replace(/[^a-zA-Z0-9]/g,'-').substring(0,30);
-                        yaml += `id: cyberdelve-${sid}\ninfo:\n  name: "${r.value}"\n  severity: ${r.risk.level}\nrequests:\n  - method: GET\n    path:\n      - "${r.value}"\n    matchers:\n      - type: status\n        status:\n          - 200\n\n`;
-                    }
-                });
-                downloadFile(yaml || '# Heç bir endpoint export edilmədi\n', 'cyberdelve-nuclei.yaml', 'text/yaml');
-                showToast('✅ Nuclei YAML endirildi');
-            });
-            $('btn-export-burp').addEventListener('click', () => {
-                const items = allResults.filter(r=>r.type==='endpoint').map((r,i)=>({id:i+1,url:r.value,severity:r.risk.level}));
-                downloadFile(JSON.stringify(items,null,2), 'cyberdelve-burp.json', 'application/json');
-                showToast('✅ Burp JSON endirildi');
-            });
-            $('btn-export-report').addEventListener('click', () => {
-                const text = reportContent.textContent;
-                if (!text || text.includes('Report yaratmaq üçün')) { showToast('Əvvəlcə report yaradın.'); return; }
-                downloadFile(text, 'cyberdelve-report.txt', 'text/plain');
-                showToast('✅ Report endirildi');
-            });
+            log(`📦 ${jsUrls.size} JS referansı tapıldı`);
 
-            // ── Param fuzz ────────────────────────────────────────────────────────
-            $('btn-fuzz-all').addEventListener('click', async function () {
-                if (allResults.length === 0) { showToast('Əvvəlcə skan edin.'); return; }
-                this.disabled = true; this.innerHTML = '<span class="spinner" style="width:12px;height:12px;"></span> Fuzz edilir...';
-                const endpoints = allResults.filter(r=>r.type==='endpoint'&&!r.value.includes('?')&&r.risk.level!=='low');
-                let found = 0;
-                for (const ep of endpoints.slice(0,30)) {
-                    const base = ep.value.endsWith('/') ? ep.value.slice(0,-1) : ep.value;
-                    for (const param of PARAM_WORDS.slice(0,10)) {
-                        const testUrl = base + '?' + param + '=test';
-                        try {
-                            const ctrl = new AbortController(); setTimeout(()=>ctrl.abort(),3000);
-                            const resp = await fetch(testUrl, { method:'HEAD', mode:'no-cors', signal:ctrl.signal });
-                            if (resp.ok || resp.type==='opaque') {
-                                if (!allResults.find(r=>r.value===testUrl)) {
-                                    allResults.push({ type:'endpoint', value:testUrl, line:ep.line, source:'param-fuzz', risk:{level:'medium',label:'⚡ Param Kəşf',cls:'high'} });
-                                    found++;
-                                }
-                            }
-                        } catch { /* */ }
+            if (jsUrls.size === 0) {
+                // Scan HTML directly
+                const results = await scanFile(content, file.name);
+                allResults.push(...results);
+            } else {
+                // Try to fetch JS files
+                let fetchedCount = 0;
+                for (const jsUrl of jsUrls) {
+                    let fullUrl = jsUrl;
+                    if (jsUrl.startsWith('/')) {
+                        // Can't resolve without a base URL, just note it
+                        log(`⚠ Yerli JS: ${jsUrl} (yüklənə bilməz)`);
+                        continue;
+                    }
+                    try {
+                        const resp = await fetch(fullUrl, { mode: 'cors' });
+                        if (resp.ok) {
+                            const jsContent = await resp.text();
+                            const results = await scanFile(jsContent, jsUrl);
+                            allResults.push(...results);
+                            fetchedCount++;
+                        }
+                    } catch (e) {
+                        log(`⚠ ${jsUrl} yüklənə bilmədi`);
                     }
                 }
-                renderResults(); showToast('✅ ' + found + ' yeni parametr kəşf edildi');
-                this.disabled = false; this.innerHTML = '⚡ Param Fuzz';
-            });
-
-            // ── Auth bypass ───────────────────────────────────────────────────────
-            $('btn-auth-all').addEventListener('click', async function () {
-                if (allResults.length === 0) { showToast('Əvvəlcə skan edin.'); return; }
-                this.disabled = true; this.innerHTML = '<span class="spinner" style="width:12px;height:12px;"></span> Test edilir...';
-                const authEndpoints = allResults.filter(r=>r.type==='endpoint'&&(r.value.includes('login')||r.value.includes('auth')||r.value.includes('admin')||r.value.includes('signup')||r.value.includes('register')||r.value.includes('token')));
-                let bypassFound = 0;
-                for (const ep of authEndpoints.slice(0,20)) {
-                    for (const payload of AUTH_BYPASS_PAYLOADS) {
-                        try {
-                            const testUrl = ep.value.includes('?') ? ep.value+'&username='+encodeURIComponent(payload)+'&password='+encodeURIComponent(payload) : ep.value+'?username='+encodeURIComponent(payload)+'&password='+encodeURIComponent(payload);
-                            const ctrl = new AbortController(); setTimeout(()=>ctrl.abort(),3000);
-                            const resp = await fetch(testUrl, { method:'GET', mode:'no-cors', signal:ctrl.signal });
-                            if (resp.ok || resp.type==='opaque') {
-                                if (!allVulns.find(v=>v.endpoint===ep.value&&v.type==='Auth Bypass')) {
-                                    allVulns.push({ type:'Auth Bypass', severity:'high', detail:'Potensial auth bypass: '+payload, endpoint:ep.value, line:ep.line });
-                                    bypassFound++;
-                                }
-                            }
-                        } catch { /* */ }
-                    }
-                }
-                renderVulns(); statVulns.textContent = allVulns.length;
-                showToast('✅ ' + bypassFound + ' auth bypass testi müsbət');
-                this.disabled = false; this.innerHTML = '🔐 Auth Bypass';
-            });
-
-            // ── Templates ─────────────────────────────────────────────────────────
-            const defaultTemplate = `id: example-template\ninfo:\n  name: "Example Check"\n  severity: medium\nrequests:\n  - method: GET\n    path:\n      - "{{BaseURL}}/admin"\n    matchers:\n      - type: word\n        words:\n          - "admin"`;
-
-            $('btn-add-template').addEventListener('click', () => {
-                const name = prompt('Template adı daxil edin:', 'my-template');
-                if (!name) return;
-                const content = prompt('Nuclei YAML template daxil edin:', defaultTemplate);
-                if (!content) return;
-                templates.push({ name, content }); renderTemplates();
-                showToast('✅ Template əlavə edildi: ' + name);
-            });
-
-            function renderTemplates() {
-                if (templates.length === 0) { templatesList.innerHTML = '<div class="text-gray-600 text-xs text-center py-4">Hələ template yoxdur.</div>'; return; }
-                let html = '';
-                templates.forEach(t => {
-                    html += `<div class="glass-card rounded-lg p-2 text-xs flex items-start justify-between">
-                        <div class="flex-1 min-w-0">
-                            <p class="text-cyan-400 font-semibold">${escapeHtml(t.name)}</p>
-                            <pre class="text-gray-500 mt-1 font-mono-custom text-[0.55rem] max-h-20 overflow-y-auto">${escapeHtml(t.content.substring(0,200))}${t.content.length>200?'...':''}</pre>
-                        </div>
-                        <button class="btn-live px-2 py-0.5 rounded text-[0.55rem] ml-2 template-run" data-template="${escapeHtml(t.name)}">▶ Çalışdır</button>
-                    </div>`;
-                });
-                templatesList.innerHTML = html;
-                document.querySelectorAll('.template-run').forEach(btn => btn.addEventListener('click', function () { showToast('✅ Template ' + this.dataset.template + ' seçildi'); }));
+                // Also scan the HTML
+                const results = await scanFile(content, file.name);
+                allResults.push(...results);
+                log(`✅ ${fetchedCount} JS faylı uğurla yükləndi`);
             }
+        } else if (file.name.endsWith('.js')) {
+            const results = await scanFile(content, file.name);
+            allResults.push(...results);
+        } else {
+            showToast(`⚠ Dəstəklənməyən fayl tipi: ${file.name}. HTML və ya JS qəbul edilir.`);
+        }
+    }
 
-            // ── Init ──────────────────────────────────────────────────────────────
-            renderTemplates();
-            document.addEventListener('dragover', e => e.preventDefault());
-            document.addEventListener('drop', e => e.preventDefault());
+    processResults(allResults);
+}
 
-            console.log('🚀 CyberDelve Ultimate BH Pro v6.0 hazırdır');
-            console.log('📌 GitHub: https://github.com/your-username/cyberdelve');
+// ── Live Check ──────────────────────────────────────────────────────────────
+async function checkLiveEndpoints() {
+    if (liveCheckInProgress) return;
+    liveCheckInProgress = true;
 
-        })();
-    </script>
+    const endpoints = allResults.filter(r => r.type === 'endpoint');
+    if (endpoints.length === 0) {
+        showToast('⚠ Canlı yoxlama üçün endpoint yoxdur');
+        return;
+    }
+
+    liveStatus.textContent = '⏳ Yoxlanılır...';
+    let liveCount = 0;
+    let total = 0;
+
+    for (const ep of endpoints) {
+        let url = ep.value;
+        if (!url.startsWith('http')) {
+            url = 'https://example.com' + url;
+        }
+        try {
+            const resp = await fetch(url, { mode: 'no-cors' });
+            // no-cors returns opaque, but we can check if it didn't throw
+            ep.liveStatus = '200 (opaque)';
+            ep.isLive = true;
+            liveCount++;
+        } catch (e) {
+            ep.liveStatus = 'Dead';
+            ep.isLive = false;
+        }
+        total++;
+        liveStatus.textContent = `⏳ ${liveCount}/${total} canlı`;
+    }
+
+    liveStatus.textContent = `✅ ${liveCount}/${total} endpoint canlı`;
+    renderResults();
+    showToast(`✅ ${liveCount}/${total} endpoint canlı`);
+    liveCheckInProgress = false;
+}
+
+document.getElementById('btn-live-check').addEventListener('click', checkLiveEndpoints);
+
+// ── Param Fuzz ──────────────────────────────────────────────────────────────
+async function runParamFuzz() {
+    const endpoints = allResults.filter(r => r.type === 'endpoint' && r.value.includes('?'));
+    if (endpoints.length === 0) {
+        showToast('⚠ Param fuzz üçün parametrli endpoint yoxdur');
+        return;
+    }
+
+    showToast('⚡ Param fuzz başladı...');
+    let found = 0;
+    for (const ep of endpoints.slice(0, 15)) {
+        for (const word of PARAM_WORDS.slice(0, 5)) {
+            const url = ep.value + '&' + word + '=1';
+            ep.detail = ep.detail + ` [fuzz: ${word}]`;
+            found++;
+        }
+    }
+    showToast(`✅ ${found} parametr kombinasiyası əlavə edildi`);
+    renderResults();
+}
+
+document.getElementById('btn-param-fuzz').addEventListener('click', runParamFuzz);
+
+// ── Auth Bypass ─────────────────────────────────────────────────────────────
+async function runAuthBypass() {
+    const authEndpoints = allResults.filter(r => r.type === 'endpoint' &&
+        (r.value.toLowerCase().includes('login') || r.value.toLowerCase().includes('admin') ||
+            r.value.toLowerCase().includes('auth')));
+
+    if (authEndpoints.length === 0) {
+        showToast('⚠ Auth bypass üçün login/admin endpointi tapılmadı');
+        return;
+    }
+
+    showToast('🔐 Auth bypass testi başladı...');
+    let bypassFound = 0;
+
+    for (const ep of authEndpoints.slice(0, 5)) {
+        for (const payload of AUTH_BYPASS_PAYLOADS) {
+            // Try the payload in the URL
+            try {
+                let url = ep.value;
+                if (!url.startsWith('http')) url = 'https://example.com' + url;
+                if (url.includes('?')) {
+                    url += '&user=' + encodeURIComponent(payload) + '&password=test';
+                } else {
+                    url += '?' + encodeURIComponent(payload) + '=test';
+                }
+                const resp = await fetch(url, { mode: 'no-cors' });
+                ep.detail = ep.detail + ` [bypass: ${payload}]`;
+                bypassFound++;
+            } catch (e) {}
+        }
+    }
+
+    showToast(`🔐 ${bypassFound} auth bypass testi tamamlandı`);
+    renderResults();
+}
+
+document.getElementById('btn-auth-bypass').addEventListener('click', runAuthBypass);
+
+// ── Export ──────────────────────────────────────────────────────────────────
+function exportData(format) {
+    const data = allResults;
+    if (data.length === 0) {
+        showToast('⚠ Export üçün məlumat yoxdur');
+        return;
+    }
+
+    let content = '';
+    let mime = 'text/plain';
+    let ext = 'txt';
+
+    if (format === 'txt') {
+        content = data.map(r =>
+            `[${r.category || (r.type === 'secret' ? 'SECRET' : 'ENDPOINT')}] ${r.value} | ${r.risk ? r.risk.label : ''} | ${r.file || ''}:${r.line || ''}`
+        ).join('\n');
+    } else if (format === 'json') {
+        content = JSON.stringify(data, null, 2);
+        mime = 'application/json';
+        ext = 'json';
+    } else if (format === 'csv') {
+        content = 'Type,Value,Risk,File,Line,Detail\n' +
+            data.map(r => {
+                const vals = [r.type, r.value, r.risk ? r.risk.label : '', r.file || '', r.line || '', (r.detail || '')
+                    .replace(/"/g, '""'
+                    )
+                ];
+                return vals.map(v => `"${v}"`).join(',');
+            }).join('\n');
+        mime = 'text/csv';
+        ext = 'csv';
+    } else if (format === 'nuclei') {
+        content = data.filter(r => r.type === 'endpoint').map(r => {
+            return `id: cyberdelve-${Date.now()}\ninfo:\n  name: "Endpoint Scanner"\n  severity: ${r.risk && r.risk.level === 'high' ? 'high' : 'medium'}\nrequests:\n  - method: GET\n    path:\n      - "${r.value}"\n    matchers:\n      - type: status\n        status:\n          - 200\n          - 403\n`;
+        }).join('\n---\n');
+        mime = 'text/yaml';
+        ext = 'yaml';
+    } else if (format === 'burp') {
+        const items = data.filter(r => r.type === 'endpoint').map(r => {
+            return {
+                type: 'request',
+                host: 'target.com',
+                path: r.value,
+                method: 'GET',
+                status: 0,
+                length: 0,
+                mime: 'JSON',
+                comments: `[${r.risk ? r.risk.label : ''}] ${r.file || ''}`
+            };
+        });
+        content = JSON.stringify(items, null, 2);
+        mime = 'application/json';
+        ext = 'burp.json';
+    }
+
+    const blob = new Blob([content], { type: mime });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `cyberdelve-export.${ext}`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast(`✅ ${ext.toUpperCase()} olaraq export edildi`);
+}
+
+document.getElementById('btn-export-txt').addEventListener('click', () => exportData('txt'));
+document.getElementById('btn-export-json').addEventListener('click', () => exportData('json'));
+document.getElementById('btn-export-csv').addEventListener('click', () => exportData('csv'));
+document.getElementById('btn-export-nuclei').addEventListener('click', () => exportData('nuclei'));
+document.getElementById('btn-export-burp').addEventListener('click', () => exportData('burp'));
+
+// ── Wayback Machine ─────────────────────────────────────────────────────────
+async function fetchWayback() {
+    const url = urlInput.value.trim();
+    if (!url) {
+        showToast('⚠ Əvvəlcə URL daxil edin');
+        return;
+    }
+
+    let targetUrl = url;
+    if (!targetUrl.startsWith('http')) targetUrl = 'https://' + targetUrl;
+    const domain = new URL(targetUrl).hostname;
+
+    waybackStatus.textContent = '⏳ Yüklənir...';
+    waybackList.innerHTML = '<p class="text-gray-500 text-[0.6rem]">Yüklənir...</p>';
+
+    try {
+        const resp = await fetch(`https://web.archive.org/cdx/search/cdx?url=${domain}/*&output=json&limit=100&fl=timestamp,original,statuscode`,
+            { mode: 'cors' }
+        );
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+        const data = await resp.json();
+        if (!data || data.length < 2) {
+            waybackStatus.textContent = '❌ Heç bir nəticə tapılmadı';
+            waybackList.innerHTML = '<p class="text-gray-500 text-[0.6rem]">Wayback-də məlumat yoxdur.</p>';
+            return;
+        }
+
+        waybackUrls = data.slice(1).map(row => ({
+            url: row[0] ? `https://web.archive.org/web/${row[0]}/${row[1]}` : row[1],
+            original: row[1],
+            timestamp: row[0] || 'N/A',
+            status: row[2] || 'N/A'
+        }));
+
+        waybackStatus.textContent = `✅ ${waybackUrls.length} URL tapıldı`;
+        let html = '';
+        for (const w of waybackUrls.slice(0, 50)) {
+            html += `<div class="flex items-center gap-2 py-1 border-b border-white/5 text-[0.55rem]">
+            <span class="text-gray-400">${w.timestamp}</span>
+            <span class="text-gray-200 truncate max-w-[200px]">${escapeHtml(w.original)}</span>
+            <span class="ml-auto font-mono-custom ${w.status === '200' ? 'text-green-400' : 'text-gray-500'}">${w.status}</span>
+          </div>`;
+        }
+        waybackList.innerHTML = html;
+        showToast(`✅ Wayback: ${waybackUrls.length} URL tapıldı`);
+
+    } catch (e) {
+        waybackStatus.textContent = '❌ Xəta: ' + e.message.substring(0, 50);
+        waybackList.innerHTML =
+            `<p class="text-gray-500 text-[0.55rem]">Wayback Machine yüklənə bilmədi. CORS və ya şəbəkə xətası.</p>`;
+        showToast('❌ Wayback xətası: ' + e.message.substring(0, 40));
+    }
+}
+
+document.getElementById('btn-wayback-fetch').addEventListener('click', fetchWayback);
+
+// ── AI Analysis ─────────────────────────────────────────────────────────────
+async function runAIAnalysis() {
+    if (allResults.length === 0) {
+        showToast('⚠ AI analizi üçün əvvəlcə skan edin');
+        return;
+    }
+
+    aiStatus.textContent = '⏳ Analiz edilir...';
+    aiResult.innerHTML = '<p class="text-gray-500 text-[0.6rem]">Analiz...</p>';
+
+    try {
+        const secretFindings = allResults.filter(r => r.type === 'secret');
+        const highRisk = allResults.filter(r => r.risk && r.risk.level === 'high');
+        const vulns = allVulns;
+
+        let analysis = '';
+
+        // Summary
+        analysis += `📊 **Ümumi Statistika**\n\n`;
+        analysis += `• ${allResults.length} kəşf (${secretFindings.length} secret, ${allResults.filter(r => r.type === 'endpoint').length} endpoint)\n`;
+        analysis += `• ${highRisk.length} yüksək riskli kəşf\n`;
+        analysis += `• ${vulns.length} potensial zəiflik\n\n`;
+
+        // High risk items
+        if (highRisk.length > 0) {
+            analysis += `🔴 **Təcili Baxılmalı**\n\n`;
+            for (const hr of highRisk.slice(0, 10)) {
+                analysis += `• **${escapeHtml(hr.value.substring(0, 60))}**\n  Fayl: ${hr.file || 'N/A'}:${hr.line || ''}\n  ${hr.detail || 'Yüksək riskli tapıntı'}\n\n`;
+            }
+        }
+
+        // Secret type summary
+        if (secretFindings.length > 0) {
+            analysis += `🔑 **Secret Analizi**\n\n`;
+            const typeCount = {};
+            for (const s of secretFindings) {
+                const t = s.secretType || 'Unknown';
+                typeCount[t] = (typeCount[t] || 0) + 1;
+            }
+            for (const [type, count] of Object.entries(typeCount)) {
+                analysis += `• ${type}: ${count} dənə\n`;
+            }
+            analysis += '\n';
+
+            // First few secrets in detail
+            analysis += `**Detallı Secret Açıqlaması:**\n\n`;
+            for (const s of secretFindings.slice(0, 8)) {
+                analysis += `🔑 **${s.secretType || 'Secret'}** (${s.risk ? s.risk.label : ''})\n`;
+                analysis += `  Dəyər: \`${escapeHtml(s.value.substring(0, 50))}\`\n`;
+                analysis += `  Mənbə: ${s.file || 'N/A'}:${s.line || ''}\n`;
+                analysis += `  ${s.detail || ''}\n\n`;
+            }
+        }
+
+        // Vulnerability summary
+        if (vulns.length > 0) {
+            analysis += `⚡ **Zəiflik Özeti**\n\n`;
+            const sevCount = {};
+            for (const v of vulns) {
+                sevCount[v.severity] = (sevCount[v.severity] || 0) + 1;
+            }
+            for (const [sev, count] of Object.entries(sevCount)) {
+                analysis += `• ${sev}: ${count} dənə\n`;
+            }
+            analysis += '\n';
+            for (const v of vulns.slice(0, 10)) {
+                analysis += `• ${v.type} (${v.severity}) — ${v.file}:${v.line}\n`;
+            }
+            analysis += '\n';
+        }
+
+        // Recommendations
+        analysis += `💡 **Tövsiyələr**\n\n`;
+        if (secretFindings.length > 0) {
+            analysis += `1. Tapılan API key-ləri dərhal söndürün və yeniləyin.\n`;
+            analysis += `2. Kredit kartı məlumatları varsa, PCI-DSS uyğunluğunu yoxlayın.\n`;
+        }
+        if (highRisk.filter(r => r.type === 'endpoint').length > 0) {
+            analysis += `3. Admin panellərinə IP məhdudiyyəti qoyun.\n`;
+            analysis += `4. GraphQL endpoint-lərində introspection-u söndürün.\n`;
+        }
+        if (vulns.filter(v => v.severity === 'critical').length > 0) {
+            analysis += `5. Kritik DOM XSS zəifliklərini dərhal yamalayın.\n`;
+        }
+        analysis += `6. JWT token-ləri decode edib payload-a baxın.\n`;
+        analysis += `7. Wayback Machine-dən çıxan köhnə URL-ləri yoxlayın.\n`;
+
+        aiResult.innerHTML = analysis.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        aiStatus.textContent = '✅ Analiz tamamlandı';
+
+    } catch (e) {
+        aiStatus.textContent = '❌ Xəta';
+        aiResult.innerHTML = `<p class="text-red-400">Xəta: ${e.message}</p>`;
+    }
+}
+
+document.getElementById('btn-ai-analyze').addEventListener('click', runAIAnalysis);
+
+// ── Report Generator ────────────────────────────────────────────────────────
+function generateReport() {
+    if (allResults.length === 0) {
+        showToast('⚠ Report üçün skan edin');
+        return;
+    }
+
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0];
+    const endpoints = allResults.filter(r => r.type === 'endpoint');
+    const secrets = allResults.filter(r => r.type === 'secret');
+    const highRiskItems = allResults.filter(r => r.risk && r.risk.level === 'high');
+    const vulns = allVulns;
+
+    let html = `
+    <div class="space-y-4">
+      <div class="bg-white/5 rounded-lg p-3 border border-white/10">
+        <h3 class="text-[0.7rem] font-bold text-cyan-400">BUG BOUNTY REPORT</h3>
+        <p class="text-[0.5rem] text-gray-500">CyberDelve v7.0 · ${dateStr} · ${currentLang === 'az' ? 'Avtomatik yaradıldı' : 'Auto-generated'}</p>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <div class="bg-white/5 rounded p-2">
+          <p class="text-[0.45rem] text-gray-500">Ümumi Kəşf</p>
+          <p class="text-[0.7rem] font-bold text-gray-200">${allResults.length}</p>
+        </div>
+        <div class="bg-white/5 rounded p-2">
+          <p class="text-[0.45rem] text-gray-500">Yüksək Risk</p>
+          <p class="text-[0.7rem] font-bold text-red-400">${highRiskItems.length}</p>
+        </div>
+        <div class="bg-white/5 rounded p-2">
+          <p class="text-[0.45rem] text-gray-500">Secret</p>
+          <p class="text-[0.7rem] font-bold text-orange-400">${secrets.length}</p>
+        </div>
+        <div class="bg-white/5 rounded p-2">
+          <p class="text-[0.45rem] text-gray-500">Zəiflik</p>
+          <p class="text-[0.7rem] font-bold text-red-400">${vulns.length}</p>
+        </div>
+      </div>`;
+
+    if (highRiskItems.length > 0) {
+        html += `<div class="bg-white/5 rounded-lg p-3 border border-red-500/20">
+        <h4 class="text-[0.6rem] font-bold text-red-400 mb-2">🔴 Critical & High Risk Findings</h4>`;
+        for (const hr of highRiskItems.slice(0, 20)) {
+            html += `<div class="py-1 border-b border-white/5 text-[0.55rem]">
+          <span class="text-red-300">${escapeHtml(hr.value.substring(0, 80))}</span>
+          <span class="text-gray-500 ml-2">${hr.file || ''}:${hr.line || ''}</span>
+          <p class="text-gray-400 text-[0.5rem]">${hr.detail || ''}</p>
+        </div>`;
+        }
+        html += `</div>`;
+    }
+
+    if (vulns.length > 0) {
+        html += `<div class="bg-white/5 rounded-lg p-3 border border-orange-500/20">
+        <h4 class="text-[0.6rem] font-bold text-orange-400 mb-2">⚡ Vulnerabilities</h4>`;
+        const criticalVulns = vulns.filter(v => v.severity === 'critical');
+        const highVulns = vulns.filter(v => v.severity === 'high');
+        if (criticalVulns.length > 0) {
+            html += `<p class="text-[0.55rem] text-red-400">Critical (${criticalVulns.length}):</p>`;
+            for (const v of criticalVulns.slice(0, 10)) {
+                html += `<div class="text-[0.5rem] text-gray-300 pl-2">• ${v.type} — ${v.file}:${v.line}</div>`;
+            }
+        }
+        if (highVulns.length > 0) {
+            html += `<p class="text-[0.55rem] text-orange-400 mt-1">High (${highVulns.length}):</p>`;
+            for (const v of highVulns.slice(0, 10)) {
+                html += `<div class="text-[0.5rem] text-gray-300 pl-2">• ${v.type} — ${v.file}:${v.line}</div>`;
+            }
+        }
+        html += `</div>`;
+    }
+
+    html += `
+      <div class="bg-white/5 rounded-lg p-3 border border-white/10">
+        <h4 class="text-[0.6rem] font-bold text-gray-300 mb-2">📊 Summary</h4>
+        <p class="text-[0.5rem] text-gray-400">Total endpoints: ${endpoints.length} | Secrets: ${secrets.length} | Vulnerabilities: ${vulns.length} | Files scanned: ${scannedFiles.size}</p>
+        <p class="text-[0.5rem] text-gray-500 mt-1">Recommendations: Review all high-risk findings, revoke exposed keys, patch XSS vulnerabilities, check Wayback URLs.</p>
+      </div>
+    </div>`;
+
+    reportContent.innerHTML = html;
+    showToast('✅ Report yaradıldı');
+}
+
+document.getElementById('btn-generate-report').addEventListener('click', generateReport);
+
+function downloadReport() {
+    const content = reportContent.textContent;
+    if (!content || content.includes('Report yaratmaq')) {
+        showToast('⚠ Əvvəlcə report yaradın');
+        return;
+    }
+    const blob = new Blob([content], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `cyberdelve-report-${Date.now()}.txt`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast('✅ Report endirildi');
+}
+
+document.getElementById('btn-export-report').addEventListener('click', downloadReport);
+
+// ── Templates ───────────────────────────────────────────────────────────────
+const DEFAULT_TEMPLATES = [{
+    name: 'XSS Scanner',
+    description: 'XSS zəifliyini test edən endpoint siyahısı. Parametr dəyərlərinə <script>alert(1)</script> əlavə edir.',
+    payload: '<script>alert(1)</script>',
+    severity: 'Critical'
+}, {
+    name: 'SQL Injection',
+    description: 'SQL injection testi. Sətirlərə \' OR \'1\'=\'1\u0027, " OR 1=1-- kimi dəyərlər əlavə edir.',
+    payload: "' OR '1'='1",
+    severity: 'Critical'
+}, {
+    name: 'LFI Scanner',
+    description: 'Local File Inclusion testi. Fayl parametrlərinə ../../etc/passwd əlavə edir.',
+    payload: '../../../etc/passwd',
+    severity: 'High'
+}, {
+    name: 'Open Redirect',
+    description: 'Redirect olan URL-ləri aşkarlamaq üçün. redirect/url parametrlərinə https://evil.com əlavə edir.',
+    payload: 'https://evil.com',
+    severity: 'Medium'
+}, {
+    name: 'SSTI Test',
+    description: 'Server-Side Template Injection. {{7*7}} kimi payload-lar göndərir.',
+    payload: '{{7*7}}',
+    severity: 'High'
+}];
+
+templates = [...DEFAULT_TEMPLATES];
+
+function renderTemplates() {
+    if (templates.length === 0) {
+        templatesList.innerHTML = '<p class="text-gray-500 text-[0.55rem]">Template yoxdur.</p>';
+        return;
+    }
+    let html = '';
+    for (const t of templates) {
+        html += `<div class="glass-card rounded-lg p-3 mb-2">
+        <div class="flex items-center justify-between">
+          <div>
+            <h4 class="text-[0.6rem] font-semibold text-gray-200">${escapeHtml(t.name)}</h4>
+            <p class="text-[0.5rem] text-gray-500">${escapeHtml(t.description)}</p>
+            <p class="text-[0.45rem] text-gray-600 mt-1">Payload: <code class="text-cyan-400">${escapeHtml(t.payload)}</code> · Severity: ${t.severity}</p>
+          </div>
+          <button class="btn-ghost-sm px-2 py-1 rounded text-[0.55rem] use-template-btn" data-name="${escapeHtml(t.name)}" data-payload="${escapeHtml(t.payload)}">İstifadə et</button>
+        </div>
+      </div>`;
+    }
+    templatesList.innerHTML = html;
+
+    templatesList.querySelectorAll('.use-template-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const name = btn.dataset.name;
+            const payload = btn.dataset.payload;
+            showToast(`⚡ "${name}" templatindən istifadə olunur: ${payload}`);
+        });
+    });
+}
+
+renderTemplates();
+
+// ── Clear ───────────────────────────────────────────────────────────────────
+document.getElementById('btn-clear').addEventListener('click', () => {
+    allResults = [];
+    allVulns = [];
+    waybackUrls = [];
+    scannedFiles.clear();
+    resultsBody.innerHTML = '';
+    emptyState.classList.remove('hidden');
+    resultCount.textContent = '0 nəticə';
+    vulnsList.innerHTML = '<p class="text-gray-500 text-[0.55rem]">Zəiflik aşkarlanmayıb.</p>';
+    waybackList.innerHTML = '<p class="text-gray-500 text-[0.55rem]">Hələ yüklənməyib.</p>';
+    aiResult.innerHTML = '<p class="text-gray-500 text-[0.55rem]">AI analizi üçün skan edin.</p>';
+    reportContent.innerHTML =
+    '<p class="text-gray-500 text-[0.55rem]">Report yaratmaq üçün əvvəlcə skan edin.</p>';
+    liveStatus.textContent = '';
+    renderStats();
+    showToast('🗑 Bütün nəticələr təmizləndi');
+});
+
+// ── Toast style ─────────────────────────────────────────────────────────────
+const style = document.createElement('style');
+style.textContent = `
+  #toast.show { opacity: 1; transform: translateY(0); }
+  .active-tab { background: rgba(255,0,85,0.15) !important; border-color: rgba(255,0,85,0.3) !important; color: #ff3366 !important; }
+  .active-filter { background: rgba(0,212,255,0.1) !important; border-color: rgba(0,212,255,0.2) !important; color: #00d4ff !important; }
+  .active-lang { background: rgba(255,0,85,0.15) !important; border-color: rgba(255,0,85,0.3) !important; color: #ff3366 !important; }
+`;
+document.head.appendChild(style);
+
+// ── Init ────────────────────────────────────────────────────────────────────
+applyLang('az');
+showToast('🚀 CyberDelve Ultimate BH Pro v7.0 hazırdır! HTML faylını atın və ya URL daxil edin.');
+})();
+</script>
 </body>
 </html>
