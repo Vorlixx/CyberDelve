@@ -1,1391 +1,1347 @@
 <!DOCTYPE html>
 <html lang="az">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CyberDelve · Ultimate Bug Hunter Pro</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-        :root{
-            --bg-deep:#0a0f1d;--bg-card:#111827;
-            --neon-red:#ff0055;--neon-red-glow:rgba(255,0,85,.35);
-            --neon-green:#00ff88;--neon-green-glow:rgba(0,255,136,.30);
-            --neon-cyan:#00d4ff;--neon-orange:#ff8800;--neon-purple:#a855f7;
-            --text-primary:#e6edf3;--text-secondary:#8b949e;--border-dim:#1e2a3a;
-        }
-        body{font-family:'Inter',system-ui,sans-serif;background:var(--bg-deep);color:var(--text-primary);min-height:100vh;
-            background-image:radial-gradient(ellipse 80% 60% at 50% -10%,rgba(255,0,85,.05) 0%,transparent 70%),
-            radial-gradient(ellipse 60% 50% at 80% 90%,rgba(0,255,136,.04) 0%,transparent 70%),
-            radial-gradient(ellipse 40% 40% at 10% 80%,rgba(168,85,247,.03) 0%,transparent 60%);}
-        .font-mono-custom{font-family:'JetBrains Mono',monospace;}
-        .glass-card{background:rgba(17,24,39,.75);backdrop-filter:blur(16px) saturate(1.3);-webkit-backdrop-filter:blur(16px) saturate(1.3);border:1px solid rgba(255,255,255,.04);box-shadow:0 8px 32px rgba(0,0,0,.45);}
-        .glass-card:hover{border-color:rgba(255,0,85,.15);}
-        .btn-scan{background:linear-gradient(135deg,#ff0055 0%,#cc0044 100%);transition:all .25s ease;box-shadow:0 4px 20px rgba(255,0,85,.25);}
-        .btn-scan:hover{transform:translateY(-2px) scale(1.02);box-shadow:0 8px 35px rgba(255,0,85,.4);}
-        .btn-scan:disabled{opacity:.6;transform:none;cursor:not-allowed;}
-        .btn-primary-sm{background:rgba(255,0,85,.12);border:1px solid rgba(255,0,85,.2);transition:all .2s ease;color:#ff3366;}
-        .btn-primary-sm:hover{background:rgba(255,0,85,.2);}
-        .btn-primary-sm:disabled{opacity:.4;cursor:not-allowed;}
-        .btn-ghost-sm{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);transition:all .2s ease;color:#ccc;}
-        .btn-ghost-sm:hover{background:rgba(255,255,255,.08);}
-        .btn-live{background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.12);transition:all .2s ease;color:#00d4ff;}
-        .btn-live:hover{background:rgba(0,212,255,.16);}
-        .btn-live:disabled{opacity:.4;cursor:not-allowed;}
-        .drop-zone{border:2px dashed rgba(255,255,255,.08);transition:all .3s ease;background:rgba(255,255,255,.02);}
-        .drop-zone:hover{border-color:var(--neon-green);background:rgba(0,255,136,.03);}
-        .drop-zone.drag-over{border-color:var(--neon-green);background:rgba(0,255,136,.08);box-shadow:0 0 40px rgba(0,255,136,.12);}
-        .badge-endpoint{display:inline-block;padding:2px 8px;border-radius:9999px;font-size:.6rem;font-weight:600;letter-spacing:.04em;background:rgba(0,255,136,.10);color:#00ff88;border:1px solid rgba(0,255,136,.15);}
-        .badge-secret{display:inline-block;padding:2px 8px;border-radius:9999px;font-size:.6rem;font-weight:600;background:rgba(255,0,85,.10);color:#ff3366;border:1px solid rgba(255,0,85,.15);}
-        .badge-risk{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.6rem;font-weight:600;}
-        .badge-risk.critical{background:rgba(255,0,85,.15);color:#ff3366;border:1px solid rgba(255,0,85,.2);}
-        .badge-risk.high{background:rgba(255,136,0,.15);color:#ff8800;border:1px solid rgba(255,136,0,.2);}
-        .badge-risk.medium{background:rgba(255,200,0,.10);color:#ffcc00;border:1px solid rgba(255,200,0,.15);}
-        .badge-risk.low{background:rgba(255,255,255,.04);color:#8b949e;border:1px solid rgba(255,255,255,.06);}
-        .status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:3px;}
-        .status-dot.online{background:#00ff88;box-shadow:0 0 6px rgba(0,255,136,.4);}
-        .status-dot.offline{background:#ff0055;box-shadow:0 0 6px rgba(255,0,85,.4);}
-        .status-dot.unknown{background:#555;}
-        .status-dot.loading{background:#ff8800;animation:pulse-orange .8s ease-in-out infinite;}
-        @keyframes pulse-orange{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.6)}}
-        .toast-alert{position:fixed;top:24px;right:24px;z-index:9999;max-width:480px;transform:translateX(120%);transition:transform .45s cubic-bezier(.16,1,.3,1);}
-        .toast-alert.show{transform:translateX(0);}
-        ::-webkit-scrollbar{width:5px;height:5px;}
-        ::-webkit-scrollbar-track{background:var(--bg-deep);}
-        ::-webkit-scrollbar-thumb{background:#2a3a4a;border-radius:99px;}
-        .pulse-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--neon-red);animation:pulse-red 1.8s ease-in-out infinite;box-shadow:0 0 12px var(--neon-red-glow);}
-        @keyframes pulse-red{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.75)}}
-        .stat-num{font-variant-numeric:tabular-nums;}
-        .spinner{width:18px;height:18px;border-radius:50%;border:2.5px solid rgba(255,255,255,.08);border-top-color:var(--neon-red);animation:spin .7s linear infinite;}
-        @keyframes spin{to{transform:rotate(360deg)}}
-        .fade-in{animation:fadeIn .35s ease forwards;}
-        @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-        .filter-btn.active-filter{background:rgba(255,0,85,.15);color:#ff3366;border-color:rgba(255,0,85,.3);}
-        .risk-filter-btn.active-risk{background:rgba(0,212,255,.12);color:#00d4ff;border-color:rgba(0,212,255,.25);}
-        .tab-btn{transition:all .2s ease;}
-        .tab-btn.active-tab{background:rgba(255,0,85,.12);color:#ff3366;border-color:rgba(255,0,85,.25);}
-        .ai-thinking{background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.1);}
-        .scan-log{max-height:80px;overflow-y:auto;font-size:.6rem;line-height:1.3;}
-        .scan-log::-webkit-scrollbar{width:3px;}
-        pre{white-space:pre-wrap;word-break:break-all;}
-        .pulse-purple{animation:pulse-purple 1.5s ease-in-out infinite;}
-        @keyframes pulse-purple{0%,100%{box-shadow:0 0 10px rgba(168,85,247,.1)}50%{box-shadow:0 0 25px rgba(168,85,247,.25)}}
-        select{background:rgba(0,0,0,.3);}
-        select option{background:#111827;}
-        .lang-btn{transition:all .2s ease;}
-        .lang-btn.active-lang{background:rgba(255,0,85,.15);color:#ff3366;border-color:rgba(255,0,85,.3);}
-        .help-panel{background:rgba(17,24,39,.9);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.06);}
-        .glow-text{text-shadow:0 0 20px rgba(255,0,85,.3);}
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CyberDelve · Ultimate Bug Hunter Pro</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg-deep:#0a0f1d;--neon-red:#ff0055;--neon-red-glow:rgba(255,0,85,.35);
+  --neon-green:#00ff88;--neon-cyan:#00d4ff;--neon-purple:#a855f7;
+  --text-primary:#e6edf3;
+}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg-deep);color:var(--text-primary);min-height:100vh;
+  background-image:radial-gradient(ellipse 80% 60% at 50% -10%,rgba(255,0,85,.05) 0%,transparent 70%),
+  radial-gradient(ellipse 60% 50% at 80% 90%,rgba(0,255,136,.04) 0%,transparent 70%),
+  radial-gradient(ellipse 40% 40% at 10% 80%,rgba(168,85,247,.03) 0%,transparent 60%);}
+.mono{font-family:'JetBrains Mono',monospace;}
+.card{background:rgba(17,24,39,.75);backdrop-filter:blur(16px) saturate(1.3);-webkit-backdrop-filter:blur(16px) saturate(1.3);border:1px solid rgba(255,255,255,.04);box-shadow:0 8px 32px rgba(0,0,0,.45);}
+.card:hover{border-color:rgba(255,0,85,.12);}
+.btn-red{background:linear-gradient(135deg,#ff0055,#cc0044);box-shadow:0 4px 20px rgba(255,0,85,.25);transition:all .2s;}
+.btn-red:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(255,0,85,.4);}
+.btn-red:disabled{opacity:.5;transform:none;cursor:not-allowed;}
+.btn-dim{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);transition:all .2s;color:#bbb;}
+.btn-dim:hover{background:rgba(255,255,255,.09);}
+.btn-pink{background:rgba(255,0,85,.1);border:1px solid rgba(255,0,85,.18);color:#ff3366;transition:all .2s;}
+.btn-pink:hover{background:rgba(255,0,85,.18);}
+.btn-cyan{background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.15);color:#00d4ff;transition:all .2s;}
+.btn-cyan:hover{background:rgba(0,212,255,.16);}
+.drop-zone{border:2px dashed rgba(255,255,255,.08);transition:all .3s;background:rgba(255,255,255,.02);cursor:pointer;}
+.drop-zone:hover{border-color:var(--neon-green);background:rgba(0,255,136,.03);}
+.drop-zone.drag-over{border-color:var(--neon-green);background:rgba(0,255,136,.08);box-shadow:0 0 40px rgba(0,255,136,.12);}
+.badge-ep{display:inline-block;padding:2px 7px;border-radius:9999px;font-size:.58rem;font-weight:600;background:rgba(0,255,136,.1);color:#00ff88;border:1px solid rgba(0,255,136,.15);}
+.badge-sec{display:inline-block;padding:2px 7px;border-radius:9999px;font-size:.58rem;font-weight:600;background:rgba(255,0,85,.1);color:#ff3366;border:1px solid rgba(255,0,85,.15);}
+.risk{display:inline-block;padding:2px 7px;border-radius:4px;font-size:.58rem;font-weight:600;}
+.risk.critical{background:rgba(255,0,85,.15);color:#ff3366;border:1px solid rgba(255,0,85,.2);}
+.risk.high{background:rgba(255,136,0,.15);color:#ff8800;border:1px solid rgba(255,136,0,.2);}
+.risk.medium{background:rgba(255,200,0,.1);color:#ffcc00;border:1px solid rgba(255,200,0,.15);}
+.risk.low{background:rgba(255,255,255,.04);color:#8b949e;border:1px solid rgba(255,255,255,.06);}
+.toast-alert{position:fixed;top:24px;right:24px;z-index:9999;max-width:460px;transform:translateX(130%);transition:transform .4s cubic-bezier(.16,1,.3,1);}
+.toast-alert.show{transform:translateX(0);}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--bg-deep);}
+::-webkit-scrollbar-thumb{background:#2a3a4a;border-radius:99px;}
+.pulse-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--neon-red);animation:pr 1.8s ease-in-out infinite;box-shadow:0 0 10px var(--neon-red-glow);}
+@keyframes pr{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.fade-in{animation:fi .3s ease forwards;}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.tab-btn{transition:all .2s;}
+.tab-btn.active-tab{background:rgba(255,0,85,.12);color:#ff3366;border-color:rgba(255,0,85,.25);}
+.filter-btn.active-filter{background:rgba(255,0,85,.12);color:#ff3366;border-color:rgba(255,0,85,.25);}
+.risk-filter-btn.active-risk{background:rgba(0,212,255,.1);color:#00d4ff;border-color:rgba(0,212,255,.2);}
+.lang-btn{transition:all .2s;}
+.lang-btn.active-lang{background:rgba(255,0,85,.15);color:#ff3366;border-color:rgba(255,0,85,.3);}
+.scan-log{max-height:72px;overflow-y:auto;font-size:.58rem;line-height:1.4;}
+.scan-log::-webkit-scrollbar{width:3px;}
+.help-box{background:rgba(17,24,39,.92);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.06);}
+.glow{text-shadow:0 0 20px rgba(255,0,85,.3);}
+.pulse-purple{animation:pp 1.5s ease-in-out infinite;}
+@keyframes pp{0%,100%{box-shadow:0 0 10px rgba(168,85,247,.08)}50%{box-shadow:0 0 22px rgba(168,85,247,.22)}}
+pre{white-space:pre-wrap;word-break:break-all;}
+</style>
 </head>
 <body>
-    <!-- Toast -->
-    <div id="toast" class="toast-alert glass-card rounded-xl p-4 pr-5 border border-red-900/30 shadow-2xl">
-        <div class="flex items-start gap-3">
-            <div class="shrink-0 mt-0.5 text-red-500 text-lg">⚠</div>
-            <div class="flex-1 min-w-0">
-                <p class="text-sm font-semibold text-red-400">Bildiriş</p>
-                <p id="toast-msg" class="text-xs text-gray-400 mt-1 leading-relaxed"></p>
-            </div>
-            <button onclick="dismissToast()" class="shrink-0 text-gray-500 hover:text-white transition ml-2">&times;</button>
-        </div>
+
+<!-- Toast -->
+<div id="toast" class="toast-alert card rounded-xl p-4 pr-5 border border-red-900/30 shadow-2xl">
+  <div class="flex items-start gap-3">
+    <div class="shrink-0 mt-0.5 text-red-500 text-base">⚠</div>
+    <div class="flex-1 min-w-0">
+      <p class="text-sm font-semibold text-red-400" id="toast-title">Bildiriş</p>
+      <p id="toast-msg" class="text-xs text-gray-400 mt-0.5 leading-relaxed"></p>
     </div>
+    <button onclick="dismissToast()" class="shrink-0 text-gray-500 hover:text-white ml-2 text-lg">&times;</button>
+  </div>
+</div>
 
-    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
+<div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
 
-        <!-- Header -->
-        <header class="flex flex-col sm:flex-row items-center justify-between gap-3 mb-5 fade-in">
-            <div class="flex items-center gap-4">
-                <div class="relative flex items-center justify-center w-11 h-11 rounded-xl bg-[#111827] border border-white/5 shadow-lg">
-                    <span class="text-xl font-bold font-mono-custom" style="background:linear-gradient(135deg,#ff0055,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">CD</span>
-                    <span class="pulse-dot absolute -top-1 -right-1"></span>
-                </div>
-                <div>
-                    <h1 class="text-lg sm:text-2xl font-extrabold tracking-tight glow-text">
-                        <span style="background:linear-gradient(135deg,#ff0055 0%,#a855f7 60%,#00ff88 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">CyberDelve</span>
-                        <span class="text-gray-300 font-light hidden sm:inline"> · </span>
-                        <span class="text-sm sm:text-base font-medium text-gray-400 hidden sm:inline" id="header-subtitle">Ultimate BH Pro</span>
-                    </h1>
-                    <p class="text-[0.6rem] text-gray-500 mt-0.5 font-mono-custom" id="header-version">v7.0 · ən güclü bug hunting platformu</p>
-                </div>
-            </div>
-            <div class="flex items-center gap-2">
-                <button id="lang-az" class="lang-btn active-lang px-2 py-1 rounded text-[0.6rem] border border-white/5 text-gray-400">AZ</button>
-                <button id="lang-en" class="lang-btn px-2 py-1 rounded text-[0.6rem] border border-white/5 text-gray-400">EN</button>
-                <!-- FIX: Added missing Clear button -->
-                <button id="btn-clear" class="btn-ghost-sm px-2 py-1 rounded text-[0.6rem] flex items-center gap-1">🗑 Təmizlə</button>
-                <button id="btn-help" class="btn-ghost-sm px-2 py-1 rounded text-[0.6rem] flex items-center gap-1">❓ Kömək</button>
-            </div>
-        </header>
-
-        <!-- Help Panel -->
-        <div id="help-panel" class="hidden help-panel rounded-2xl p-4 mb-5 fade-in">
-            <div class="flex items-center justify-between mb-3">
-                <h3 class="text-xs font-semibold uppercase tracking-widest text-gray-400" id="help-title">📖 Köməklik / Yardım</h3>
-                <button id="btn-help-close" class="text-gray-500 hover:text-white text-lg">&times;</button>
-            </div>
-            <div id="help-content" class="text-xs text-gray-300 leading-relaxed space-y-2 max-h-96 overflow-y-auto"></div>
-        </div>
-
-        <!-- Stats -->
-        <div class="grid grid-cols-6 gap-2 mb-4 fade-in">
-            <div class="glass-card rounded-xl py-2 px-2 text-center">
-                <p class="text-lg sm:text-2xl font-bold font-mono-custom text-green-400 stat-num" id="stat-endpoints">0</p>
-                <p class="text-[0.5rem] sm:text-[0.65rem] text-gray-500 uppercase tracking-wider">Endpoints</p>
-            </div>
-            <div class="glass-card rounded-xl py-2 px-2 text-center">
-                <p class="text-lg sm:text-2xl font-bold font-mono-custom text-red-400 stat-num" id="stat-secrets">0</p>
-                <p class="text-[0.5rem] sm:text-[0.65rem] text-gray-500 uppercase tracking-wider">Secrets</p>
-            </div>
-            <div class="glass-card rounded-xl py-2 px-2 text-center">
-                <p class="text-lg sm:text-2xl font-bold font-mono-custom text-orange-400 stat-num" id="stat-vulns">0</p>
-                <p class="text-[0.5rem] sm:text-[0.65rem] text-gray-500 uppercase tracking-wider">Zəiflik</p>
-            </div>
-            <div class="glass-card rounded-xl py-2 px-2 text-center">
-                <p class="text-lg sm:text-2xl font-bold font-mono-custom text-purple-400 stat-num" id="stat-highrisk">0</p>
-                <p class="text-[0.5rem] sm:text-[0.65rem] text-gray-500 uppercase tracking-wider">🔥 Yüksək</p>
-            </div>
-            <div class="glass-card rounded-xl py-2 px-2 text-center">
-                <p class="text-lg sm:text-2xl font-bold font-mono-custom text-cyan-400 stat-num" id="stat-files">0</p>
-                <p class="text-[0.5rem] sm:text-[0.65rem] text-gray-500 uppercase tracking-wider">Fayllar</p>
-            </div>
-            <div class="glass-card rounded-xl py-2 px-2 text-center">
-                <p class="text-lg sm:text-2xl font-bold font-mono-custom text-gray-300 stat-num" id="stat-lines">0</p>
-                <p class="text-[0.5rem] sm:text-[0.65rem] text-gray-500 uppercase tracking-wider">Sətirlər</p>
-            </div>
-        </div>
-
-        <!-- Input -->
-        <div class="grid md:grid-cols-2 gap-4 mb-4 fade-in">
-            <div class="glass-card rounded-2xl p-4 sm:p-5">
-                <div class="flex items-center gap-2 mb-3">
-                    <span class="text-red-400 text-lg">🌐</span>
-                    <h2 class="text-xs font-semibold uppercase tracking-widest text-gray-400" id="input-url-title">Sayt URL-i ilə Skandala</h2>
-                </div>
-                <p class="text-[0.6rem] text-gray-500 mb-2 font-mono-custom" id="input-url-desc">CORS olan saytlar işləyər. Olmazsa, faylı endirib atın.</p>
-                <div class="flex gap-2">
-                    <input id="url-input" type="url" placeholder="https://hedef.com" class="flex-1 bg-black/40 border border-white/5 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 outline-none transition focus:border-red-500/40 focus:ring-1 focus:ring-red-500/20 font-mono-custom">
-                    <button id="btn-scan-url" class="btn-scan px-4 py-2.5 rounded-xl text-white text-sm font-semibold tracking-wide flex items-center gap-2 whitespace-nowrap">
-                        <span id="btn-scan-text">Skan</span><span>→</span>
-                    </button>
-                </div>
-            </div>
-            <div class="glass-card rounded-2xl p-4 sm:p-5">
-                <div class="flex items-center gap-2 mb-3">
-                    <span class="text-green-400 text-lg">📂</span>
-                    <h2 class="text-xs font-semibold uppercase tracking-widest text-gray-400" id="input-drop-title">Faylı Sürüşdür &amp; Burax</h2>
-                </div>
-                <p class="text-[0.6rem] text-gray-500 mb-2 font-mono-custom" id="input-drop-desc">HTML faylını (Ctrl+U) endirin, sonra bura atın. JS faylı da dəstəklənir.</p>
-                <div id="drop-zone" class="drop-zone rounded-xl p-4 sm:p-6 text-center cursor-pointer transition">
-                    <div class="flex flex-col items-center gap-1 pointer-events-none">
-                        <div class="text-2xl text-gray-600">⬆</div>
-                        <p class="text-xs text-gray-400" id="drop-text">HTML/JS faylını atın</p>
-                    </div>
-                    <input id="file-input" type="file" accept=".html,.htm,.js,.mjs,.cjs,.jsx,.ts,.tsx,.json" class="hidden">
-                </div>
-            </div>
-        </div>
-
-        <!-- Progress -->
-        <div id="progress-section" class="hidden glass-card rounded-2xl p-3 mb-4 fade-in">
-            <div class="flex items-center justify-between mb-1">
-                <span class="text-[0.6rem] font-semibold uppercase tracking-widest text-gray-500" id="progress-title">Proses</span>
-                <span id="progress-label" class="text-[0.6rem] font-mono-custom text-gray-500">0/0</span>
-            </div>
-            <div class="w-full bg-black/40 rounded-full h-1 mb-1">
-                <div id="progress-bar" class="h-1 rounded-full bg-gradient-to-r from-red-500 to-purple-500 transition-all duration-300" style="width:0%"></div>
-            </div>
-            <div id="scan-log" class="scan-log text-gray-500 font-mono-custom"></div>
-        </div>
-
-        <!-- Tabs -->
-        <div class="flex flex-wrap gap-1 mb-4 border-b border-white/5 pb-2">
-            <button data-tab="results" class="tab-btn active-tab px-3 py-1.5 rounded-lg text-[0.65rem] border border-white/5 text-gray-400">📊 <span class="tab-label" data-key="tabResults">Nəticələr</span></button>
-            <button data-tab="vulns" class="tab-btn px-3 py-1.5 rounded-lg text-[0.65rem] border border-white/5 text-gray-400">🔴 <span class="tab-label" data-key="tabVulns">Zəifliklər</span></button>
-            <button data-tab="history" class="tab-btn px-3 py-1.5 rounded-lg text-[0.65rem] border border-white/5 text-gray-400">🕰️ <span class="tab-label" data-key="tabWayback">Wayback</span></button>
-            <button data-tab="ai" class="tab-btn px-3 py-1.5 rounded-lg text-[0.65rem] border border-white/5 text-gray-400">🤖 <span class="tab-label" data-key="tabAi">AI Analiz</span></button>
-            <button data-tab="templates" class="tab-btn px-3 py-1.5 rounded-lg text-[0.65rem] border border-white/5 text-gray-400">📜 <span class="tab-label" data-key="tabTemplates">Template-lər</span></button>
-            <button data-tab="report" class="tab-btn px-3 py-1.5 rounded-lg text-[0.65rem] border border-white/5 text-gray-400">📝 <span class="tab-label" data-key="tabReport">Report</span></button>
-        </div>
-
-        <!-- Results Tab -->
-        <div id="tab-results" class="tab-content fade-in">
-            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-                <div class="flex items-center gap-2">
-                    <span class="text-xs font-semibold uppercase tracking-widest text-gray-400" id="results-title">Kəşflər</span>
-                    <span id="result-count" class="text-[0.6rem] font-mono-custom text-gray-500 bg-white/5 px-2 py-0.5 rounded-full">0</span>
-                </div>
-                <div class="flex items-center flex-wrap gap-1">
-                    <button data-filter="all" class="filter-btn active-filter text-[0.55rem] px-2 py-1 rounded-lg border border-white/5 text-gray-400">Hamısı</button>
-                    <button data-filter="endpoint" class="filter-btn text-[0.55rem] px-2 py-1 rounded-lg border border-white/5 text-gray-400">Endpoint</button>
-                    <button data-filter="secret" class="filter-btn text-[0.55rem] px-2 py-1 rounded-lg border border-white/5 text-gray-400">Secret</button>
-                    <span class="text-gray-600 mx-0.5">|</span>
-                    <button data-risk="all" class="risk-filter-btn active-risk text-[0.55rem] px-2 py-1 rounded-lg border border-white/5 text-gray-400">Bütün</button>
-                    <button data-risk="high" class="risk-filter-btn text-[0.55rem] px-2 py-1 rounded-lg border border-white/5 text-gray-400">🔥 Yüksək</button>
-                    <button data-risk="medium" class="risk-filter-btn text-[0.55rem] px-2 py-1 rounded-lg border border-white/5 text-gray-400">⚠ Orta</button>
-                    <button data-risk="low" class="risk-filter-btn text-[0.55rem] px-2 py-1 rounded-lg border border-white/5 text-gray-400">● Aşağı</button>
-                    <input id="search-input" type="text" placeholder="Axtar..." class="w-24 sm:w-32 bg-black/40 border border-white/5 rounded-lg px-2 py-1 text-[0.6rem] text-white placeholder-gray-600 outline-none font-mono-custom">
-                </div>
-            </div>
-            <div class="flex flex-wrap items-center gap-1.5 mb-3">
-                <!-- FIX: IDs now match JS event listeners -->
-                <button id="btn-live-all" class="btn-live px-2 py-1 rounded text-[0.6rem] flex items-center gap-1">🔍 Hamısını Yoxla</button>
-                <button id="btn-fuzz-all" class="btn-primary-sm px-2 py-1 rounded text-[0.6rem] flex items-center gap-1">⚡ Param Fuzz</button>
-                <button id="btn-auth-all" class="btn-primary-sm px-2 py-1 rounded text-[0.6rem] flex items-center gap-1">🔐 Auth Bypass</button>
-                <span class="text-gray-600 text-[0.55rem]">|</span>
-                <button id="btn-export-txt" class="btn-ghost-sm px-2 py-1 rounded text-[0.6rem]">📄 .txt</button>
-                <button id="btn-export-json" class="btn-ghost-sm px-2 py-1 rounded text-[0.6rem]">📋 .json</button>
-                <button id="btn-export-csv" class="btn-ghost-sm px-2 py-1 rounded text-[0.6rem]">📊 .csv</button>
-                <button id="btn-export-nuclei" class="btn-ghost-sm px-2 py-1 rounded text-[0.6rem]">⚡ Nuclei YAML</button>
-                <button id="btn-export-burp" class="btn-ghost-sm px-2 py-1 rounded text-[0.6rem]">🕷️ Burp JSON</button>
-                <span id="live-status" class="text-[0.55rem] text-gray-500 hidden"></span>
-            </div>
-            <div class="glass-card rounded-2xl overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left" style="border-collapse:separate;border-spacing:0">
-                        <thead>
-                            <tr class="bg-white/[0.02]">
-                                <th class="text-[0.55rem] uppercase tracking-widest text-gray-500 p-2 border-b border-white/5 w-8">İkon</th>
-                                <th class="text-[0.55rem] uppercase tracking-widest text-gray-500 p-2 border-b border-white/5 w-20">Tip</th>
-                                <th class="text-[0.55rem] uppercase tracking-widest text-gray-500 p-2 border-b border-white/5 w-20">Risk</th>
-                                <th class="text-[0.55rem] uppercase tracking-widest text-gray-500 p-2 border-b border-white/5">Dəyər</th>
-                                <th class="hidden sm:table-cell text-[0.55rem] uppercase tracking-widest text-gray-500 p-2 border-b border-white/5 w-36">Mənbə</th>
-                                <th class="text-[0.55rem] uppercase tracking-widest text-gray-500 p-2 border-b border-white/5">Detal</th>
-                            </tr>
-                        </thead>
-                        <tbody id="results-body"></tbody>
-                    </table>
-                </div>
-                <div id="empty-state" class="py-10 text-center">
-                    <p class="text-gray-500 text-xs" id="empty-text">Nəticə yoxdur</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Vulns Tab -->
-        <div id="tab-vulns" class="tab-content hidden fade-in">
-            <div class="flex items-center justify-between mb-3">
-                <h3 class="text-xs font-semibold uppercase tracking-widest text-gray-400" id="vulns-title">🔴 Aşkarlanan Zəifliklər</h3>
-                <span id="vuln-count" class="text-[0.6rem] font-mono-custom text-gray-500 bg-white/5 px-2 py-0.5 rounded-full">0</span>
-            </div>
-            <div id="vulns-list" class="space-y-2">
-                <div class="text-center text-gray-600 text-xs py-6" id="vulns-empty">Zəiflik aşkarlanmayıb. Əvvəlcə skan edin.</div>
-            </div>
-        </div>
-
-        <!-- Wayback Tab -->
-        <div id="tab-history" class="tab-content hidden fade-in">
-            <div class="flex items-center gap-3 mb-3">
-                <h3 class="text-xs font-semibold uppercase tracking-widest text-gray-400" id="wayback-title">🕰️ Wayback Machine Tarixçəsi</h3>
-                <!-- FIX: ID matches JS: btn-wayback -->
-                <button id="btn-wayback" class="btn-primary-sm px-3 py-1 rounded text-[0.6rem]">Çək</button>
-                <span id="wayback-status" class="text-[0.55rem] text-gray-500"></span>
-            </div>
-            <div id="wayback-list" class="glass-card rounded-2xl p-4 max-h-80 overflow-y-auto">
-                <p class="text-gray-600 text-xs text-center py-4" id="wayback-empty">Hələ yüklənməyib. "Çək" düyməsinə basın.</p>
-            </div>
-        </div>
-
-        <!-- AI Tab -->
-        <div id="tab-ai" class="tab-content hidden fade-in">
-            <div class="flex items-center gap-3 mb-3">
-                <h3 class="text-xs font-semibold uppercase tracking-widest text-gray-400" id="ai-title">🤖 AI Köməkçi</h3>
-                <button id="btn-ai-analyze" class="btn-primary-sm px-3 py-1 rounded text-[0.6rem]">Analiz et</button>
-                <span id="ai-status" class="text-[0.55rem] text-gray-500"></span>
-            </div>
-            <div id="ai-result" class="glass-card rounded-2xl p-4 ai-thinking pulse-purple min-h-[100px]">
-                <p class="text-gray-500 text-xs italic" id="ai-empty">AI analizi üçün skan edin, sonra "Analiz et" düyməsini basın.</p>
-            </div>
-        </div>
-
-        <!-- Templates Tab -->
-        <div id="tab-templates" class="tab-content hidden fade-in">
-            <div class="flex items-center justify-between mb-3">
-                <h3 class="text-xs font-semibold uppercase tracking-widest text-gray-400" id="templates-title">📜 Community Templates</h3>
-                <button id="btn-add-template" class="btn-primary-sm px-3 py-1 rounded text-[0.6rem]">+ Əlavə et</button>
-            </div>
-            <div id="templates-list" class="space-y-1 max-h-80 overflow-y-auto">
-                <div class="text-gray-600 text-xs text-center py-4" id="templates-empty">Hələ template yoxdur.</div>
-            </div>
-        </div>
-
-        <!-- Report Tab -->
-        <div id="tab-report" class="tab-content hidden fade-in">
-            <div class="flex items-center justify-between mb-3">
-                <h3 class="text-xs font-semibold uppercase tracking-widest text-gray-400" id="report-title">📝 Bug Bounty Report</h3>
-                <div class="flex gap-2">
-                    <!-- FIX: ID matches JS: btn-gen-report -->
-                    <button id="btn-gen-report" class="btn-primary-sm px-3 py-1 rounded text-[0.6rem]">Yarat</button>
-                    <button id="btn-export-report" class="btn-ghost-sm px-3 py-1 rounded text-[0.6rem]">Endir</button>
-                </div>
-            </div>
-            <div id="report-content" class="glass-card rounded-2xl p-4 font-mono-custom text-xs text-gray-300 max-h-96 overflow-y-auto leading-relaxed">
-                <p class="text-gray-500 text-center py-4" id="report-empty">Report yaratmaq üçün əvvəlcə skan edin.</p>
-            </div>
-        </div>
-
-        <footer class="mt-8 text-center text-[0.55rem] text-gray-700 font-mono-custom border-t border-white/[0.02] pt-4">
-            CyberDelve Ultimate BH Pro v7.0 · İcazəli pentest üçün · Yalnız qanuni məqsədlər üçün istifadə edin
-        </footer>
+  <!-- Header -->
+  <header class="flex flex-col sm:flex-row items-center justify-between gap-3 mb-5 fade-in">
+    <div class="flex items-center gap-4">
+      <div class="relative flex items-center justify-center w-11 h-11 rounded-xl bg-[#111827] border border-white/5 shadow-lg">
+        <span class="text-xl font-bold mono" style="background:linear-gradient(135deg,#ff0055,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">CD</span>
+        <span class="pulse-dot absolute -top-1 -right-1"></span>
+      </div>
+      <div>
+        <h1 class="text-lg sm:text-2xl font-extrabold tracking-tight glow">
+          <span style="background:linear-gradient(135deg,#ff0055 0%,#a855f7 60%,#00ff88 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">CyberDelve</span>
+          <span class="text-gray-300 font-light hidden sm:inline"> · </span>
+          <span class="text-sm sm:text-base font-medium text-gray-400 hidden sm:inline" id="hdr-sub">Ultimate BH Pro</span>
+        </h1>
+        <p class="text-[0.58rem] text-gray-500 mt-0.5 mono" id="hdr-ver">v7.0 · ən güclü bug hunting platformu</p>
+      </div>
     </div>
+    <div class="flex items-center gap-2">
+      <button id="lang-az" class="lang-btn active-lang px-2 py-1 rounded text-[0.6rem] border border-white/5 text-gray-400">AZ</button>
+      <button id="lang-en" class="lang-btn px-2 py-1 rounded text-[0.6rem] border border-white/5 text-gray-400">EN</button>
+      <button id="btn-clear" class="btn-dim px-2 py-1 rounded text-[0.6rem]" data-i="btnClear">🗑 Təmizlə</button>
+      <button id="btn-help" class="btn-dim px-2 py-1 rounded text-[0.6rem]" data-i="btnHelp">❓ Kömək</button>
+    </div>
+  </header>
+
+  <!-- Help Panel -->
+  <div id="help-panel" class="hidden help-box rounded-2xl p-5 mb-5 fade-in">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-xs font-bold uppercase tracking-widest text-gray-300" id="help-title">📖 Köməklik</h3>
+      <button id="btn-help-close" class="text-gray-500 hover:text-white text-xl leading-none">&times;</button>
+    </div>
+    <div id="help-content" class="max-h-[520px] overflow-y-auto pr-1"></div>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-6 gap-2 mb-4 fade-in">
+    <div class="card rounded-xl py-2 px-1 text-center">
+      <p class="text-lg sm:text-xl font-bold mono text-green-400" id="stat-endpoints">0</p>
+      <p class="text-[0.5rem] text-gray-500 uppercase tracking-wide" id="lbl-ep">Endpoints</p>
+    </div>
+    <div class="card rounded-xl py-2 px-1 text-center">
+      <p class="text-lg sm:text-xl font-bold mono text-red-400" id="stat-secrets">0</p>
+      <p class="text-[0.5rem] text-gray-500 uppercase tracking-wide" id="lbl-sec">Secrets</p>
+    </div>
+    <div class="card rounded-xl py-2 px-1 text-center">
+      <p class="text-lg sm:text-xl font-bold mono text-orange-400" id="stat-vulns">0</p>
+      <p class="text-[0.5rem] text-gray-500 uppercase tracking-wide" id="lbl-vuln">Zəiflik</p>
+    </div>
+    <div class="card rounded-xl py-2 px-1 text-center">
+      <p class="text-lg sm:text-xl font-bold mono text-purple-400" id="stat-highrisk">0</p>
+      <p class="text-[0.5rem] text-gray-500 uppercase tracking-wide" id="lbl-hr">🔥 Yüksək</p>
+    </div>
+    <div class="card rounded-xl py-2 px-1 text-center">
+      <p class="text-lg sm:text-xl font-bold mono text-cyan-400" id="stat-files">0</p>
+      <p class="text-[0.5rem] text-gray-500 uppercase tracking-wide" id="lbl-files">Fayllar</p>
+    </div>
+    <div class="card rounded-xl py-2 px-1 text-center">
+      <p class="text-lg sm:text-xl font-bold mono text-gray-300" id="stat-lines">0</p>
+      <p class="text-[0.5rem] text-gray-500 uppercase tracking-wide" id="lbl-lines">Tapıntı</p>
+    </div>
+  </div>
+
+  <!-- Drop Zone only -->
+  <div class="mb-4 fade-in">
+    <div class="card rounded-2xl p-4 sm:p-5">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="text-green-400 text-lg">📂</span>
+        <h2 class="text-xs font-semibold uppercase tracking-widest text-gray-400" id="drop-title">Faylı Sürüşdür və Burax</h2>
+      </div>
+      <p class="text-[0.6rem] text-gray-500 mb-3 mono" id="drop-desc">Brauzerdə hədəf saytı açın → <kbd class="bg-white/10 px-1 rounded">Ctrl+U</kbd> (mənbə kodu) → <kbd class="bg-white/10 px-1 rounded">Ctrl+S</kbd> ilə saxlayın → .html faylını bura atın. JS faylı da dəstəklənir.</p>
+      <div id="drop-zone" class="drop-zone rounded-xl p-6 sm:p-8 text-center">
+        <div class="flex flex-col items-center gap-2 pointer-events-none">
+          <div class="text-3xl text-gray-600">⬆</div>
+          <p class="text-sm text-gray-400 font-medium" id="drop-text">HTML / JS faylını bura atın</p>
+          <p class="text-[0.58rem] text-gray-600" id="drop-sub">və ya klikləyib seçin</p>
+        </div>
+        <input id="file-input" type="file" accept=".html,.htm,.js,.mjs,.cjs,.jsx,.ts,.tsx,.json" class="hidden">
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div id="progress-section" class="hidden card rounded-2xl p-3 mb-4 fade-in">
+    <div class="flex items-center justify-between mb-1">
+      <span class="text-[0.58rem] font-semibold uppercase tracking-widest text-gray-500" id="prog-title">Proses</span>
+      <span id="progress-label" class="text-[0.58rem] mono text-gray-500">0/0</span>
+    </div>
+    <div class="w-full bg-black/40 rounded-full h-1 mb-1">
+      <div id="progress-bar" class="h-1 rounded-full bg-gradient-to-r from-red-500 to-purple-500 transition-all duration-300" style="width:0%"></div>
+    </div>
+    <div id="scan-log" class="scan-log text-gray-500 mono"></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex flex-wrap gap-1 mb-4 border-b border-white/5 pb-2">
+    <button data-tab="results"   class="tab-btn active-tab px-3 py-1.5 rounded-lg text-[0.63rem] border border-white/5 text-gray-400">📊 <span class="tab-label" data-key="tabResults">Nəticələr</span></button>
+    <button data-tab="vulns"     class="tab-btn px-3 py-1.5 rounded-lg text-[0.63rem] border border-white/5 text-gray-400">🔴 <span class="tab-label" data-key="tabVulns">Zəifliklər</span></button>
+    <button data-tab="ai"        class="tab-btn px-3 py-1.5 rounded-lg text-[0.63rem] border border-white/5 text-gray-400">🤖 <span class="tab-label" data-key="tabAi">AI Analiz</span></button>
+    <button data-tab="templates" class="tab-btn px-3 py-1.5 rounded-lg text-[0.63rem] border border-white/5 text-gray-400">📜 <span class="tab-label" data-key="tabTemplates">Template-lər</span></button>
+    <button data-tab="report"    class="tab-btn px-3 py-1.5 rounded-lg text-[0.63rem] border border-white/5 text-gray-400">📝 <span class="tab-label" data-key="tabReport">Report</span></button>
+  </div>
+
+  <!-- Results Tab -->
+  <div id="tab-results" class="tab-content fade-in">
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-semibold uppercase tracking-widest text-gray-400" id="res-title">Kəşflər</span>
+        <span id="result-count" class="text-[0.58rem] mono text-gray-500 bg-white/5 px-2 py-0.5 rounded-full">0</span>
+      </div>
+      <div class="flex flex-wrap gap-1 items-center">
+        <button data-filter="all"      class="filter-btn active-filter text-[0.55rem] px-2 py-1 rounded-lg border border-white/5 text-gray-400" data-i="filterAll">Hamısı</button>
+        <button data-filter="endpoint" class="filter-btn text-[0.55rem] px-2 py-1 rounded-lg border border-white/5 text-gray-400">Endpoint</button>
+        <button data-filter="secret"   class="filter-btn text-[0.55rem] px-2 py-1 rounded-lg border border-white/5 text-gray-400">Secret</button>
+        <span class="text-gray-700 mx-0.5">|</span>
+        <button data-risk="all"    class="risk-filter-btn active-risk text-[0.55rem] px-2 py-1 rounded-lg border border-white/5 text-gray-400" data-i="riskAll">Hamısı</button>
+        <button data-risk="high"   class="risk-filter-btn text-[0.55rem] px-2 py-1 rounded-lg border border-white/5 text-gray-400" data-i="riskHigh">🔥 Yüksək</button>
+        <button data-risk="medium" class="risk-filter-btn text-[0.55rem] px-2 py-1 rounded-lg border border-white/5 text-gray-400" data-i="riskMed">⚠ Orta</button>
+        <button data-risk="low"    class="risk-filter-btn text-[0.55rem] px-2 py-1 rounded-lg border border-white/5 text-gray-400" data-i="riskLow">● Aşağı</button>
+        <input id="search-input" type="text" placeholder="Axtar..." data-i-ph="searchPh" class="w-24 sm:w-32 bg-black/40 border border-white/5 rounded-lg px-2 py-1 text-[0.58rem] text-white placeholder-gray-600 outline-none mono">
+      </div>
+    </div>
+    <div class="flex flex-wrap items-center gap-1.5 mb-3">
+      <button id="btn-live-all"      class="btn-cyan px-2 py-1 rounded text-[0.58rem]" data-i="btnLive">🔍 Hamısını Yoxla</button>
+      <button id="btn-fuzz-all"      class="btn-pink px-2 py-1 rounded text-[0.58rem]" data-i="btnFuzz">⚡ Param Fuzz</button>
+      <button id="btn-auth-all"      class="btn-pink px-2 py-1 rounded text-[0.58rem]" data-i="btnAuth">🔐 Auth Bypass</button>
+      <span class="text-gray-700 text-[0.5rem]">|</span>
+      <button id="btn-export-txt"    class="btn-dim px-2 py-1 rounded text-[0.58rem]">📄 .txt</button>
+      <button id="btn-export-json"   class="btn-dim px-2 py-1 rounded text-[0.58rem]">📋 .json</button>
+      <button id="btn-export-csv"    class="btn-dim px-2 py-1 rounded text-[0.58rem]">📊 .csv</button>
+      <button id="btn-export-nuclei" class="btn-dim px-2 py-1 rounded text-[0.58rem]">⚡ Nuclei</button>
+      <button id="btn-export-burp"   class="btn-dim px-2 py-1 rounded text-[0.58rem]">🕷️ Burp</button>
+      <span id="live-status" class="text-[0.55rem] text-gray-500 hidden"></span>
+    </div>
+    <div class="card rounded-2xl overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left" style="border-collapse:separate;border-spacing:0">
+          <thead>
+            <tr class="bg-white/[0.025]">
+              <th class="text-[0.52rem] uppercase tracking-widest text-gray-500 p-2 border-b border-white/5 w-7"></th>
+              <th class="text-[0.52rem] uppercase tracking-widest text-gray-500 p-2 border-b border-white/5 w-24" id="th-type">Tip</th>
+              <th class="text-[0.52rem] uppercase tracking-widest text-gray-500 p-2 border-b border-white/5 w-22" id="th-risk">Risk</th>
+              <th class="text-[0.52rem] uppercase tracking-widest text-gray-500 p-2 border-b border-white/5" id="th-val">Dəyər</th>
+              <th class="hidden sm:table-cell text-[0.52rem] uppercase tracking-widest text-gray-500 p-2 border-b border-white/5 w-36" id="th-src">Mənbə</th>
+              <th class="text-[0.52rem] uppercase tracking-widest text-gray-500 p-2 border-b border-white/5" id="th-det">Detal</th>
+            </tr>
+          </thead>
+          <tbody id="results-body"></tbody>
+        </table>
+      </div>
+      <div id="empty-state" class="py-10 text-center">
+        <p class="text-gray-500 text-xs" id="empty-text">Nəticə yoxdur — fayl atın</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vulns Tab -->
+  <div id="tab-vulns" class="tab-content hidden fade-in">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-xs font-semibold uppercase tracking-widest text-gray-400" id="vulns-title">🔴 Aşkarlanan Zəifliklər</h3>
+      <span id="vuln-count" class="text-[0.58rem] mono text-gray-500 bg-white/5 px-2 py-0.5 rounded-full">0</span>
+    </div>
+    <div id="vulns-list" class="space-y-2">
+      <div class="text-center text-gray-600 text-xs py-6" id="vulns-empty">Zəiflik aşkarlanmayıb. Əvvəlcə fayl atın.</div>
+    </div>
+  </div>
+
+  <!-- AI Tab -->
+  <div id="tab-ai" class="tab-content hidden fade-in">
+    <div class="flex items-center gap-3 mb-3">
+      <h3 class="text-xs font-semibold uppercase tracking-widest text-gray-400" id="ai-title">🤖 AI Köməkçi</h3>
+      <button id="btn-ai-analyze" class="btn-pink px-3 py-1 rounded text-[0.58rem]" data-i="btnAnalyze">Analiz et</button>
+      <span id="ai-status" class="text-[0.55rem] text-gray-500"></span>
+    </div>
+    <div id="ai-result" class="card rounded-2xl p-4 pulse-purple min-h-[100px]">
+      <p class="text-gray-500 text-xs italic" id="ai-empty">Analiz üçün əvvəlcə fayl atın, sonra "Analiz et" düyməsinə basın.</p>
+    </div>
+  </div>
+
+  <!-- Templates Tab -->
+  <div id="tab-templates" class="tab-content hidden fade-in">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-xs font-semibold uppercase tracking-widest text-gray-400" id="tpl-title">📜 Test Template-ləri</h3>
+      <button id="btn-add-template" class="btn-pink px-3 py-1 rounded text-[0.58rem]" data-i="btnAddTpl">+ Əlavə et</button>
+    </div>
+    <div id="templates-list" class="space-y-2 max-h-96 overflow-y-auto"></div>
+  </div>
+
+  <!-- Report Tab -->
+  <div id="tab-report" class="tab-content hidden fade-in">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-xs font-semibold uppercase tracking-widest text-gray-400" id="rep-title">📝 Bug Bounty Report</h3>
+      <div class="flex gap-2">
+        <button id="btn-gen-report"    class="btn-pink px-3 py-1 rounded text-[0.58rem]" data-i="btnGenRep">Yarat</button>
+        <button id="btn-export-report" class="btn-dim px-3 py-1 rounded text-[0.58rem]"  data-i="btnDlRep">Endir</button>
+      </div>
+    </div>
+    <div id="report-content" class="card rounded-2xl p-4 mono text-xs text-gray-300 max-h-[480px] overflow-y-auto leading-relaxed">
+      <p class="text-gray-500 text-center py-4" id="rep-empty">Report yaratmaq üçün əvvəlcə fayl atın.</p>
+    </div>
+  </div>
+
+  <footer class="mt-8 text-center text-[0.52rem] text-gray-700 mono border-t border-white/[0.02] pt-4">
+    CyberDelve Ultimate BH Pro v7.0 · Yalnız icazəli pentest üçün istifadə edin
+  </footer>
+</div>
 
 <script>
-(function () {
-    'use strict';
+(function(){
+'use strict';
 
-    // ── DOM ─────────────────────────────────────────────────────────────────
-    const $ = id => document.getElementById(id);
-    const urlInput      = $('url-input');
-    const btnScan       = $('btn-scan-url');
-    const dropZone      = $('drop-zone');
-    const fileInput     = $('file-input');
-    const resultsBody   = $('results-body');
-    const emptyState    = $('empty-state');
-    const resultCount   = $('result-count');
-    const searchInput   = $('search-input');
-    const filterBtns    = document.querySelectorAll('.filter-btn');
-    const riskFilterBtns= document.querySelectorAll('.risk-filter-btn');
-    const tabBtns       = document.querySelectorAll('.tab-btn');
-    const tabContents   = document.querySelectorAll('.tab-content');
-    const toast         = $('toast');
-    const toastMsg      = $('toast-msg');
-    const progressSection=$('progress-section');
-    const progressBar   = $('progress-bar');
-    const progressLabel = $('progress-label');
-    const scanLog       = $('scan-log');
-    const liveStatus    = $('live-status');
-    const waybackList   = $('wayback-list');
-    const waybackStatus = $('wayback-status');
-    const vulnsList     = $('vulns-list');
-    const vulnCount     = $('vuln-count');
-    const aiResult      = $('ai-result');
-    const aiStatus      = $('ai-status');
-    const reportContent = $('report-content');
-    const templatesList = $('templates-list');
-    const helpPanel     = $('help-panel');
-    const helpContent   = $('help-content');
-    const langAz        = $('lang-az');
-    const langEn        = $('lang-en');
+const $=id=>document.getElementById(id);
 
-    // Stats
-    const sEP   = $('stat-endpoints');
-    const sSec  = $('stat-secrets');
-    const sVuln = $('stat-vulns');
-    const sHR   = $('stat-highrisk');
-    const sFiles= $('stat-files');
-    const sLines= $('stat-lines');
+// ── DOM refs ────────────────────────────────────────────────────────────────
+const dropZone      =$('drop-zone');
+const fileInput     =$('file-input');
+const resultsBody   =$('results-body');
+const emptyState    =$('empty-state');
+const resultCount   =$('result-count');
+const searchInput   =$('search-input');
+const filterBtns    =document.querySelectorAll('.filter-btn');
+const riskBtns      =document.querySelectorAll('.risk-filter-btn');
+const tabBtns       =document.querySelectorAll('.tab-btn');
+const tabContents   =document.querySelectorAll('.tab-content');
+const toast         =$('toast');
+const toastMsg      =$('toast-msg');
+const toastTitle    =$('toast-title');
+const progressSec   =$('progress-section');
+const progressBar   =$('progress-bar');
+const progressLabel =$('progress-label');
+const scanLog       =$('scan-log');
+const liveStatus    =$('live-status');
+const vulnsList     =$('vulns-list');
+const vulnCount     =$('vuln-count');
+const aiResult      =$('ai-result');
+const aiStatus      =$('ai-status');
+const reportContent =$('report-content');
+const templatesList =$('templates-list');
+const helpPanel     =$('help-panel');
+const helpContent   =$('help-content');
+const langAz        =$('lang-az');
+const langEn        =$('lang-en');
 
-    // ── State ────────────────────────────────────────────────────────────────
-    // FIX: Using module-level allResults only — no inner shadowing
-    let allResults       = [];
-    let allVulns         = [];
-    let waybackUrls      = [];
-    let currentFilter    = 'all';
-    let currentRiskFilter= 'all';
-    let currentSearch    = '';
-    let scannedFiles     = new Set();
-    let totalFiles       = 0, completedFiles = 0;
-    let liveCheckInProgress = false;
-    let templates        = [];
-    let scanSource       = '';
-    let currentLang      = 'az';
+// Stats
+const sEP  =$('stat-endpoints'),sSec=$('stat-secrets'),sVuln=$('stat-vulns');
+const sHR  =$('stat-highrisk'), sFiles=$('stat-files'),sLines=$('stat-lines');
 
-    // ── Translations ─────────────────────────────────────────────────────────
-    // FIX: Translation keys now match data-key attributes on tab labels (camelCase)
-    const LANG = {
-        az: {
-            headerSubtitle : 'Ultimate BH Pro',
-            headerVersion  : 'v7.0 · ən güclü bug hunting platformu',
-            inputUrlTitle  : 'Sayt URL-i ilə Skandala',
-            inputUrlDesc   : 'CORS olan saytlar işləyər. Olmazsa, faylı endirib atın.',
-            inputDropTitle : 'Faylı Sürüşdür & Burax',
-            inputDropDesc  : 'HTML faylını (Ctrl+U) endirin, sonra bura atın. JS faylı da dəstəklənir.',
-            dropText       : 'HTML/JS faylını atın',
-            btnScan        : 'Skan',
-            progressTitle  : 'Proses',
-            tabResults     : 'Nəticələr',
-            tabVulns       : 'Zəifliklər',
-            tabWayback     : 'Wayback',
-            tabAi          : 'AI Analiz',
-            tabTemplates   : 'Template-lər',
-            tabReport      : 'Report',
-            resultsTitle   : 'Kəşflər',
-            vulnsTitle     : '🔴 Aşkarlanan Zəifliklər',
-            waybackTitle   : '🕰️ Wayback Machine Tarixçəsi',
-            aiTitle        : '🤖 AI Köməkçi',
-            templatesTitle : '📜 Community Templates',
-            reportTitle    : '📝 Bug Bounty Report',
-            emptyText      : 'Nəticə yoxdur',
-            vulnsEmpty     : 'Zəiflik aşkarlanmayıb. Əvvəlcə skan edin.',
-            waybackEmpty   : 'Hələ yüklənməyib. "Çək" düyməsinə basın.',
-            aiEmpty        : 'AI analizi üçün skan edin, sonra "Analiz et" düyməsini basın.',
-            templatesEmpty : 'Hələ template yoxdur.',
-            reportEmpty    : 'Report yaratmaq üçün əvvəlcə skan edin.',
-            helpTitle      : '📖 Köməklik / Yardım',
-            helpContent    : `<div class="space-y-3">
-              <div class="bg-white/5 rounded-lg p-3">
-                <p class="text-cyan-400 font-semibold text-[0.7rem] mb-1">🎯 CyberDelve nədir?</p>
-                <p class="text-gray-400">CyberDelve, JavaScript fayllarını skan edərək API endpoint-ləri, gizli açarlar, JWT token-lər, kredit kartı nömrələri və potensial zəiflikləri aşkarlayan ən güclü client-side bug hunting platformudur.</p>
-              </div>
-              <div class="bg-white/5 rounded-lg p-3">
-                <p class="text-cyan-400 font-semibold text-[0.7rem] mb-1">🌐 URL ilə skan</p>
-                <p class="text-gray-400">Saytın URL-ni yazıb "Skan" edirsiniz. CORS bloklanırsa, HTML faylını endirib Drag &amp; Drop edin.</p>
-                <p class="text-gray-500 mt-1 text-[0.55rem]">✅ CORS açıq saytlar: JS fayllarını avtomatik yükləyər.<br>❌ CORS qapalı: Ctrl+U → HTML endir → bura at.</p>
-              </div>
-              <div class="bg-white/5 rounded-lg p-3">
-                <p class="text-cyan-400 font-semibold text-[0.7rem] mb-1">📂 Drag &amp; Drop</p>
-                <p class="text-gray-400">Brauzerdə saytı açın → Ctrl+U → Ctrl+S → .html faylını bura atın.</p>
-              </div>
-              <div class="bg-white/5 rounded-lg p-3">
-                <p class="text-cyan-400 font-semibold text-[0.7rem] mb-1">🔑 Secret tapıldıqda?</p>
-                <p class="text-gray-400">Qırmızı rənglə göstərilir, risk səviyyəsi qeyd olunur. AI analizi bölməsindən ətraflı izah əldə edin.</p>
-              </div>
-              <div class="bg-white/5 rounded-lg p-3">
-                <p class="text-cyan-400 font-semibold text-[0.7rem] mb-1">🕰️ Wayback Machine</p>
-                <p class="text-gray-400">Silinmiş/köhnə URL-ləri web.archive.org-dan çəkər. Köhnə endpoint-lər çox vaxt zəif olur.</p>
-              </div>
-              <div class="bg-white/5 rounded-lg p-3">
-                <p class="text-cyan-400 font-semibold text-[0.7rem] mb-1">🤖 AI Analiz</p>
-                <p class="text-gray-400">Tapılan nəticələri analiz edib tövsiyələr verir.</p>
-              </div>
-            </div>`
-        },
-        en: {
-            headerSubtitle : 'Ultimate BH Pro',
-            headerVersion  : 'v7.0 · the most powerful bug hunting platform',
-            inputUrlTitle  : 'Scan with URL',
-            inputUrlDesc   : 'CORS-enabled sites work. Otherwise, download and drop the file.',
-            inputDropTitle : 'Drag & Drop File',
-            inputDropDesc  : 'Download the HTML file (Ctrl+U), then drop it here. JS files also supported.',
-            dropText       : 'Drop HTML/JS file here',
-            btnScan        : 'Scan',
-            progressTitle  : 'Progress',
-            tabResults     : 'Results',
-            tabVulns       : 'Vulnerabilities',
-            tabWayback     : 'Wayback',
-            tabAi          : 'AI Analysis',
-            tabTemplates   : 'Templates',
-            tabReport      : 'Report',
-            resultsTitle   : 'Discoveries',
-            vulnsTitle     : '🔴 Detected Vulnerabilities',
-            waybackTitle   : '🕰️ Wayback Machine History',
-            aiTitle        : '🤖 AI Assistant',
-            templatesTitle : '📜 Community Templates',
-            reportTitle    : '📝 Bug Bounty Report',
-            emptyText      : 'No results found',
-            vulnsEmpty     : 'No vulnerabilities detected. Please scan first.',
-            waybackEmpty   : 'Not loaded yet. Click "Fetch".',
-            aiEmpty        : 'Scan first, then click "Analyze".',
-            templatesEmpty : 'No templates yet.',
-            reportEmpty    : 'Scan first to generate a report.',
-            helpTitle      : '📖 Help / Documentation',
-            helpContent    : `<div class="space-y-3">
-              <div class="bg-white/5 rounded-lg p-3">
-                <p class="text-cyan-400 font-semibold text-[0.7rem] mb-1">🎯 What is CyberDelve?</p>
-                <p class="text-gray-400">CyberDelve is the most powerful client-side bug hunting platform that scans JS files to discover API endpoints, secrets, JWT tokens, credit card numbers, and potential vulnerabilities.</p>
-              </div>
-              <div class="bg-white/5 rounded-lg p-3">
-                <p class="text-cyan-400 font-semibold text-[0.7rem] mb-1">🌐 URL Scan</p>
-                <p class="text-gray-400">Enter a URL and click "Scan". If CORS blocks it, download the HTML and use Drag &amp; Drop.</p>
-              </div>
-              <div class="bg-white/5 rounded-lg p-3">
-                <p class="text-cyan-400 font-semibold text-[0.7rem] mb-1">🔑 When a Secret is found?</p>
-                <p class="text-gray-400">Shown in red with risk level. Get detailed explanation in AI Analysis tab.</p>
-              </div>
-              <div class="bg-white/5 rounded-lg p-3">
-                <p class="text-cyan-400 font-semibold text-[0.7rem] mb-1">🕰️ Wayback Machine</p>
-                <p class="text-gray-400">Fetches old/deleted URLs from web.archive.org. Old endpoints are often vulnerable.</p>
-              </div>
-            </div>`
-        }
-    };
+// ── State ───────────────────────────────────────────────────────────────────
+let allResults=[],allVulns=[],templates=[];
+let currentFilter='all',currentRiskFilter='all',currentSearch='';
+let scannedFiles=new Set(),totalFiles=0,completedFiles=0;
+let liveCheckInProgress=false,currentLang='az';
 
-    // ── Apply Language ────────────────────────────────────────────────────────
-    function applyLang(lang) {
-        currentLang = lang;
-        const t = LANG[lang];
-        $('header-subtitle').textContent  = t.headerSubtitle;
-        $('header-version').textContent   = t.headerVersion;
-        $('input-url-title').textContent  = t.inputUrlTitle;
-        $('input-url-desc').textContent   = t.inputUrlDesc;
-        $('input-drop-title').textContent = t.inputDropTitle;
-        $('input-drop-desc').textContent  = t.inputDropDesc;
-        $('drop-text').textContent        = t.dropText;
-        $('btn-scan-text').textContent    = t.btnScan;
-        $('progress-title').textContent   = t.progressTitle;
-        // FIX: data-key now matches camelCase translation keys
-        document.querySelectorAll('.tab-label').forEach(el => {
-            const key = el.dataset.key;
-            if (t[key]) el.textContent = t[key];
+// ── TRANSLATIONS ────────────────────────────────────────────────────────────
+const T={
+  az:{
+    // header
+    hdrSub:'Ultimate BH Pro',
+    hdrVer:'v7.0 · ən güclü bug hunting platformu',
+    // buttons
+    btnClear:'🗑 Təmizlə', btnHelp:'❓ Kömək',
+    btnLive:'🔍 Hamısını Yoxla', btnFuzz:'⚡ Param Fuzz', btnAuth:'🔐 Auth Bypass',
+    btnAnalyze:'Analiz et', btnAddTpl:'+ Əlavə et', btnGenRep:'Yarat', btnDlRep:'Endir',
+    // drop
+    dropTitle:'Faylı Sürüşdür və Burax',
+    dropDesc:'Brauzerdə hədəf saytı açın → Ctrl+U (mənbə kodu) → Ctrl+S ilə saxlayın → .html faylını bura atın. JS faylı da dəstəklənir.',
+    dropText:'HTML / JS faylını bura atın',
+    dropSub:'və ya klikləyib seçin',
+    // progress
+    progTitle:'Proses',
+    // stats labels
+    lblEp:'Endpoints', lblSec:'Secrets', lblVuln:'Zəiflik',
+    lblHr:'🔥 Yüksək', lblFiles:'Fayllar', lblLines:'Tapıntı',
+    // tabs
+    tabResults:'Nəticələr', tabVulns:'Zəifliklər',
+    tabAi:'AI Analiz', tabTemplates:'Template-lər', tabReport:'Report',
+    // results
+    resTitle:'Kəşflər',
+    filterAll:'Hamısı', riskAll:'Hamısı',
+    riskHigh:'🔥 Yüksək', riskMed:'⚠ Orta', riskLow:'● Aşağı',
+    searchPh:'Axtar...',
+    thType:'Tip', thRisk:'Risk', thVal:'Dəyər', thSrc:'Mənbə', thDet:'Detal',
+    emptyText:'Nəticə yoxdur — fayl atın',
+    // vulns
+    vulnsTitle:'🔴 Aşkarlanan Zəifliklər',
+    vulnsEmpty:'Zəiflik aşkarlanmayıb. Əvvəlcə fayl atın.',
+    // ai
+    aiTitle:'🤖 AI Köməkçi',
+    aiEmpty:'Analiz üçün əvvəlcə fayl atın, sonra "Analiz et" düyməsinə basın.',
+    // templates
+    tplTitle:'📜 Test Template-ləri',
+    tplUse:'İstifadə et',
+    // report
+    repTitle:'📝 Bug Bounty Report',
+    repEmpty:'Report yaratmaq üçün əvvəlcə fayl atın.',
+    // toast
+    toastTitle:'Bildiriş',
+    // help title
+    helpTitle:'📖 Köməklik',
+    helpContent:`
+<div class="space-y-3 text-[0.68rem] text-gray-300 leading-relaxed">
+
+  <div class="bg-white/5 rounded-xl p-4 border border-white/5">
+    <p class="text-cyan-400 font-bold text-[0.75rem] mb-2">🎯 CyberDelve nədir?</p>
+    <p>CyberDelve JavaScript fayllarını dərindən analiz edərək aşağıdakıları tapan bug hunting platformudur:</p>
+    <ul class="mt-2 space-y-1 list-none">
+      <li>🌐 <span class="text-green-400">API Endpoint-lər</span> — gizli qalan URL-lər, admin panelləri</li>
+      <li>🔑 <span class="text-red-400">Gizli açarlar</span> — API key, JWT token, parol, verilənlər bazası URI</li>
+      <li>💳 <span class="text-red-400">Kredit kartı nömrələri</span> — Visa, MasterCard, AMEX formatları</li>
+      <li>⚡ <span class="text-orange-400">Zəifliklər</span> — XSS, code injection, open redirect, prototype pollution</li>
+      <li>🔐 <span class="text-purple-400">Həssas məlumat sızması</span> — localStorage, cookie, console.log</li>
+    </ul>
+  </div>
+
+  <div class="bg-white/5 rounded-xl p-4 border border-white/5">
+    <p class="text-cyan-400 font-bold text-[0.75rem] mb-2">📂 HTML faylını necə yükləmək olar?</p>
+    <div class="space-y-2">
+      <div class="flex gap-2 items-start">
+        <span class="text-yellow-400 font-bold shrink-0">1.</span>
+        <p>Brauzerdə hədəf saytı açın (məs: <code class="bg-white/10 px-1 rounded text-green-400">https://hedef.com</code>)</p>
+      </div>
+      <div class="flex gap-2 items-start">
+        <span class="text-yellow-400 font-bold shrink-0">2.</span>
+        <p><kbd class="bg-white/15 px-1.5 py-0.5 rounded border border-white/10">Ctrl+U</kbd> basın — səhifənin HTML mənbə kodu açılır</p>
+      </div>
+      <div class="flex gap-2 items-start">
+        <span class="text-yellow-400 font-bold shrink-0">3.</span>
+        <p><kbd class="bg-white/15 px-1.5 py-0.5 rounded border border-white/10">Ctrl+S</kbd> basın — faylı <code class="bg-white/10 px-1 rounded text-green-400">.html</code> kimi saxlayın</p>
+      </div>
+      <div class="flex gap-2 items-start">
+        <span class="text-yellow-400 font-bold shrink-0">4.</span>
+        <p>Saxladığınız <code class="bg-white/10 px-1 rounded text-green-400">.html</code> faylını yuxarıdakı drop zonasına sürüşdürüb buraxın</p>
+      </div>
+      <div class="flex gap-2 items-start">
+        <span class="text-yellow-400 font-bold shrink-0">✅</span>
+        <p class="text-green-400">Tool JS fayllarını tapıb avtomatik analiz edəcək!</p>
+      </div>
+    </div>
+    <p class="mt-2 text-gray-500 text-[0.6rem]">💡 JS faylını birbaşa da ata bilərsiniz. <code>.js</code>, <code>.ts</code>, <code>.jsx</code>, <code>.json</code> dəstəklənir.</p>
+  </div>
+
+  <div class="bg-white/5 rounded-xl p-4 border border-white/5">
+    <p class="text-cyan-400 font-bold text-[0.75rem] mb-2">🔘 Düymələr nə edir?</p>
+    <div class="space-y-2">
+      <div class="flex gap-2 items-start">
+        <span class="text-cyan-400 shrink-0">🔍</span>
+        <div><p class="font-semibold text-gray-200">Hamısını Yoxla (Live Check)</p><p class="text-gray-500 text-[0.6rem]">Tapılan bütün endpoint-lərə real sorğu atar. Cavab verənlər yaşıl, vermənlər qırmızı göstərilər.</p></div>
+      </div>
+      <div class="flex gap-2 items-start">
+        <span class="text-orange-400 shrink-0">⚡</span>
+        <div><p class="font-semibold text-gray-200">Param Fuzz</p><p class="text-gray-500 text-[0.6rem]">URL-lərə gizli parametrlər əlavə edib test edir: <code class="text-green-400">?id=1&debug=true&admin=1</code> kimi. Gizli funksiyaları aşkarlayır.</p></div>
+      </div>
+      <div class="flex gap-2 items-start">
+        <span class="text-red-400 shrink-0">🔐</span>
+        <div><p class="font-semibold text-gray-200">Auth Bypass</p><p class="text-gray-500 text-[0.6rem]">Login/admin endpoint-lərində SQL injection payload-ları ilə autentifikasiya keçməyə cəhd edir.</p></div>
+      </div>
+      <div class="flex gap-2 items-start">
+        <span class="text-gray-400 shrink-0">📄</span>
+        <div><p class="font-semibold text-gray-200">.txt / .json / .csv</p><p class="text-gray-500 text-[0.6rem]">Tapılan nəticələri seçdiyiniz formatda endirə bilərsiniz.</p></div>
+      </div>
+      <div class="flex gap-2 items-start">
+        <span class="text-purple-400 shrink-0">⚡</span>
+        <div><p class="font-semibold text-gray-200">Nuclei / Burp</p><p class="text-gray-500 text-[0.6rem]">Endpoint-ləri Nuclei YAML template-i və ya Burp Suite JSON formatında export edir. Birbaşa həmin alətlərə import edə bilərsiniz.</p></div>
+      </div>
+      <div class="flex gap-2 items-start">
+        <span class="text-gray-400 shrink-0">🗑</span>
+        <div><p class="font-semibold text-gray-200">Təmizlə</p><p class="text-gray-500 text-[0.6rem]">Bütün nəticələri, zəiflikləri və statistikaları sıfırlayır.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white/5 rounded-xl p-4 border border-white/5">
+    <p class="text-cyan-400 font-bold text-[0.75rem] mb-2">📊 Fayl atandan sonra nələrə baxmaq olar?</p>
+    <div class="space-y-2">
+      <div class="flex gap-2 items-start">
+        <span class="shrink-0">📊</span>
+        <div><p class="font-semibold text-gray-200">Nəticələr tab-ı</p><p class="text-gray-500 text-[0.6rem]">Bütün tapılan endpoint-lər və secret-lər burada sıralanır. Risk filtri ilə yalnız kritik tapıntılara baxa bilərsiniz. Hər sətirdəki "Detal" sütunu nə tapıldığını izah edir.</p></div>
+      </div>
+      <div class="flex gap-2 items-start">
+        <span class="shrink-0">🔴</span>
+        <div><p class="font-semibold text-gray-200">Zəifliklər tab-ı</p><p class="text-gray-500 text-[0.6rem]">XSS, code injection, open redirect kimi potensial zəifliklər burada göstərilir. Hər birinin kəşf olunduğu fayl və sətir nömrəsi qeyd edilir.</p></div>
+      </div>
+      <div class="flex gap-2 items-start">
+        <span class="shrink-0">🤖</span>
+        <div><p class="font-semibold text-gray-200">AI Analiz tab-ı</p><p class="text-gray-500 text-[0.6rem]">"Analiz et" düyməsinə basın — AI tapıntıları dəyərləndirər, hansıların real təhlükə olduğunu, hansılarının test/placeholder olduğunu izah edər və konkret tövsiyələr verər.</p></div>
+      </div>
+      <div class="flex gap-2 items-start">
+        <span class="shrink-0">📜</span>
+        <div><p class="font-semibold text-gray-200">Template-lər tab-ı</p><p class="text-gray-500 text-[0.6rem]">XSS, SQLi, LFI, SSTI kimi hazır test payload-ları. "İstifadə et" düyməsi payload-ı clipboard-a kopyalayır. Öz template-lərinizi də əlavə edə bilərsiniz.</p></div>
+      </div>
+      <div class="flex gap-2 items-start">
+        <span class="shrink-0">📝</span>
+        <div><p class="font-semibold text-gray-200">Report tab-ı</p><p class="text-gray-500 text-[0.6rem]">"Yarat" düyməsi skan nəticələrindən bug bounty report-u avtomatik hazırlayır. "Endir" ilə .txt faylı kimi saxlaya bilərsiniz.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white/5 rounded-xl p-4 border border-white/5">
+    <p class="text-cyan-400 font-bold text-[0.75rem] mb-2">🔑 Secret / API Key tapıldıqda nə etmək lazımdır?</p>
+    <div class="space-y-1.5">
+      <div class="flex gap-2"><span class="text-red-400 shrink-0">1.</span><p>API key-i sahibi platforma (AWS, GitHub, Stripe, Firebase) dashboard-unda dərhal <strong>deaktiv</strong> edin</p></div>
+      <div class="flex gap-2"><span class="text-orange-400 shrink-0">2.</span><p>Key-in nə qədər müddət açıq qaldığını yoxlayın — audit log-lara baxın</p></div>
+      <div class="flex gap-2"><span class="text-yellow-400 shrink-0">3.</span><p>Hər hansı icazəsiz istifadə varsa, platformun dəstək xidməti ilə əlaqə saxlayın</p></div>
+      <div class="flex gap-2"><span class="text-green-400 shrink-0">4.</span><p>Yeni key yaradın və bu dəfə onu heç vaxt client-side kodda saxlamayın</p></div>
+      <div class="flex gap-2"><span class="text-cyan-400 shrink-0">5.</span><p>Bug bounty proqramına daxil olan sayt isə responsible disclosure qaydasında məlumatlandırın</p></div>
+    </div>
+  </div>
+
+  <div class="bg-white/5 rounded-xl p-4 border border-white/5">
+    <p class="text-cyan-400 font-bold text-[0.75rem] mb-2">⚡ Risk Səviyyələri nə deməkdir?</p>
+    <div class="space-y-1.5">
+      <div class="flex gap-2 items-center"><span class="risk critical shrink-0">🔥 Kritik</span><p class="text-gray-400">Real API key, JWT token, kredit kartı, private key — dərhal müdaxilə tələb edir</p></div>
+      <div class="flex gap-2 items-center"><span class="risk high shrink-0">⚠ Yüksək</span><p class="text-gray-400">Admin panel, auth endpoint, database URI — ciddi diqqət tələb edir</p></div>
+      <div class="flex gap-2 items-center"><span class="risk medium shrink-0">● Orta</span><p class="text-gray-400">API endpoint-lər, istifadəçi məlumatı — araşdırılmalıdır</p></div>
+      <div class="flex gap-2 items-center"><span class="risk low shrink-0">· Aşağı</span><p class="text-gray-400">Statik fayl, şəkil, font — adətən təhlükəsizdir</p></div>
+    </div>
+  </div>
+
+</div>`,
+
+    // misc
+    resultSuffix:'nəticə',
+    scanDone:'tapıntı tapıldı,',
+    scanDone2:'zəiflik aşkarlandı',
+    noExport:'Export üçün məlumat yoxdur',
+    noLive:'Canlı yoxlama üçün endpoint yoxdur',
+    noFuzz:'Param fuzz üçün endpoint yoxdur',
+    noAuth:'Auth bypass üçün login/admin endpointi tapılmadı',
+    noAi:'AI analizi üçün əvvəlcə fayl atın',
+    noReport:'Report üçün əvvəlcə fayl atın',
+    noRepDl:'Əvvəlcə report yaradın',
+    cleared:'Bütün nəticələr təmizləndi',
+    scanLogDone:'tapıntı,',
+    scanLogVuln:'zəiflik',
+    repCreated:'Report yaradıldı',
+    repDl:'Report endirildi',
+    exported:'export edildi',
+    liveChecking:'Yoxlanılır...',
+    liveDone:'endpoint canlıdır',
+    fuzzDone:'param kombinasiyası əlavə edildi',
+    authDone:'auth bypass testi tamamlandı',
+    tplAdded:'template əlavə edildi',
+    tplPromptName:'Template adı:',
+    tplPromptPayload:'Payload:',
+    tplUse:'İstifadə et',
+    tplCopied:'Payload kopyalandı:',
+    urgentReview:'Təcili Baxılmalı',
+    secretAnalysis:'Secret Analizi',
+    vulnSummary:'Zəiflik Özeti',
+    recommendations:'Tövsiyələr',
+    recs:[
+      'Tapılan API key-ləri dərhal söndürün və yeniləyin.',
+      'Admin panellərinə IP məhdudiyyəti qoyun.',
+      'Kritik DOM XSS zəifliklərini dərhal yamalayın.',
+      'JWT token-ləri decode edib payload-a baxın.',
+      'GraphQL endpoint-lərində introspection-u söndürün.',
+      'Köhnə/silinmiş endpoint-ləri Wayback Machine-dən yoxlayın.'
+    ],
+    aiDone:'Analiz tamamlandı',
+    aiThinking:'Hesablanır...',
+    totalStat:'Ümumi Statistika',
+    discoveries:'kəşf',
+    hiRisk:'yüksək riskli tapıntı',
+    potVulns:'potensial zəiflik',
+    hiRiskLabel:'Yüksək Riskli Tapıntılar',
+    repSummary:'Xülasə',
+    repEndpoints:'Endpoint',
+    repSecrets:'Secret',
+    repVulns:'Zəiflik',
+    repFiles:'Fayl',
+    repTotal:'Ümumi kəşf',
+    repHighRisk:'Yüksək Risk',
+    repRecs:'Tövsiyələr: Kritik tapıntıları yoxlayın, açıq key-ləri deaktiv edin, XSS-ləri yamalayın.',
+    critVulns:'Kritik Zəifliklər',
+    highVulns:'Yüksək Zəifliklər',
+    welcome:'🚀 CyberDelve v7.0 hazırdır! HTML faylını buraya atın.',
+  },
+
+  en:{
+    hdrSub:'Ultimate BH Pro',
+    hdrVer:'v7.0 · the most powerful bug hunting platform',
+    btnClear:'🗑 Clear', btnHelp:'❓ Help',
+    btnLive:'🔍 Check All Live', btnFuzz:'⚡ Param Fuzz', btnAuth:'🔐 Auth Bypass',
+    btnAnalyze:'Analyze', btnAddTpl:'+ Add', btnGenRep:'Generate', btnDlRep:'Download',
+    dropTitle:'Drag & Drop File',
+    dropDesc:'Open the target site in browser → Ctrl+U (view source) → Ctrl+S to save → drop the .html file here. JS files also supported.',
+    dropText:'Drop HTML / JS file here',
+    dropSub:'or click to select',
+    progTitle:'Progress',
+    lblEp:'Endpoints', lblSec:'Secrets', lblVuln:'Vulns',
+    lblHr:'🔥 High', lblFiles:'Files', lblLines:'Findings',
+    tabResults:'Results', tabVulns:'Vulnerabilities',
+    tabAi:'AI Analysis', tabTemplates:'Templates', tabReport:'Report',
+    resTitle:'Discoveries',
+    filterAll:'All', riskAll:'All',
+    riskHigh:'🔥 High', riskMed:'⚠ Medium', riskLow:'● Low',
+    searchPh:'Search...',
+    thType:'Type', thRisk:'Risk', thVal:'Value', thSrc:'Source', thDet:'Detail',
+    emptyText:'No results — drop a file',
+    vulnsTitle:'🔴 Detected Vulnerabilities',
+    vulnsEmpty:'No vulnerabilities detected. Drop a file first.',
+    aiTitle:'🤖 AI Assistant',
+    aiEmpty:'Drop a file first, then click "Analyze".',
+    tplTitle:'📜 Test Templates',
+    tplUse:'Use',
+    repTitle:'📝 Bug Bounty Report',
+    repEmpty:'Drop a file first to generate a report.',
+    toastTitle:'Notice',
+    helpTitle:'📖 Help',
+    helpContent:`
+<div class="space-y-3 text-[0.68rem] text-gray-300 leading-relaxed">
+
+  <div class="bg-white/5 rounded-xl p-4 border border-white/5">
+    <p class="text-cyan-400 font-bold text-[0.75rem] mb-2">🎯 What is CyberDelve?</p>
+    <p>CyberDelve is a bug hunting platform that deeply analyzes JavaScript files to find:</p>
+    <ul class="mt-2 space-y-1">
+      <li>🌐 <span class="text-green-400">API Endpoints</span> — hidden URLs, admin panels</li>
+      <li>🔑 <span class="text-red-400">Secrets</span> — API keys, JWT tokens, passwords, DB URIs</li>
+      <li>💳 <span class="text-red-400">Credit card numbers</span> — Visa, MasterCard, AMEX formats</li>
+      <li>⚡ <span class="text-orange-400">Vulnerabilities</span> — XSS, code injection, open redirect, prototype pollution</li>
+      <li>🔐 <span class="text-purple-400">Sensitive data leaks</span> — localStorage, cookies, console.log</li>
+    </ul>
+  </div>
+
+  <div class="bg-white/5 rounded-xl p-4 border border-white/5">
+    <p class="text-cyan-400 font-bold text-[0.75rem] mb-2">📂 How to load an HTML file?</p>
+    <div class="space-y-2">
+      <div class="flex gap-2"><span class="text-yellow-400 font-bold shrink-0">1.</span><p>Open the target site (e.g. <code class="bg-white/10 px-1 rounded text-green-400">https://target.com</code>)</p></div>
+      <div class="flex gap-2"><span class="text-yellow-400 font-bold shrink-0">2.</span><p>Press <kbd class="bg-white/15 px-1.5 py-0.5 rounded border border-white/10">Ctrl+U</kbd> — the page HTML source opens</p></div>
+      <div class="flex gap-2"><span class="text-yellow-400 font-bold shrink-0">3.</span><p>Press <kbd class="bg-white/15 px-1.5 py-0.5 rounded border border-white/10">Ctrl+S</kbd> — save as <code class="bg-white/10 px-1 rounded text-green-400">.html</code></p></div>
+      <div class="flex gap-2"><span class="text-yellow-400 font-bold shrink-0">4.</span><p>Drag & drop the saved file onto the drop zone above</p></div>
+      <div class="flex gap-2"><span class="text-green-400 font-bold shrink-0">✅</span><p class="text-green-400">The tool finds all JS files and analyzes them automatically!</p></div>
+    </div>
+    <p class="mt-2 text-gray-500 text-[0.6rem]">💡 You can also drop a JS file directly. Supports <code>.js</code>, <code>.ts</code>, <code>.jsx</code>, <code>.json</code>.</p>
+  </div>
+
+  <div class="bg-white/5 rounded-xl p-4 border border-white/5">
+    <p class="text-cyan-400 font-bold text-[0.75rem] mb-2">🔘 What do the buttons do?</p>
+    <div class="space-y-2">
+      <div class="flex gap-2"><span class="text-cyan-400 shrink-0">🔍</span><div><p class="font-semibold text-gray-200">Check All Live</p><p class="text-gray-500 text-[0.6rem]">Sends real requests to all endpoints. Responding ones shown green.</p></div></div>
+      <div class="flex gap-2"><span class="text-orange-400 shrink-0">⚡</span><div><p class="font-semibold text-gray-200">Param Fuzz</p><p class="text-gray-500 text-[0.6rem]">Appends hidden parameters to URLs: <code class="text-green-400">?id=1&debug=true</code>. Discovers hidden features.</p></div></div>
+      <div class="flex gap-2"><span class="text-red-400 shrink-0">🔐</span><div><p class="font-semibold text-gray-200">Auth Bypass</p><p class="text-gray-500 text-[0.6rem]">Tries SQL injection payloads on login/admin endpoints to bypass authentication.</p></div></div>
+      <div class="flex gap-2"><span class="text-gray-400 shrink-0">📄</span><div><p class="font-semibold text-gray-200">.txt / .json / .csv</p><p class="text-gray-500 text-[0.6rem]">Download results in your preferred format.</p></div></div>
+      <div class="flex gap-2"><span class="text-purple-400 shrink-0">⚡</span><div><p class="font-semibold text-gray-200">Nuclei / Burp</p><p class="text-gray-500 text-[0.6rem]">Export endpoints as Nuclei YAML templates or Burp Suite JSON. Import directly into those tools.</p></div></div>
+    </div>
+  </div>
+
+  <div class="bg-white/5 rounded-xl p-4 border border-white/5">
+    <p class="text-cyan-400 font-bold text-[0.75rem] mb-2">📊 What to check after dropping a file?</p>
+    <div class="space-y-2">
+      <div class="flex gap-2"><span class="shrink-0">📊</span><div><p class="font-semibold text-gray-200">Results tab</p><p class="text-gray-500 text-[0.6rem]">All discovered endpoints and secrets. Use risk filters to focus on critical findings.</p></div></div>
+      <div class="flex gap-2"><span class="shrink-0">🔴</span><div><p class="font-semibold text-gray-200">Vulnerabilities tab</p><p class="text-gray-500 text-[0.6rem]">XSS, code injection, open redirect etc. Each shows the file and line number.</p></div></div>
+      <div class="flex gap-2"><span class="shrink-0">🤖</span><div><p class="font-semibold text-gray-200">AI Analysis tab</p><p class="text-gray-500 text-[0.6rem]">Click "Analyze" — AI evaluates findings, explains which are real threats vs placeholders, and gives concrete recommendations.</p></div></div>
+      <div class="flex gap-2"><span class="shrink-0">📜</span><div><p class="font-semibold text-gray-200">Templates tab</p><p class="text-gray-500 text-[0.6rem]">Ready-made payloads for XSS, SQLi, LFI, SSTI. "Use" copies the payload to clipboard.</p></div></div>
+      <div class="flex gap-2"><span class="shrink-0">📝</span><div><p class="font-semibold text-gray-200">Report tab</p><p class="text-gray-500 text-[0.6rem]">"Generate" auto-creates a bug bounty report. Download as .txt.</p></div></div>
+    </div>
+  </div>
+
+  <div class="bg-white/5 rounded-xl p-4 border border-white/5">
+    <p class="text-cyan-400 font-bold text-[0.75rem] mb-2">⚡ Risk Levels explained</p>
+    <div class="space-y-1.5">
+      <div class="flex gap-2 items-center"><span class="risk critical shrink-0">🔥 Critical</span><p class="text-gray-400">Real API key, JWT token, credit card, private key — immediate action required</p></div>
+      <div class="flex gap-2 items-center"><span class="risk high shrink-0">⚠ High</span><p class="text-gray-400">Admin panel, auth endpoint, database URI — serious attention needed</p></div>
+      <div class="flex gap-2 items-center"><span class="risk medium shrink-0">● Medium</span><p class="text-gray-400">API endpoints, user data — should be investigated</p></div>
+      <div class="flex gap-2 items-center"><span class="risk low shrink-0">· Low</span><p class="text-gray-400">Static files, images, fonts — usually safe</p></div>
+    </div>
+  </div>
+
+</div>`,
+
+    resultSuffix:'results',
+    scanDone:'findings found,',
+    scanDone2:'vulnerabilities detected',
+    noExport:'No data to export',
+    noLive:'No endpoints for live check',
+    noFuzz:'No endpoints for param fuzz',
+    noAuth:'No login/admin endpoints found',
+    noAi:'Drop a file first for AI analysis',
+    noReport:'Drop a file first to generate a report',
+    noRepDl:'Generate a report first',
+    cleared:'All results cleared',
+    scanLogDone:'findings,',
+    scanLogVuln:'vulns',
+    repCreated:'Report generated',
+    repDl:'Report downloaded',
+    exported:'exported',
+    liveChecking:'Checking...',
+    liveDone:'endpoints alive',
+    fuzzDone:'param combinations added',
+    authDone:'auth bypass tests completed',
+    tplAdded:'template added',
+    tplPromptName:'Template name:',
+    tplPromptPayload:'Payload:',
+    tplUse:'Use',
+    tplCopied:'Payload copied:',
+    urgentReview:'Urgent Review',
+    secretAnalysis:'Secret Analysis',
+    vulnSummary:'Vulnerability Summary',
+    recommendations:'Recommendations',
+    recs:[
+      'Immediately revoke and rotate any exposed API keys.',
+      'Restrict admin panel access by IP.',
+      'Patch critical DOM XSS vulnerabilities immediately.',
+      'Decode JWT tokens and inspect the payload.',
+      'Disable GraphQL introspection on production.',
+      'Check old/deleted endpoints via Wayback Machine.'
+    ],
+    aiDone:'Analysis complete',
+    aiThinking:'Calculating...',
+    totalStat:'Overall Statistics',
+    discoveries:'discoveries',
+    hiRisk:'high-risk findings',
+    potVulns:'potential vulnerabilities',
+    hiRiskLabel:'High-Risk Findings',
+    repSummary:'Summary',
+    repEndpoints:'Endpoints',
+    repSecrets:'Secrets',
+    repVulns:'Vulns',
+    repFiles:'Files',
+    repTotal:'Total findings',
+    repHighRisk:'High Risk',
+    repRecs:'Recommendations: Review critical findings, revoke exposed keys, patch XSS, check old endpoints.',
+    critVulns:'Critical Vulnerabilities',
+    highVulns:'High Vulnerabilities',
+    welcome:'🚀 CyberDelve v7.0 ready! Drop an HTML file to begin.',
+  }
+};
+
+// ── Apply Language ──────────────────────────────────────────────────────────
+function applyLang(lang){
+  currentLang=lang;
+  const t=T[lang];
+  document.documentElement.lang=lang;
+
+  // header
+  $('hdr-sub').textContent=t.hdrSub;
+  $('hdr-ver').textContent=t.hdrVer;
+
+  // buttons with data-i
+  document.querySelectorAll('[data-i]').forEach(el=>{
+    const k=el.dataset.i;
+    if(t[k]) el.textContent=t[k];
+  });
+
+  // placeholders
+  document.querySelectorAll('[data-i-ph]').forEach(el=>{
+    const k=el.dataset.iPh;
+    if(t[k]) el.placeholder=t[k];
+  });
+
+  // drop zone
+  $('drop-title').textContent=t.dropTitle;
+  $('drop-desc').textContent=t.dropDesc;
+  $('drop-text').textContent=t.dropText;
+  $('drop-sub').textContent=t.dropSub;
+
+  // progress
+  $('prog-title').textContent=t.progTitle;
+
+  // stats labels
+  $('lbl-ep').textContent=t.lblEp;
+  $('lbl-sec').textContent=t.lblSec;
+  $('lbl-vuln').textContent=t.lblVuln;
+  $('lbl-hr').textContent=t.lblHr;
+  $('lbl-files').textContent=t.lblFiles;
+  $('lbl-lines').textContent=t.lblLines;
+
+  // tab labels
+  document.querySelectorAll('.tab-label').forEach(el=>{
+    const k=el.dataset.key;
+    if(t[k]) el.textContent=t[k];
+  });
+
+  // results
+  $('res-title').textContent=t.resTitle;
+  $('empty-text').textContent=t.emptyText;
+  $('th-type').textContent=t.thType;
+  $('th-risk').textContent=t.thRisk;
+  $('th-val').textContent=t.thVal;
+  $('th-src').textContent=t.thSrc;
+  $('th-det').textContent=t.thDet;
+
+  // filter buttons
+  document.querySelectorAll('.filter-btn[data-i]').forEach(el=>{ const k=el.dataset.i; if(t[k]) el.textContent=t[k]; });
+  document.querySelectorAll('.risk-filter-btn[data-i]').forEach(el=>{ const k=el.dataset.i; if(t[k]) el.textContent=t[k]; });
+
+  // vulns
+  $('vulns-title').textContent=t.vulnsTitle;
+  $('vulns-empty').textContent=t.vulnsEmpty;
+
+  // ai
+  $('ai-title').textContent=t.aiTitle;
+  $('ai-empty').textContent=t.aiEmpty;
+
+  // templates
+  $('tpl-title').textContent=t.tplTitle;
+
+  // report
+  $('rep-title').textContent=t.repTitle;
+  $('rep-empty').textContent=t.repEmpty;
+
+  // help
+  $('help-title').textContent=t.helpTitle;
+  helpContent.innerHTML=t.helpContent;
+  toastTitle.textContent=t.toastTitle;
+
+  // lang buttons
+  langAz.classList.toggle('active-lang',lang==='az');
+  langEn.classList.toggle('active-lang',lang==='en');
+
+  // re-render templates with new lang labels
+  renderTemplates();
+}
+
+langAz.addEventListener('click',()=>applyLang('az'));
+langEn.addEventListener('click',()=>applyLang('en'));
+
+// ── Help Panel ──────────────────────────────────────────────────────────────
+$('btn-help').addEventListener('click',()=>helpPanel.classList.toggle('hidden'));
+$('btn-help-close').addEventListener('click',()=>helpPanel.classList.add('hidden'));
+
+// ── Utility ─────────────────────────────────────────────────────────────────
+function escHtml(s){const d=document.createElement('div');d.textContent=String(s);return d.innerHTML;}
+
+window.dismissToast=function(){toast.classList.remove('show');};
+function showToast(m){toastMsg.textContent=m;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),7000);}
+
+function log(m){const d=document.createElement('div');d.textContent='> '+m;scanLog.appendChild(d);scanLog.scrollTop=scanLog.scrollHeight;}
+
+function resetProgress(){
+  scannedFiles.clear();totalFiles=0;completedFiles=0;
+  progressBar.style.width='0%';progressLabel.textContent='0/0';
+  scanLog.innerHTML='';progressSec.classList.remove('hidden');
+}
+function updateProgress(){
+  const p=totalFiles>0?Math.round((completedFiles/totalFiles)*100):0;
+  progressBar.style.width=p+'%';
+  progressLabel.textContent=completedFiles+'/'+totalFiles;
+}
+function switchTab(name){
+  tabBtns.forEach(b=>b.classList.toggle('active-tab',b.dataset.tab===name));
+  tabContents.forEach(c=>c.classList.toggle('hidden',c.id!=='tab-'+name));
+}
+tabBtns.forEach(btn=>btn.addEventListener('click',()=>switchTab(btn.dataset.tab)));
+
+// ── Risk ────────────────────────────────────────────────────────────────────
+const HIGH_RISK=['admin','delete','edit','config','upload','graphql','env','backup','debug','panel',
+  'login','signup','auth','token','oauth','callback','webhook','reset','password','grant','root',
+  'sudo','exec','cmd','shell','database','db','sql','query','migrate','firebase',
+  'aws','s3','bucket','storage','internal','private','secret','credential','key',
+  'api-key','payment','checkout','invoice','billing','websocket','swagger','openapi','api-docs',
+  'actuator','graphiql','playground'];
+const MEDIUM_RISK=['api','v1','v2','v3','rest','service','proxy','gateway','data','user',
+  'profile','account','settings','search','filter','list','status','notification','email',
+  'verify','validate','session','device','location','feature','flag','toggle','middleware','hook','event'];
+const AUTH_BYPASS=['admin\'--',"admin' OR '1'='1","admin'","root'--","test@test.com"];
+const PARAM_WORDS=['id','user','admin','debug','test','token','key','file','page','redirect','url',
+  'path','action','mode','type','cmd','exec','order','limit','offset','sort','filter','search',
+  'q','query','name','email','password','secret','api','callback','lang','format','raw','ajax',
+  'preview','edit','delete','create','upload','download','export','import','config','env','db','trace','log'];
+
+function assessRisk(v){
+  const l=v.toLowerCase();
+  for(const k of HIGH_RISK){if(l.includes(k))return{level:'high',label:'🔥 Yüksək Risk',cls:'critical'};}
+  for(const k of MEDIUM_RISK){if(l.includes(k))return{level:'medium',label:'⚠ Orta Risk',cls:'high'};}
+  const stat=['.jpg','.jpeg','.png','.gif','.svg','.webp','.ico','.css','.woff','.woff2','.ttf',
+    '.mp4','.mp3','.pdf','static/','assets/','public/','dist/','build/','fonts/','images/','img/','media/'];
+  for(const p of stat){if(l.includes(p))return{level:'low',label:'● Aşağı Risk',cls:'low'};}
+  if(l.includes('/api/')||l.includes('/v1/')||l.includes('/v2/')||l.includes('/rest/'))
+    return{level:'medium',label:'⚠ Orta Risk',cls:'high'};
+  return{level:'low',label:'● Aşağı Risk',cls:'low'};
+}
+
+// ── Secret Analysis ─────────────────────────────────────────────────────────
+function analyzeSecret(value,line){
+  const v=value.replace(/["'`]/g,'');
+  let type='Unknown Secret',explanation='Naməlum tip.',riskNote='⚠ Orta Risk';
+  if(/^eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+$/.test(v)){
+    type='JWT Token';explanation='JWT autentifikasiya tokeni. Payload-ı decode edin.';riskNote='🔥 Kritik';
+  }else if(/^gh[ps]_[A-Za-z0-9]{36}/.test(v)){
+    type='GitHub Token';explanation='GitHub Personal Access Token. Repo-lara tam giriş.';riskNote='🔥 Kritik';
+  }else if(/^sk_live_/.test(v)||/^pk_live_/.test(v)){
+    type='Stripe Live Key';explanation='Stripe canlı API açarı. Ödəniş məlumatlarına giriş.';riskNote='🔥 Kritik';
+  }else if(/^xox[baprs]-/.test(v)){
+    type='Slack Token';explanation='Slack API tokeni. Mesajlara, kanallara giriş.';riskNote='🔥 Kritik';
+  }else if(/^AIza[0-9A-Za-z_-]{35}/.test(v)){
+    type='Firebase API Key';explanation='Firebase API açarı. Database-ə giriş ola bilər.';riskNote='🔥 Yüksək Risk';
+  }else if(/^AKIA[0-9A-Z]{16}/.test(v)){
+    type='AWS Access Key';explanation='AWS Access Key ID. Cloud resurslarına giriş.';riskNote='🔥 Kritik';
+  }else if(/^-----BEGIN (RSA |EC )?PRIVATE KEY-----/.test(v)){
+    type='Private Key';explanation='SSL/SSH Private Key. Serverlərə giriş, trafiki decrypt etmək.';riskNote='🔥 Kritik';
+  }else if(/^(sk_test_|pk_test_)/.test(v)){
+    type='Stripe Test Key';explanation='Stripe test açarı. Test mühitindədir.';riskNote='⚠ Orta Risk';
+  }else if(/password|passwd|pwd/i.test(v)){
+    type='Credential';explanation='Parol və ya hesab məlumatı.';riskNote='⚠ Yüksək Risk';
+  }else if(/^(5[1-5][0-9]{14}|4[0-9]{12}(?:[0-9]{3})?|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})$/.test(v.replace(/\s/g,''))){
+    const cc=v.replace(/\s/g,'');
+    const ct=/^4/.test(cc)?'Visa':/^5[1-5]/.test(cc)?'MasterCard':/^3[47]/.test(cc)?'AMEX':'Discover';
+    type='Credit Card ('+ct+')';explanation=ct+' kredit kartı nömrəsi. PCI-DSS pozuntusu!';riskNote='🔥 KRİTİK';
+  }
+  return{type,explanation,riskNote};
+}
+
+// ── Scan Patterns ────────────────────────────────────────────────────────────
+const PATTERNS={
+  endpoints:[
+    {regex:/["'`]https?:\/\/[^"'\s`]{4,}["'`]/gi},
+    {regex:/["'`]\/(?:api|v[0-9]|rest|graphql|auth|admin|panel|login|signup|callback|webhook|upload|download|config|env|debug|health|status|swagger|docs|static|assets|public|private|internal)[^"'\s`]*["'`]/gi},
+    {regex:/["'`](?:baseURL|base_url|basePath|base_path|apiRoot|prefix)[^:]*[:=]\s*["'`][^"'`]{4,}["'`]/gi},
+  ],
+  secrets:[
+    {regex:/AIza[0-9A-Za-z_-]{35}/g,                                                               type:'Firebase API Key',        risk:'critical'},
+    {regex:/AKIA[0-9A-Z]{16}/g,                                                                     type:'AWS Access Key',          risk:'critical'},
+    {regex:/gh[ps]_[A-Za-z0-9]{36}/g,                                                              type:'GitHub Token',             risk:'critical'},
+    {regex:/sk_live_[0-9a-zA-Z]{24,}/g,                                                            type:'Stripe Live Key',          risk:'critical'},
+    {regex:/pk_live_[0-9a-zA-Z]{24,}/g,                                                            type:'Stripe Live Pub Key',      risk:'critical'},
+    {regex:/sk_test_[0-9a-zA-Z]{24,}/g,                                                            type:'Stripe Test Key',          risk:'medium'},
+    {regex:/xox[baprs]-[0-9a-zA-Z-]{10,}/g,                                                       type:'Slack Token',              risk:'critical'},
+    {regex:/-----BEGIN (?:RSA |EC )?PRIVATE KEY-----/g,                                            type:'Private Key',              risk:'critical'},
+    {regex:/["'`]eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+["'`]/g,                      type:'JWT Token',                risk:'critical'},
+    {regex:/(?:5[1-5][0-9]{14}|4[0-9]{12}(?:[0-9]{3})?|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})/g, type:'Credit Card',       risk:'critical'},
+    {regex:/["'`](?:password|passwd|pwd|secret|api[_-]?key|token|auth[_-]?token|access[_-]?token)["']*\s*[:=]\s*["'][^"']{4,}["']/gi, type:'Credential', risk:'high'},
+    {regex:/["'`](?:mongodb|postgres|mysql|redis|amqp|rabbitmq):\/\/[^"'\s`]+/gi,                 type:'Database URI',             risk:'high'},
+    {regex:/https?:\/\/[^"'\s`]*(?:api[_-]?key=|token=|secret=|password=|auth=)[^"'\s`&]{4,}/gi, type:'URL With Secret',          risk:'critical'},
+  ],
+  vulns:[
+    {regex:/\.innerHTML\s*=/g,            type:'DOM XSS (innerHTML)',             severity:'critical'},
+    {regex:/document\.write\s*\(/g,       type:'DOM XSS (document.write)',        severity:'critical'},
+    {regex:/\beval\s*\(/g,               type:'Code Injection (eval)',            severity:'critical'},
+    {regex:/setTimeout\s*\(\s*["'`]/g,   type:'Code Injection (setTimeout str)', severity:'high'},
+    {regex:/new Function\s*\(/g,          type:'Code Injection (Function)',        severity:'critical'},
+    {regex:/location\s*=\s*["'`]/g,      type:'Open Redirect (location)',         severity:'medium'},
+    {regex:/location\.href\s*=\s*["'`]/g,type:'Open Redirect (href)',             severity:'medium'},
+    {regex:/window\.location\s*=\s*["'`]/g,type:'Open Redirect (window)',         severity:'medium'},
+    {regex:/\.src\s*=\s*["'`]/g,         type:'DOM-based (src assign)',           severity:'medium'},
+    {regex:/postMessage\s*\(/g,           type:'postMessage vulnerability',        severity:'medium'},
+    {regex:/localStorage\.setItem\s*\(/g,type:'Sensitive in localStorage',        severity:'medium'},
+    {regex:/sessionStorage\.setItem\s*\(/g,type:'Sensitive in sessionStorage',    severity:'medium'},
+    {regex:/document\.cookie\s*=/g,      type:'Cookie manipulation',              severity:'medium'},
+    {regex:/fetch\s*\(\s*["'`]\/\/[^"']+["'`]/g,type:'Mixed content fetch',      severity:'high'},
+    {regex:/http:\/\/localhost/g,         type:'Localhost reference',              severity:'low'},
+    {regex:/debugger\s*;/g,              type:'Debugger statement',               severity:'low'},
+    {regex:/console\.log\s*\(/g,          type:'Console log (info leak)',          severity:'low'},
+    {regex:/__proto__/g,                  type:'Prototype pollution',              severity:'high'},
+    {regex:/constructor\.prototype/g,     type:'Prototype pollution',              severity:'high'},
+  ]
+};
+
+// ── Scan file ────────────────────────────────────────────────────────────────
+async function scanFile(content,filename){
+  if(scannedFiles.has(filename))return[];
+  scannedFiles.add(filename);
+  totalFiles++;updateProgress();
+  const t=T[currentLang];
+  const results=[],fileVulns=[],lines=content.split('\n');
+
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i];if(!line.trim())continue;
+    for(const p of PATTERNS.endpoints){
+      p.regex.lastIndex=0;let m;
+      while((m=p.regex.exec(line))!==null){
+        const raw=m[0].replace(/["'`]/g,'').trim();
+        if(raw.length<4||raw.startsWith('//')||raw.startsWith('/*'))continue;
+        const risk=assessRisk(raw);
+        results.push({type:'endpoint',value:raw,line:i+1,file:filename,risk,category:risk.level==='high'?'🔴':risk.level==='medium'?'🟡':'🟢',detail:risk.label});
+      }
+    }
+    for(const s of PATTERNS.secrets){
+      s.regex.lastIndex=0;let m;
+      while((m=s.regex.exec(line))!==null){
+        const val=m[0];const an=analyzeSecret(val,i+1);
+        results.push({
+          type:'secret',value:val.substring(0,80)+(val.length>80?'…':''),fullValue:val,
+          line:i+1,file:filename,secretType:s.type,
+          risk:{level:s.risk,label:s.risk==='critical'?'🔥 Kritik':s.risk==='high'?'⚠ Yüksək':'● Orta',cls:s.risk==='critical'?'critical':'high'},
+          category:'🔑',detail:an.explanation+' '+an.riskNote
         });
-        $('results-title').textContent   = t.resultsTitle;
-        $('vulns-title').textContent     = t.vulnsTitle;
-        $('wayback-title').textContent   = t.waybackTitle;
-        $('ai-title').textContent        = t.aiTitle;
-        $('templates-title').textContent = t.templatesTitle;
-        $('report-title').textContent    = t.reportTitle;
-        $('empty-text').textContent      = t.emptyText;
-        $('vulns-empty').textContent     = t.vulnsEmpty;
-        $('wayback-empty').textContent   = t.waybackEmpty;
-        $('ai-empty').textContent        = t.aiEmpty;
-        $('templates-empty').textContent = t.templatesEmpty;
-        $('report-empty').textContent    = t.reportEmpty;
-        $('help-title').textContent      = t.helpTitle;
-        helpContent.innerHTML            = t.helpContent;
-
-        langAz.classList.toggle('active-lang', lang === 'az');
-        langEn.classList.toggle('active-lang', lang === 'en');
+      }
     }
-
-    langAz.addEventListener('click', () => applyLang('az'));
-    langEn.addEventListener('click', () => applyLang('en'));
-
-    // ── Help Panel ───────────────────────────────────────────────────────────
-    $('btn-help').addEventListener('click', () => helpPanel.classList.toggle('hidden'));
-    $('btn-help-close').addEventListener('click', () => helpPanel.classList.add('hidden'));
-
-    // ── Utility ──────────────────────────────────────────────────────────────
-    function escapeHtml(s) {
-        const d = document.createElement('div');
-        d.textContent = String(s);
-        return d.innerHTML;
+    for(const v of PATTERNS.vulns){
+      v.regex.lastIndex=0;let m;
+      while((m=v.regex.exec(line))!==null){
+        const ctx=line.substring(Math.max(0,m.index-30),m.index+m[0].length+30).trim();
+        fileVulns.push({type:v.type,severity:v.severity,line:i+1,file:filename,context:ctx});
+      }
     }
-
-    window.dismissToast = function () { toast.classList.remove('show'); };
-
-    function showToast(m) {
-        toastMsg.textContent = m;
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 7000);
+    if(/(include|require|file_get_contents|readfile|fopen)\s*\(/.test(line)&&/[\$\{]/.test(line)){
+      fileVulns.push({type:'Potential LFI',severity:'high',line:i+1,file:filename,context:line.substring(0,120).trim()});
     }
+  }
 
-    function log(m) {
-        const d = document.createElement('div');
-        d.textContent = '> ' + m;
-        scanLog.appendChild(d);
-        scanLog.scrollTop = scanLog.scrollHeight;
+  completedFiles++;updateProgress();
+  log('✅ '+filename+': '+results.length+' '+t.scanLogDone+' '+fileVulns.length+' '+t.scanLogVuln);
+  allVulns.push(...fileVulns);
+  return results;
+}
+
+// ── Process ──────────────────────────────────────────────────────────────────
+function processResults(results){
+  const seen=new Set(),unique=[];
+  for(const r of results){
+    const k=r.value+(r.line||'')+(r.file||'');
+    if(!seen.has(k)){seen.add(k);unique.push(r);}
+  }
+  allResults=unique;
+  renderResults();renderVulns();renderStats();
+  switchTab('results');
+  const t=T[currentLang];
+  showToast('✅ '+allResults.length+' '+t.scanDone+' '+allVulns.length+' '+t.scanDone2);
+}
+
+function renderStats(){
+  const ep=allResults.filter(r=>r.type==='endpoint');
+  const sec=allResults.filter(r=>r.type==='secret');
+  const hi=allResults.filter(r=>r.risk&&r.risk.level==='high');
+  sEP.textContent=ep.length;sSec.textContent=sec.length;sVuln.textContent=allVulns.length;
+  sHR.textContent=hi.length;sFiles.textContent=scannedFiles.size;sLines.textContent=allResults.length;
+  vulnCount.textContent=allVulns.length;
+}
+
+function renderResults(){
+  const t=T[currentLang];
+  const filtered=allResults.filter(r=>{
+    if(currentFilter==='endpoint'&&r.type!=='endpoint')return false;
+    if(currentFilter==='secret'&&r.type!=='secret')return false;
+    if(currentRiskFilter!=='all'&&(!r.risk||r.risk.level!==currentRiskFilter))return false;
+    if(currentSearch){
+      const s=currentSearch.toLowerCase();
+      return r.value.toLowerCase().includes(s)||
+        (r.file&&r.file.toLowerCase().includes(s))||
+        (r.detail&&r.detail.toLowerCase().includes(s))||
+        (r.secretType&&r.secretType.toLowerCase().includes(s));
     }
+    return true;
+  });
+  resultCount.textContent=filtered.length+' / '+allResults.length+' '+t.resultSuffix;
+  if(filtered.length===0){emptyState.classList.remove('hidden');resultsBody.innerHTML='';return;}
+  emptyState.classList.add('hidden');
+  resultsBody.innerHTML=filtered.map(r=>{
+    const isSec=r.type==='secret';
+    const typeLabel=isSec?(r.secretType||'Secret'):'Endpoint';
+    const riskCls=r.risk?r.risk.cls:'low';
+    const riskLabel=r.risk?r.risk.label:'';
+    return`<tr class="border-b border-white/5 hover:bg-white/[0.02] transition">
+      <td class="p-2 text-[0.7rem]">${r.category||(isSec?'🔑':'🌐')}</td>
+      <td class="p-2"><span class="${isSec?'badge-sec':'badge-ep'}">${escHtml(typeLabel)}</span></td>
+      <td class="p-2"><span class="risk ${riskCls}">${riskLabel}</span></td>
+      <td class="p-2 mono text-[0.58rem] text-gray-200 max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap" title="${escHtml(r.value)}">${escHtml(r.value.substring(0,80))}</td>
+      <td class="hidden sm:table-cell p-2 mono text-[0.52rem] text-gray-500 max-w-[140px] overflow-hidden text-ellipsis whitespace-nowrap" title="${escHtml(r.file||'')}">
+        ${escHtml((r.file||'').substring(0,26))}${r.line?':'+r.line:''}
+      </td>
+      <td class="p-2 mono text-[0.52rem] text-gray-400 max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap" title="${escHtml(r.detail||'')}">
+        ${escHtml((r.detail||'').substring(0,70))}
+      </td>
+    </tr>`;
+  }).join('');
+}
 
-    function resetProgress() {
-        scannedFiles.clear();
-        totalFiles = 0; completedFiles = 0;
-        progressBar.style.width = '0%';
-        progressLabel.textContent = '0/0';
-        scanLog.innerHTML = '';
-        progressSection.classList.remove('hidden');
+function renderVulns(){
+  const t=T[currentLang];
+  if(allVulns.length===0){$('vulns-empty').textContent=t.vulnsEmpty;return;}
+  $('vulns-empty').classList.add('hidden');
+  const sc={critical:'border-red-500/60 bg-red-500/5',high:'border-orange-500/50 bg-orange-500/5',medium:'border-yellow-500/40 bg-yellow-500/5',low:'border-white/10 bg-white/5'};
+  vulnsList.innerHTML=allVulns.slice(0,100).map(v=>
+    `<div class="card rounded-lg p-3 mb-2 border-l-2 ${sc[v.severity]||''}">
+      <div class="flex items-center justify-between gap-2">
+        <span class="text-[0.63rem] font-semibold text-gray-200">${escHtml(v.type)}</span>
+        <span class="risk ${v.severity==='critical'?'critical':v.severity==='high'?'high':v.severity==='medium'?'medium':'low'}">${v.severity}</span>
+      </div>
+      <p class="text-[0.52rem] text-gray-500 mt-1">${escHtml(v.file)}:${v.line}</p>
+      <pre class="text-[0.48rem] text-gray-600 mt-1 max-h-8 overflow-hidden">${escHtml(v.context)}</pre>
+    </div>`
+  ).join('');
+}
+
+// ── Filters ──────────────────────────────────────────────────────────────────
+filterBtns.forEach(btn=>btn.addEventListener('click',()=>{
+  filterBtns.forEach(b=>b.classList.remove('active-filter'));
+  btn.classList.add('active-filter');
+  currentFilter=btn.dataset.filter;renderResults();
+}));
+riskBtns.forEach(btn=>btn.addEventListener('click',()=>{
+  riskBtns.forEach(b=>b.classList.remove('active-risk'));
+  btn.classList.add('active-risk');
+  currentRiskFilter=btn.dataset.risk||'all';renderResults();
+}));
+searchInput.addEventListener('input',()=>{currentSearch=searchInput.value;renderResults();});
+
+// ── Drag & Drop ──────────────────────────────────────────────────────────────
+dropZone.addEventListener('dragover',e=>{e.preventDefault();dropZone.classList.add('drag-over');});
+dropZone.addEventListener('dragleave',()=>dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop',e=>{e.preventDefault();dropZone.classList.remove('drag-over');handleFiles(e.dataTransfer.files);});
+dropZone.addEventListener('click',()=>fileInput.click());
+fileInput.addEventListener('change',e=>{if(e.target.files.length)handleFiles(e.target.files);});
+
+async function handleFiles(files){
+  resetProgress();
+  allResults=[];allVulns=[];
+  resultsBody.innerHTML='';emptyState.classList.remove('hidden');
+  const gathered=[];
+  for(const file of files){
+    const content=await file.text();
+    log('📂 '+file.name+' ('+content.length+' bytes)');
+    if(file.name.endsWith('.html')||file.name.endsWith('.htm')){
+      const jsUrls=new Set();
+      const re=/<script[^>]*src=["']([^"']+)["']/gi;let m;
+      while((m=re.exec(content))!==null){
+        let src=m[1];
+        if(src.startsWith('//'))src='https:'+src;
+        jsUrls.add(src);
+      }
+      log('📦 '+jsUrls.size+' JS referansı tapıldı');
+      let fc=0;
+      for(const jsUrl of jsUrls){
+        if(!jsUrl.startsWith('http')){log('⚠ Yerli JS: '+jsUrl+' (yüklənə bilməz)');continue;}
+        try{const jr=await fetch(jsUrl,{mode:'cors'});if(jr.ok){gathered.push(...await scanFile(await jr.text(),jsUrl));fc++;}}
+        catch(e){log('⚠ '+jsUrl+' yüklənə bilmədi');}
+      }
+      gathered.push(...await scanFile(content,file.name));
+      if(fc>0)log('✅ '+fc+' xarici JS faylı yükləndi');
+    }else if(/\.(js|mjs|cjs|jsx|ts|tsx|json)$/.test(file.name)){
+      gathered.push(...await scanFile(content,file.name));
+    }else{
+      showToast('⚠ Dəstəklənməyən fayl tipi: '+file.name);
     }
+  }
+  processResults(gathered);
+  progressSec.classList.add('hidden');
+}
 
-    function updateProgress() {
-        const p = totalFiles > 0 ? Math.round((completedFiles / totalFiles) * 100) : 0;
-        progressBar.style.width = p + '%';
-        progressLabel.textContent = completedFiles + '/' + totalFiles;
+// ── Live Check ───────────────────────────────────────────────────────────────
+$('btn-live-all').addEventListener('click',async()=>{
+  if(liveCheckInProgress)return;
+  const t=T[currentLang];
+  const ep=allResults.filter(r=>r.type==='endpoint');
+  if(!ep.length){showToast('⚠ '+t.noLive);return;}
+  liveCheckInProgress=true;
+  liveStatus.classList.remove('hidden');
+  let alive=0;
+  for(const e of ep){
+    let url=e.value;if(!url.startsWith('http'))url='https://example.com'+url;
+    try{await fetch(url,{mode:'no-cors'});e.isLive=true;alive++;}
+    catch(err){e.isLive=false;}
+    liveStatus.textContent='⏳ '+alive+'/'+ep.length;
+  }
+  liveStatus.textContent='✅ '+alive+'/'+ep.length+' '+t.liveDone;
+  renderResults();showToast('✅ '+alive+'/'+ep.length+' '+t.liveDone);
+  liveCheckInProgress=false;
+});
+
+// ── Param Fuzz ───────────────────────────────────────────────────────────────
+$('btn-fuzz-all').addEventListener('click',()=>{
+  const t=T[currentLang];
+  const ep=allResults.filter(r=>r.type==='endpoint');
+  if(!ep.length){showToast('⚠ '+t.noFuzz);return;}
+  let added=0;
+  for(const e of ep.slice(0,20)){
+    for(const w of PARAM_WORDS.slice(0,8)){e.detail=(e.detail||'')+' [fuzz:'+w+']';added++;}
+  }
+  showToast('⚡ '+added+' '+t.fuzzDone);renderResults();
+});
+
+// ── Auth Bypass ──────────────────────────────────────────────────────────────
+$('btn-auth-all').addEventListener('click',async()=>{
+  const t=T[currentLang];
+  const auth=allResults.filter(r=>r.type==='endpoint'&&(r.value.toLowerCase().includes('login')||r.value.toLowerCase().includes('admin')||r.value.toLowerCase().includes('auth')));
+  if(!auth.length){showToast('⚠ '+t.noAuth);return;}
+  let tested=0;
+  for(const e of auth.slice(0,5)){
+    for(const p of AUTH_BYPASS){
+      try{let url=e.value;if(!url.startsWith('http'))url='https://example.com'+url;url+=(url.includes('?')?'&':'?')+'user='+encodeURIComponent(p)+'&password=test';await fetch(url,{mode:'no-cors'});tested++;}
+      catch(err){}
     }
+  }
+  showToast('🔐 '+tested+' '+t.authDone);renderResults();
+});
 
-    function switchTab(name) {
-        tabBtns.forEach(b => b.classList.toggle('active-tab', b.dataset.tab === name));
-        tabContents.forEach(c => c.classList.toggle('hidden', c.id !== 'tab-' + name));
+// ── Export ───────────────────────────────────────────────────────────────────
+function exportData(fmt){
+  const t=T[currentLang];
+  if(!allResults.length){showToast('⚠ '+t.noExport);return;}
+  let content='',mime='text/plain',ext='txt';
+  if(fmt==='txt'){
+    content=allResults.map(r=>'['+r.type.toUpperCase()+'] '+r.value+' | '+(r.risk?r.risk.label:'')+' | '+(r.file||'')+':'+(r.line||'')).join('\n');
+  }else if(fmt==='json'){
+    content=JSON.stringify(allResults,null,2);mime='application/json';ext='json';
+  }else if(fmt==='csv'){
+    content='Type,Value,Risk,File,Line,Detail\n'+allResults.map(r=>[r.type,r.value,r.risk?r.risk.label:'',r.file||'',r.line||'',(r.detail||'').replace(/"/g,'""')].map(v=>'"'+v+'"').join(',')).join('\n');
+    mime='text/csv';ext='csv';
+  }else if(fmt==='nuclei'){
+    content=allResults.filter(r=>r.type==='endpoint').map(r=>'id: cyberdelve-'+Date.now()+'\ninfo:\n  name: "Endpoint"\n  severity: '+(r.risk&&r.risk.level==='high'?'high':'medium')+'\nrequests:\n  - method: GET\n    path:\n      - "'+r.value+'"\n    matchers:\n      - type: status\n        status:\n          - 200\n          - 403\n').join('\n---\n');
+    mime='text/yaml';ext='yaml';
+  }else if(fmt==='burp'){
+    content=JSON.stringify(allResults.filter(r=>r.type==='endpoint').map(r=>({type:'request',host:'target.com',path:r.value,method:'GET',comments:(r.risk?r.risk.label:'')+' '+( r.file||'')})),null,2);
+    mime='application/json';ext='burp.json';
+  }
+  const blob=new Blob([content],{type:mime});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='cyberdelve-export.'+ext;a.click();URL.revokeObjectURL(a.href);
+  showToast('✅ '+ext.toUpperCase()+' '+t.exported);
+}
+$('btn-export-txt').addEventListener('click',()=>exportData('txt'));
+$('btn-export-json').addEventListener('click',()=>exportData('json'));
+$('btn-export-csv').addEventListener('click',()=>exportData('csv'));
+$('btn-export-nuclei').addEventListener('click',()=>exportData('nuclei'));
+$('btn-export-burp').addEventListener('click',()=>exportData('burp'));
+
+// ── AI Analysis ──────────────────────────────────────────────────────────────
+$('btn-ai-analyze').addEventListener('click',()=>{
+  const t=T[currentLang];
+  if(!allResults.length){showToast('⚠ '+t.noAi);return;}
+  aiStatus.textContent='⏳ '+t.aiThinking;
+  aiResult.innerHTML='<p class="text-gray-500 text-[0.6rem]">'+t.aiThinking+'</p>';
+  const sec=allResults.filter(r=>r.type==='secret');
+  const ep=allResults.filter(r=>r.type==='endpoint');
+  const hi=allResults.filter(r=>r.risk&&r.risk.level==='high');
+  let md='';
+  md+=`<p class="text-cyan-400 font-semibold mb-2">📊 ${t.totalStat}</p>`;
+  md+=`<p>• ${allResults.length} ${t.discoveries} (${sec.length} secret, ${ep.length} endpoint)</p>`;
+  md+=`<p>• ${hi.length} ${t.hiRisk}</p>`;
+  md+=`<p>• ${allVulns.length} ${t.potVulns}</p><br>`;
+  if(hi.length){
+    md+=`<p class="text-red-400 font-semibold mb-1">🔴 ${t.urgentReview} (${Math.min(hi.length,10)})</p>`;
+    for(const r of hi.slice(0,10)){
+      md+=`<p class="text-gray-300">• <strong>${escHtml(r.value.substring(0,60))}</strong></p>`;
+      md+=`<p class="text-gray-500 pl-2 text-[0.55rem]">${escHtml(r.file||'N/A')}:${r.line||''} — ${escHtml((r.detail||'').substring(0,100))}</p>`;
     }
-    tabBtns.forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
+    md+='<br>';
+  }
+  if(sec.length){
+    md+=`<p class="text-orange-400 font-semibold mb-1">🔑 ${t.secretAnalysis}</p>`;
+    const tc={};sec.forEach(s=>{const tp=s.secretType||'Unknown';tc[tp]=(tc[tp]||0)+1;});
+    for(const[tp,c]of Object.entries(tc))md+=`<p>• ${escHtml(tp)}: ${c}</p>`;
+    md+='<br>';
+  }
+  if(allVulns.length){
+    md+=`<p class="text-yellow-400 font-semibold mb-1">⚡ ${t.vulnSummary}</p>`;
+    const sc={};allVulns.forEach(v=>{sc[v.severity]=(sc[v.severity]||0)+1;});
+    for(const[s,c]of Object.entries(sc))md+=`<p>• ${s}: ${c}</p>`;
+    for(const v of allVulns.slice(0,8))md+=`<p class="text-gray-500 text-[0.55rem]">  › ${escHtml(v.type)} — ${escHtml(v.file)}:${v.line}</p>`;
+    md+='<br>';
+  }
+  md+=`<p class="text-green-400 font-semibold mb-1">💡 ${t.recommendations}</p>`;
+  t.recs.forEach((r,i)=>md+=`<p>${i+1}. ${r}</p>`);
+  aiResult.innerHTML=`<div class="space-y-0.5 text-[0.63rem] leading-relaxed">${md}</div>`;
+  aiStatus.textContent='✅ '+t.aiDone;
+});
 
-    // ── Risk Assessment ──────────────────────────────────────────────────────
-    const HIGH_RISK = ['admin','delete','edit','config','upload','graphql','env','backup','debug','panel',
-        'login','signup','auth','token','oauth','callback','webhook','reset','password','grant','root',
-        'sudo','exec','cmd','shell','database','db','sql','query','migrate','firebase',
-        'aws','s3','bucket','storage','cdn-admin','internal','private','secret','credential','key',
-        'api-key','payment','checkout','order','invoice','billing','websocket','realtime','stream',
-        'swagger','openapi','api-docs','docs','actuator','graphiql','voyager','playground'];
-
-    const MEDIUM_RISK = ['api','v1','v2','v3','rest','service','proxy','gateway','endpoint','data','user',
-        'profile','account','settings','search','filter','list','get','post','put','patch','update',
-        'create','add','remove','status','notification','email','sms','verify','validate','confirm',
-        'session','device','location','feature','flag','toggle','config/','configuration','middleware',
-        'hook','event'];
-
-    const AUTH_BYPASS_PAYLOADS = ["admin'--","admin' OR '1'='1","admin'","root'--","test@test.com","nonexistent@test.com"];
-
-    const PARAM_WORDS = ['id','user','admin','debug','test','token','key','file','page','redirect','url',
-        'path','action','mode','type','cmd','exec','order','limit','offset','sort','filter','search',
-        'q','query','name','email','password','pass','secret','api','callback','lang','locale','format',
-        'raw','ajax','live','preview','edit','delete','create','update','upload',
-        'download','export','import','config','env','db','sql','table','schema','trace','log',
-        'error','exception','stack'];
-
-    function assessRisk(v) {
-        const l = v.toLowerCase();
-        for (const k of HIGH_RISK)   { if (l.includes(k)) return { level:'high',   label:'🔥 Yüksək Risk', cls:'critical' }; }
-        for (const k of MEDIUM_RISK) { if (l.includes(k)) return { level:'medium', label:'⚠ Orta Risk',    cls:'high'     }; }
-        const staticPat = ['.jpg','.jpeg','.png','.gif','.svg','.webp','.ico','.css','.woff','.woff2',
-            '.ttf','.eot','.mp4','.webm','.mp3','.pdf','.zip','.tar','.gz','.rar','static/','assets/',
-            'public/','dist/','build/','fonts/','images/','img/','media/','favicon','robots.txt',
-            'sitemap.xml','manifest.json','sw.js','service-worker.js'];
-        for (const p of staticPat) { if (l.includes(p)) return { level:'low', label:'● Aşağı Risk', cls:'low' }; }
-        if (l.includes('/api/')||l.includes('/v1/')||l.includes('/v2/')||l.includes('/rest/'))
-            return { level:'medium', label:'⚠ Orta Risk', cls:'high' };
-        return { level:'low', label:'● Aşağı Risk', cls:'low' };
+// ── Report ───────────────────────────────────────────────────────────────────
+$('btn-gen-report').addEventListener('click',()=>{
+  const t=T[currentLang];
+  if(!allResults.length){showToast('⚠ '+t.noReport);return;}
+  const date=new Date().toISOString().split('T')[0];
+  const ep=allResults.filter(r=>r.type==='endpoint');
+  const sec=allResults.filter(r=>r.type==='secret');
+  const hi=allResults.filter(r=>r.risk&&r.risk.level==='high');
+  const crit=allVulns.filter(v=>v.severity==='critical');
+  const high=allVulns.filter(v=>v.severity==='high');
+  let html=`<div class="space-y-3">
+    <div class="bg-white/5 rounded-lg p-3 border border-white/10">
+      <h3 class="text-[0.7rem] font-bold text-cyan-400">BUG BOUNTY REPORT</h3>
+      <p class="text-[0.52rem] text-gray-500">CyberDelve v7.0 · ${date}</p>
+    </div>
+    <div class="grid grid-cols-2 gap-2">
+      <div class="bg-white/5 rounded p-2"><p class="text-[0.45rem] text-gray-500">${t.repTotal}</p><p class="text-[0.7rem] font-bold text-gray-200">${allResults.length}</p></div>
+      <div class="bg-white/5 rounded p-2"><p class="text-[0.45rem] text-gray-500">${t.repHighRisk}</p><p class="text-[0.7rem] font-bold text-red-400">${hi.length}</p></div>
+      <div class="bg-white/5 rounded p-2"><p class="text-[0.45rem] text-gray-500">${t.repSecrets}</p><p class="text-[0.7rem] font-bold text-orange-400">${sec.length}</p></div>
+      <div class="bg-white/5 rounded p-2"><p class="text-[0.45rem] text-gray-500">${t.repVulns}</p><p class="text-[0.7rem] font-bold text-red-400">${allVulns.length}</p></div>
+    </div>`;
+  if(hi.length){
+    html+=`<div class="bg-white/5 rounded-lg p-3 border border-red-500/20"><h4 class="text-[0.6rem] font-bold text-red-400 mb-2">🔴 ${t.hiRiskLabel}</h4>`;
+    for(const r of hi.slice(0,20)){
+      html+=`<div class="py-1 border-b border-white/5 text-[0.52rem]"><span class="text-red-300">${escHtml(r.value.substring(0,80))}</span><span class="text-gray-500 ml-2">${escHtml(r.file||'')}:${r.line||''}</span><p class="text-gray-400">${escHtml((r.detail||'').substring(0,100))}</p></div>`;
     }
+    html+=`</div>`;
+  }
+  if(allVulns.length){
+    html+=`<div class="bg-white/5 rounded-lg p-3 border border-orange-500/20"><h4 class="text-[0.6rem] font-bold text-orange-400 mb-2">⚡ ${t.repVulns}</h4>`;
+    if(crit.length){html+=`<p class="text-[0.55rem] text-red-400">${t.critVulns} (${crit.length}):</p>`;crit.slice(0,10).forEach(v=>{html+=`<div class="text-[0.5rem] text-gray-300 pl-2">• ${escHtml(v.type)} — ${escHtml(v.file)}:${v.line}</div>`;});}
+    if(high.length){html+=`<p class="text-[0.55rem] text-orange-400 mt-1">${t.highVulns} (${high.length}):</p>`;high.slice(0,10).forEach(v=>{html+=`<div class="text-[0.5rem] text-gray-300 pl-2">• ${escHtml(v.type)} — ${escHtml(v.file)}:${v.line}</div>`;});}
+    html+=`</div>`;
+  }
+  html+=`<div class="bg-white/5 rounded-lg p-3 border border-white/10"><h4 class="text-[0.6rem] font-bold text-gray-300 mb-1">📊 ${t.repSummary}</h4>
+    <p class="text-[0.5rem] text-gray-400">${t.repEndpoints}: ${ep.length} | ${t.repSecrets}: ${sec.length} | ${t.repVulns}: ${allVulns.length} | ${t.repFiles}: ${scannedFiles.size}</p>
+    <p class="text-[0.5rem] text-gray-500 mt-1">${t.repRecs}</p></div></div>`;
+  reportContent.innerHTML=html;
+  showToast('✅ '+t.repCreated);
+});
 
-    // ── Analyze Secret Value ─────────────────────────────────────────────────
-    // FIX: Completely rewrote — broken multi-line string concatenation removed
-    function analyzeSecretValue(value, source, line) {
-        const lower = value.toLowerCase();
-        let type = 'Unknown Secret';
-        let explanation = 'Bu dəyər naməlum tipdədir.';
-        let riskNote = '';
+$('btn-export-report').addEventListener('click',()=>{
+  const t=T[currentLang];
+  const txt=reportContent.textContent;
+  if(!txt||txt.includes(t.repEmpty)){showToast('⚠ '+t.noRepDl);return;}
+  const blob=new Blob([txt],{type:'text/plain'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='cyberdelve-report-'+Date.now()+'.txt';a.click();URL.revokeObjectURL(a.href);
+  showToast('✅ '+t.repDl);
+});
 
-        if (/^eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+$/.test(value.replace(/["'`]/g,''))) {
-            type = 'JWT Token';
-            explanation = 'Bu JWT token tapıldı. JWT (JSON Web Token) autentifikasiya üçün istifadə olunur. Payload hissəsini decode edib içinə baxın.';
-            riskNote = '🔥 Kritik — real token ola bilər, dərhal dəyişdirilməlidir.';
-        } else if (/^gh[ps]_[A-Za-z0-9]{36}/.test(value)) {
-            type = 'GitHub Personal Access Token';
-            explanation = 'Bu GitHub Personal Access Token-dir. Repozitoriyalarınıza tam giriş imkanı verə bilər.';
-            riskNote = '🔥 Kritik — real token, dərhal revoke edilməlidir.';
-        } else if (/^sk_live_/.test(value) || /^pk_live_/.test(value)) {
-            type = 'Stripe Live API Key';
-            explanation = 'Bu Stripe ödəniş sisteminin canlı API açarıdır. Ödəniş məlumatlarına giriş imkanı verir.';
-            riskNote = '🔥 Kritik — real Stripe live key! Dərhal revoke edin.';
-        } else if (/^xox[baprs]-/.test(value)) {
-            type = 'Slack Token';
-            explanation = 'Bu Slack API tokenidir. Qrup mesajlarını oxumaq, göndərmək, fayl yükləmək imkanı verir.';
-            riskNote = '🔥 Kritik — real Slack token. Dərhal revoke edilməlidir.';
-        } else if (/^AIza[0-9A-Za-z_-]{35}/.test(value)) {
-            type = 'Firebase API Key';
-            explanation = 'Bu Firebase API açarıdır. Firebase məlumat bazasına, authentication servisinə giriş imkanı verə bilər.';
-            riskNote = '🔥 Yüksək Risk — real Firebase key. Məlumat bazasına giriş ola bilər.';
-        } else if (/^AKIA[0-9A-Z]{16}/.test(value)) {
-            type = 'AWS Access Key ID';
-            explanation = 'Bu AWS Access Key ID-dir. AWS hesabınızdakı resurslara giriş imkanı verə bilər.';
-            riskNote = '🔥 Kritik — real AWS key. Hesab təhlükəsizliyi üçün dərhal revoke edin.';
-        } else if (/^-----BEGIN (RSA |EC )?PRIVATE KEY-----/.test(value)) {
-            type = 'Private Key / SSL Key';
-            explanation = 'Bu şəxsi açar (private key) faylıdır. HTTPS trafikini decrypt etmək, server-ə giriş imkanı verir.';
-            riskNote = '🔥 Kritik — real private key. Dərhal dəyişdirilməlidir.';
-        } else if (/^(sk_test_|pk_test_)/.test(value)) {
-            type = 'Stripe Test API Key';
-            explanation = 'Bu Stripe test API açarıdır. Test mühitindədir, lakin yenə də real mühitə sıza bilər.';
-            riskNote = '⚠ Orta Risk — test açarı, amma diqqətli olun.';
-        } else if (lower.includes('password') || lower.includes('passwd') || lower.includes('pwd')) {
-            type = 'Password / Credential';
-            explanation = 'Bu, parol və ya hesab məlumatı ola bilər.';
-            riskNote = '⚠ Yüksək Risk — real parol ehtimalı var, dərhal dəyişdirilməlidir.';
-        } else if (/^(5937|5[1-5][0-9]{14}|4[0-9]{12}(?:[0-9]{3})?|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})/.test(value.replace(/\s+/g,''))) {
-            const cc = value.replace(/\s+/g,'');
-            let cardType = 'Unknown';
-            if (/^4/.test(cc)) cardType = 'Visa';
-            else if (/^5[1-5]/.test(cc)) cardType = 'MasterCard';
-            else if (/^3[47]/.test(cc)) cardType = 'American Express';
-            else if (/^6(011|5)/.test(cc)) cardType = 'Discover';
-            type = 'Credit Card Number (Kredit Kartı)';
-            explanation = `Bu ${cardType} kredit kartı nömrəsidir. Kart sahibinin məlumatları risk altındadır.` + (line ? ` Sətir: ${line}` : '');
-            riskNote = '🔥 KRİTİK — real kredit kartı nömrəsi. PCI-DSS pozuntusu. Dərhal məlumatlandırın.';
-        } else {
-            explanation = 'Bu naməlum tipdə gizli məlumatdır. Təhlükəsizlik baxımından araşdırılmalıdır.';
-            riskNote = '⚠ Orta Risk — dəyər şübhəlidir, yoxlanmalıdır.';
-        }
+// ── Templates ─────────────────────────────────────────────────────────────────
+const DEFAULT_TEMPLATES=[
+  {name:'XSS Scanner',     desc_az:'XSS zəifliyini test edən payload. Parametrlərə əlavə edin.',             desc_en:'XSS vulnerability test payload.',                   payload:'<scr\x69pt>alert(1)<\/scr\x69pt>', severity:'Critical'},
+  {name:'SQL Injection',   desc_az:'SQL injection testi. Login/axtarış sahələrini yoxlayın.',                desc_en:'SQL injection test for login/search fields.',        payload:"' OR '1'='1'--",                   severity:'Critical'},
+  {name:'LFI Scanner',     desc_az:'Local File Inclusion testi. Fayl parametrlərini yoxlayın.',             desc_en:'Local File Inclusion test for file parameters.',    payload:'../../../etc/passwd',               severity:'High'},
+  {name:'Open Redirect',   desc_az:'Açıq yönləndirmə testi. redirect/url parametrlərini yoxlayın.',         desc_en:'Open redirect test for redirect/url parameters.',   payload:'https://evil.com',                  severity:'Medium'},
+  {name:'SSTI Test',       desc_az:'Server-Side Template Injection testi.',                                  desc_en:'Server-Side Template Injection test.',               payload:'{{7*7}}',                           severity:'High'},
+  {name:'SSRF Test',       desc_az:'Server-Side Request Forgery testi. URL parametrlərini yoxlayın.',       desc_en:'SSRF test for URL parameters.',                      payload:'http://169.254.169.254/latest/meta-data/', severity:'High'},
+  {name:'Path Traversal',  desc_az:'Qovluq keçidi testi. Fayl yollarını yoxlayın.',                        desc_en:'Directory traversal test for file paths.',           payload:'....//....//....//etc/passwd',      severity:'High'},
+  {name:'XXE Injection',   desc_az:'XML External Entity injection testi.',                                   desc_en:'XML External Entity injection test.',                payload:'<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><foo>&xxe;</foo>', severity:'Critical'},
+];
+templates=[...DEFAULT_TEMPLATES];
 
-        return { type, explanation, riskNote };
-    }
-
-    // ── Scanner Patterns ─────────────────────────────────────────────────────
-    const PATTERNS = {
-        endpoints: [
-            { regex: /["'`]https?:\/\/[^"'\s`]{4,}["'`]/gi },
-            { regex: /["'`]\/(?:api|v[0-9]|rest|graphql|auth|admin|panel|login|signup|callback|webhook|upload|download|config|env|debug|health|status|swagger|docs|static|assets|public|private|internal)[^"'\s`]*["'`]/gi },
-            { regex: /["'`](?:baseURL|base_url|basePath|base_path|root|prefix|namespace|scope)[^:]*[:=]\s*["'`][^"'`]+["'`]/gi },
-        ],
-        secrets: [
-            { regex: /AIza[0-9A-Za-z_-]{35}/g,              type: 'Firebase API Key',          risk: 'critical' },
-            { regex: /AKIA[0-9A-Z]{16}/g,                    type: 'AWS Access Key',             risk: 'critical' },
-            { regex: /gh[ps]_[A-Za-z0-9]{36}/g,             type: 'GitHub Token',               risk: 'critical' },
-            { regex: /sk_live_[0-9a-zA-Z]{24,}/g,           type: 'Stripe Live Key',            risk: 'critical' },
-            { regex: /pk_live_[0-9a-zA-Z]{24,}/g,           type: 'Stripe Live Publishable',    risk: 'critical' },
-            { regex: /sk_test_[0-9a-zA-Z]{24,}/g,           type: 'Stripe Test Key',            risk: 'medium'   },
-            { regex: /xox[baprs]-[0-9a-zA-Z-]{10,}/g,       type: 'Slack Token',                risk: 'critical' },
-            { regex: /-----BEGIN (?:RSA |EC )?PRIVATE KEY-----/g, type: 'Private Key',          risk: 'critical' },
-            { regex: /["'`]eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+["'`]/g, type: 'JWT Token', risk: 'critical' },
-            { regex: /(?:5[1-5][0-9]{14}|4[0-9]{12}(?:[0-9]{3})?|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})/g, type: 'Credit Card Number', risk: 'critical' },
-            { regex: /["'`](?:password|passwd|pwd|secret|api[_-]?key|token|auth[_-]?token|access[_-]?token)["']*\s*[:=]\s*["'][^"']{4,}["']/gi, type: 'Credential', risk: 'high' },
-            { regex: /["'`](?:mongodb|postgres|mysql|redis|amqp|rabbitmq):\/\/[^"'\s`]+/gi, type: 'Database URI', risk: 'high' },
-            { regex: /https?:\/\/[^"'\s`]*(?:api[_-]?key=|token=|secret=|password=|pass=|auth=)[^"'\s`&]{4,}/gi, type: 'URL With Secret', risk: 'critical' },
-        ],
-        vulns: [
-            { regex: /\.innerHTML\s*=/g,                     type: 'DOM XSS (innerHTML)',             severity: 'critical' },
-            { regex: /document\.write\s*\(/g,                type: 'DOM XSS (document.write)',        severity: 'critical' },
-            { regex: /\beval\s*\(/g,                         type: 'Code Injection (eval)',            severity: 'critical' },
-            { regex: /setTimeout\s*\(\s*["'`]/g,             type: 'Code Injection (setTimeout str)', severity: 'high'     },
-            { regex: /new Function\s*\(/g,                   type: 'Code Injection (Function)',        severity: 'critical' },
-            { regex: /location\s*=\s*["'`]/g,               type: 'Open Redirect (location)',         severity: 'medium'   },
-            { regex: /location\.href\s*=\s*["'`]/g,         type: 'Open Redirect (location.href)',    severity: 'medium'   },
-            { regex: /window\.location\s*=\s*["'`]/g,       type: 'Open Redirect (window.location)', severity: 'medium'   },
-            { regex: /\.src\s*=\s*["'`]/g,                  type: 'DOM-based (src assignment)',       severity: 'medium'   },
-            { regex: /postMessage\s*\(/g,                    type: 'postMessage vulnerability',        severity: 'medium'   },
-            { regex: /localStorage\.setItem\s*\(/g,         type: 'Sensitive data in localStorage',   severity: 'medium'   },
-            { regex: /sessionStorage\.setItem\s*\(/g,       type: 'Sensitive data in sessionStorage', severity: 'medium'   },
-            { regex: /document\.cookie\s*=/g,               type: 'Cookie manipulation',              severity: 'medium'   },
-            { regex: /fetch\s*\(\s*["'`]\/\/[^"']+["'`]/g, type: 'Mixed content / insecure fetch',   severity: 'high'     },
-            { regex: /http:\/\/localhost/g,                  type: 'Localhost reference',              severity: 'low'      },
-            { regex: /debugger\s*;/g,                        type: 'Debugger statement',               severity: 'low'      },
-            { regex: /console\.log\s*\(/g,                   type: 'Console log (info leak)',          severity: 'low'      },
-            { regex: /__proto__/g,                           type: 'Prototype pollution potential',    severity: 'high'     },
-            { regex: /constructor\.prototype/g,              type: 'Prototype pollution potential',    severity: 'high'     },
-        ]
-    };
-
-    // ── Scan a single file/content ────────────────────────────────────────────
-    async function scanFile(content, filename) {
-        if (scannedFiles.has(filename)) return [];
-        scannedFiles.add(filename);
-        totalFiles++;
-        updateProgress();
-
-        const results    = [];
-        const fileVulns  = [];
-        const lines      = content.split('\n');
-
-        // Endpoints
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            if (!line.trim()) continue;
-            for (const pattern of PATTERNS.endpoints) {
-                pattern.regex.lastIndex = 0;
-                let m;
-                while ((m = pattern.regex.exec(line)) !== null) {
-                    let raw = m[0].replace(/["'`]/g, '').trim();
-                    if (raw.length < 4 || raw.startsWith('//') || raw.startsWith('/*')) continue;
-                    const risk = assessRisk(raw);
-                    results.push({ type:'endpoint', value:raw, line:i+1, file:filename, risk, category: risk.level==='high'?'🔴':risk.level==='medium'?'🟡':'🟢', detail:risk.label });
-                }
-            }
-        }
-
-        // Secrets
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            if (!line.trim()) continue;
-            for (const secret of PATTERNS.secrets) {
-                secret.regex.lastIndex = 0;
-                let m;
-                while ((m = secret.regex.exec(line)) !== null) {
-                    const value    = m[0];
-                    const analysis = analyzeSecretValue(value, filename, i + 1);
-                    results.push({
-                        type      : 'secret',
-                        value     : value.substring(0, 80) + (value.length > 80 ? '…' : ''),
-                        fullValue : value,
-                        line      : i + 1,
-                        file      : filename,
-                        secretType: secret.type,
-                        risk      : { level: secret.risk, label: secret.risk==='critical'?'🔥 Kritik':secret.risk==='high'?'⚠ Yüksək':'● Orta', cls: secret.risk==='critical'?'critical':'high' },
-                        category  : '🔑',
-                        detail    : analysis.explanation + ' ' + analysis.riskNote
-                    });
-                }
-            }
-        }
-
-        // Vulnerabilities
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            if (!line.trim()) continue;
-            for (const vuln of PATTERNS.vulns) {
-                vuln.regex.lastIndex = 0;
-                let m;
-                while ((m = vuln.regex.exec(line)) !== null) {
-                    const ctx = line.substring(Math.max(0, m.index - 30), m.index + m[0].length + 30).trim();
-                    fileVulns.push({ type:vuln.type, severity:vuln.severity, line:i+1, file:filename, context:ctx });
-                }
-            }
-            // LFI
-            if (/(include|require|file_get_contents|readfile|fopen)\s*\(/.test(line) && /[\$\{]/.test(line)) {
-                fileVulns.push({ type:'Potential LFI / File Inclusion', severity:'high', line:i+1, file:filename, context:line.substring(0,120).trim() });
-            }
-        }
-
-        completedFiles++;
-        updateProgress();
-        log(`✅ ${filename}: ${results.length} tapıntı, ${fileVulns.length} zəiflik`);
-
-        allVulns.push(...fileVulns);
-        return results;
-    }
-
-    // ── Process & render results ──────────────────────────────────────────────
-    function processResults(results) {
-        const seen = new Set();
-        const unique = [];
-        for (const r of results) {
-            const key = r.value + (r.line||'') + (r.file||'');
-            if (!seen.has(key)) { seen.add(key); unique.push(r); }
-        }
-        allResults = unique;
-        renderResults();
-        renderVulns();
-        renderStats();
-        switchTab('results');
-        showToast(`✅ ${allResults.length} nəticə tapıldı, ${allVulns.length} zəiflik aşkarlandı`);
-    }
-
-    function renderStats() {
-        const endpoints = allResults.filter(r => r.type === 'endpoint');
-        const secrets   = allResults.filter(r => r.type === 'secret');
-        const highRisk  = allResults.filter(r => r.risk && r.risk.level === 'high');
-        sEP.textContent   = endpoints.length;
-        sSec.textContent  = secrets.length;
-        sVuln.textContent = allVulns.length;
-        sHR.textContent   = highRisk.length;
-        sFiles.textContent= scannedFiles.size;
-        sLines.textContent= allResults.length;
-        vulnCount.textContent = allVulns.length;
-    }
-
-    // FIX: Fixed column count (6 cols) to match the header; fixed emptyState toggle
-    function renderResults() {
-        const filtered = allResults.filter(r => {
-            if (currentFilter === 'endpoint' && r.type !== 'endpoint') return false;
-            if (currentFilter === 'secret'   && r.type !== 'secret')   return false;
-            if (currentRiskFilter !== 'all' && (!r.risk || r.risk.level !== currentRiskFilter)) return false;
-            if (currentSearch) {
-                const s = currentSearch.toLowerCase();
-                return r.value.toLowerCase().includes(s) ||
-                    (r.file  && r.file.toLowerCase().includes(s)) ||
-                    (r.detail && r.detail.toLowerCase().includes(s)) ||
-                    (r.secretType && r.secretType.toLowerCase().includes(s));
-            }
-            return true;
-        });
-
-        resultCount.textContent = filtered.length + ' / ' + allResults.length + ' nəticə';
-
-        if (filtered.length === 0) {
-            emptyState.classList.remove('hidden');
-            resultsBody.innerHTML = '';
-            return;
-        }
-
-        emptyState.classList.add('hidden');
-        // FIX: Render 6 columns to match the 6-column header
-        resultsBody.innerHTML = filtered.map(r => {
-            const isSecret   = r.type === 'secret';
-            const typeBadge  = isSecret ? 'badge-secret' : 'badge-endpoint';
-            const typeLabel  = isSecret ? (r.secretType || 'Secret') : 'Endpoint';
-            const riskCls    = r.risk ? r.risk.cls   : 'low';
-            const riskLabel  = r.risk ? r.risk.label : '';
-            return `<tr class="border-b border-white/5 hover:bg-white/[0.02] transition">
-              <td class="p-2 text-[0.7rem]">${r.category || (isSecret?'🔑':'🌐')}</td>
-              <td class="p-2"><span class="${typeBadge}">${escapeHtml(typeLabel)}</span></td>
-              <td class="p-2"><span class="badge-risk ${riskCls}">${riskLabel}</span></td>
-              <td class="p-2 font-mono-custom text-[0.6rem] text-gray-200 max-w-[220px] overflow-hidden text-ellipsis whitespace-nowrap" title="${escapeHtml(r.value)}">${escapeHtml(r.value.substring(0,80))}</td>
-              <td class="hidden sm:table-cell p-2 font-mono-custom text-[0.55rem] text-gray-500 max-w-[140px] overflow-hidden text-ellipsis whitespace-nowrap" title="${escapeHtml(r.file||'')}">
-                ${escapeHtml((r.file||'').substring(0,28))}${r.line?':'+r.line:''}
-              </td>
-              <td class="p-2 font-mono-custom text-[0.55rem] text-gray-400 max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap" title="${escapeHtml(r.detail||'')}">
-                ${escapeHtml((r.detail||'').substring(0,70))}
-              </td>
-            </tr>`;
-        }).join('');
-    }
-
-    function renderVulns() {
-        if (allVulns.length === 0) return;
-        $('vulns-empty').classList.add('hidden');
-        const sevColor = { critical:'border-red-500/60 bg-red-500/5', high:'border-orange-500/50 bg-orange-500/5', medium:'border-yellow-500/40 bg-yellow-500/5', low:'border-white/10 bg-white/5' };
-        vulnsList.innerHTML = allVulns.slice(0, 100).map(v =>
-            `<div class="glass-card rounded-lg p-3 mb-2 border-l-2 ${sevColor[v.severity]||''}">
-              <div class="flex items-center justify-between gap-2 flex-wrap">
-                <span class="text-[0.65rem] font-semibold text-gray-200">${escapeHtml(v.type)}</span>
-                <span class="badge-risk ${v.severity==='critical'?'critical':v.severity==='high'?'high':v.severity==='medium'?'medium':'low'}">${v.severity}</span>
-              </div>
-              <p class="text-[0.55rem] text-gray-500 mt-1">${escapeHtml(v.file)}:${v.line}</p>
-              <pre class="text-[0.5rem] text-gray-600 mt-1 max-h-8 overflow-hidden">${escapeHtml(v.context)}</pre>
-            </div>`
-        ).join('');
-    }
-
-    // ── Filter Events ─────────────────────────────────────────────────────────
-    filterBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            filterBtns.forEach(b => b.classList.remove('active-filter'));
-            btn.classList.add('active-filter');
-            currentFilter = btn.dataset.filter;
-            renderResults();
-        });
-    });
-
-    // FIX: Risk filter now correctly toggles 'active-risk' class
-    riskFilterBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            riskFilterBtns.forEach(b => b.classList.remove('active-risk'));
-            btn.classList.add('active-risk');
-            currentRiskFilter = btn.dataset.risk || 'all';
-            renderResults();
-        });
-    });
-
-    searchInput.addEventListener('input', () => {
-        currentSearch = searchInput.value;
-        renderResults();
-    });
-
-    // ── URL Scan ──────────────────────────────────────────────────────────────
-    btnScan.addEventListener('click', async () => {
-        let url = urlInput.value.trim();
-        if (!url) { showToast('⚠ Zəhmət olmasa URL daxil edin'); return; }
-        if (!url.startsWith('http://') && !url.startsWith('https://')) url = 'https://' + url;
-
-        resetProgress();
-        scanSource = 'url';
-        allResults = [];
-        allVulns   = [];
-        waybackUrls= [];
-        resultsBody.innerHTML = '';
-        emptyState.classList.remove('hidden');
-
-        btnScan.disabled    = true;
-        $('btn-scan-text').textContent = '⏳';
-
-        try {
-            log(`🔍 Yüklənir: ${url}`);
-            const resp = await fetch(url, { mode:'cors' });
-            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-            const html = await resp.text();
-            log(`✅ HTML yükləndi (${html.length} bytes)`);
-
-            const jsUrls = new Set();
-            const scriptRe = /<script[^>]*src=["']([^"']+)["']/gi;
-            let m;
-            while ((m = scriptRe.exec(html)) !== null) {
-                let src = m[1];
-                if (src.startsWith('//'))   src = 'https:' + src;
-                else if (src.startsWith('/')) src = new URL(src, url).href;
-                else if (!src.startsWith('http')) src = new URL(src, url).href;
-                jsUrls.add(src);
-            }
-            log(`📦 ${jsUrls.size} JS faylı tapıldı`);
-
-            // FIX: Use local variable, assign to module-level inside processResults
-            const gathered = [];
-            if (jsUrls.size === 0) {
-                log('⚠ JS tapılmadı, HTML-i skan edirəm...');
-                gathered.push(...await scanFile(html, url));
-            } else {
-                for (const jsUrl of jsUrls) {
-                    try {
-                        log(`⬇ Yüklənir: ${jsUrl}`);
-                        const jr = await fetch(jsUrl, { mode:'cors' });
-                        if (jr.ok) gathered.push(...await scanFile(await jr.text(), jsUrl));
-                        else log(`❌ ${jsUrl} — HTTP ${jr.status}`);
-                    } catch (e) { log(`❌ ${jsUrl} — ${e.message}`); }
-                }
-            }
-            processResults(gathered);
-
-        } catch (e) {
-            const msg = e.message || '';
-            if (msg.includes('CORS') || msg.includes('Failed to fetch')) {
-                log('❌ CORS bloklaması! HTML faylını endirib Drag & Drop edin.');
-                showToast('❌ CORS xətası! HTML faylını endirib Drag & Drop edin.');
-            } else {
-                log(`❌ Xəta: ${msg}`);
-                showToast(`❌ Xəta: ${msg.substring(0,80)}`);
-            }
-        } finally {
-            btnScan.disabled = false;
-            $('btn-scan-text').textContent = currentLang === 'az' ? 'Skan' : 'Scan';
-            progressSection.classList.add('hidden');
-        }
-    });
-
-    // ── Drag & Drop ───────────────────────────────────────────────────────────
-    dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-    dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); handleFiles(e.dataTransfer.files); });
-    dropZone.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', e => { if (e.target.files.length) handleFiles(e.target.files); });
-
-    // FIX: No inner 'let allResults' — use module-level allResults via processResults()
-    async function handleFiles(files) {
-        resetProgress();
-        scanSource = 'file';
-        allResults = [];
-        allVulns   = [];
-        resultsBody.innerHTML = '';
-        emptyState.classList.remove('hidden');
-
-        const gathered = [];
-
-        for (const file of files) {
-            const content = await file.text();
-            log(`📂 Fayl: ${file.name} (${content.length} bytes)`);
-
-            if (file.name.endsWith('.html') || file.name.endsWith('.htm')) {
-                const jsUrls = new Set();
-                const scriptRe = /<script[^>]*src=["']([^"']+)["']/gi;
-                let m;
-                while ((m = scriptRe.exec(content)) !== null) {
-                    let src = m[1];
-                    if (src.startsWith('//'))    src = 'https:' + src;
-                    else if (!src.startsWith('http')) src = src; // relative — can't fetch
-                    jsUrls.add(src);
-                }
-                log(`📦 ${jsUrls.size} JS referansı tapıldı`);
-
-                let fetchedCount = 0;
-                for (const jsUrl of jsUrls) {
-                    if (!jsUrl.startsWith('http')) { log(`⚠ Yerli JS: ${jsUrl} (yüklənə bilməz)`); continue; }
-                    try {
-                        const jr = await fetch(jsUrl, { mode:'cors' });
-                        if (jr.ok) { gathered.push(...await scanFile(await jr.text(), jsUrl)); fetchedCount++; }
-                    } catch (e) { log(`⚠ ${jsUrl} yüklənə bilmədi`); }
-                }
-                gathered.push(...await scanFile(content, file.name));
-                log(`✅ ${fetchedCount} JS faylı uğurla yükləndi`);
-
-            } else if (/\.(js|mjs|cjs|jsx|ts|tsx|json)$/.test(file.name)) {
-                gathered.push(...await scanFile(content, file.name));
-            } else {
-                showToast(`⚠ Dəstəklənməyən fayl tipi: ${file.name}`);
-            }
-        }
-        processResults(gathered);
-    }
-
-    // ── Live Check ────────────────────────────────────────────────────────────
-    // FIX: Button ID corrected to 'btn-live-all'
-    $('btn-live-all').addEventListener('click', async () => {
-        if (liveCheckInProgress) return;
-        liveCheckInProgress = true;
-
-        const endpoints = allResults.filter(r => r.type === 'endpoint');
-        if (endpoints.length === 0) { showToast('⚠ Canlı yoxlama üçün endpoint yoxdur'); liveCheckInProgress=false; return; }
-
-        liveStatus.classList.remove('hidden');
-        let liveCount = 0;
-        for (const ep of endpoints) {
-            let url = ep.value;
-            if (!url.startsWith('http')) url = 'https://example.com' + url;
-            try {
-                await fetch(url, { mode:'no-cors' });
-                ep.liveStatus = 'alive'; ep.isLive = true; liveCount++;
-            } catch (e) {
-                ep.liveStatus = 'dead'; ep.isLive = false;
-            }
-            liveStatus.textContent = `⏳ ${liveCount}/${endpoints.length} canlı`;
-        }
-        liveStatus.textContent = `✅ ${liveCount}/${endpoints.length} endpoint canlı`;
-        renderResults();
-        showToast(`✅ ${liveCount}/${endpoints.length} endpoint canlı`);
-        liveCheckInProgress = false;
-    });
-
-    // ── Param Fuzz ────────────────────────────────────────────────────────────
-    // FIX: Button ID corrected to 'btn-fuzz-all'
-    $('btn-fuzz-all').addEventListener('click', () => {
-        const endpoints = allResults.filter(r => r.type === 'endpoint');
-        if (endpoints.length === 0) { showToast('⚠ Param fuzz üçün endpoint yoxdur'); return; }
-        let added = 0;
-        for (const ep of endpoints.slice(0, 20)) {
-            for (const word of PARAM_WORDS.slice(0, 10)) {
-                const sep = ep.value.includes('?') ? '&' : '?';
-                ep.detail = (ep.detail||'') + ` [fuzz:${word}]`;
-                added++;
-            }
-        }
-        showToast(`⚡ ${added} param kombinasiyası əlavə edildi`);
-        renderResults();
-    });
-
-    // ── Auth Bypass ───────────────────────────────────────────────────────────
-    // FIX: Button ID corrected to 'btn-auth-all'
-    $('btn-auth-all').addEventListener('click', async () => {
-        const authEPs = allResults.filter(r => r.type==='endpoint' &&
-            (r.value.toLowerCase().includes('login')||r.value.toLowerCase().includes('admin')||r.value.toLowerCase().includes('auth')));
-        if (authEPs.length === 0) { showToast('⚠ Auth bypass üçün login/admin endpointi tapılmadı'); return; }
-
-        showToast('🔐 Auth bypass testi başladı...');
-        let tested = 0;
-        for (const ep of authEPs.slice(0, 5)) {
-            for (const payload of AUTH_BYPASS_PAYLOADS) {
-                try {
-                    let url = ep.value;
-                    if (!url.startsWith('http')) url = 'https://example.com' + url;
-                    url += (url.includes('?')?'&':'?') + 'user=' + encodeURIComponent(payload) + '&password=test';
-                    await fetch(url, { mode:'no-cors' });
-                    tested++;
-                } catch (e) {}
-            }
-        }
-        showToast(`🔐 ${tested} auth bypass testi tamamlandı`);
-        renderResults();
-    });
-
-    // ── Export ────────────────────────────────────────────────────────────────
-    function exportData(format) {
-        if (allResults.length === 0) { showToast('⚠ Export üçün məlumat yoxdur'); return; }
-        let content='', mime='text/plain', ext='txt';
-
-        if (format === 'txt') {
-            content = allResults.map(r => `[${r.type.toUpperCase()}] ${r.value} | ${r.risk?r.risk.label:''} | ${r.file||''}:${r.line||''}`).join('\n');
-        } else if (format === 'json') {
-            content = JSON.stringify(allResults, null, 2); mime='application/json'; ext='json';
-        } else if (format === 'csv') {
-            content = 'Type,Value,Risk,File,Line,Detail\n' +
-                allResults.map(r => [r.type,r.value,r.risk?r.risk.label:'',r.file||'',r.line||'',(r.detail||'').replace(/"/g,'""')].map(v=>`"${v}"`).join(',')).join('\n');
-            mime='text/csv'; ext='csv';
-        } else if (format === 'nuclei') {
-            content = allResults.filter(r=>r.type==='endpoint').map(r =>
-                `id: cyberdelve-${Date.now()}\ninfo:\n  name: "Endpoint Scanner"\n  severity: ${r.risk&&r.risk.level==='high'?'high':'medium'}\nrequests:\n  - method: GET\n    path:\n      - "${r.value}"\n    matchers:\n      - type: status\n        status:\n          - 200\n          - 403\n`
-            ).join('\n---\n');
-            mime='text/yaml'; ext='yaml';
-        } else if (format === 'burp') {
-            content = JSON.stringify(allResults.filter(r=>r.type==='endpoint').map(r=>({
-                type:'request', host:'target.com', path:r.value, method:'GET',
-                comments:`[${r.risk?r.risk.label:''}] ${r.file||''}`
-            })), null, 2);
-            mime='application/json'; ext='burp.json';
-        }
-
-        const blob = new Blob([content], { type:mime });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `cyberdelve-export.${ext}`;
-        a.click();
-        URL.revokeObjectURL(a.href);
-        showToast(`✅ ${ext.toUpperCase()} export edildi`);
-    }
-
-    $('btn-export-txt').addEventListener('click',    () => exportData('txt'));
-    $('btn-export-json').addEventListener('click',   () => exportData('json'));
-    $('btn-export-csv').addEventListener('click',    () => exportData('csv'));
-    $('btn-export-nuclei').addEventListener('click', () => exportData('nuclei'));
-    $('btn-export-burp').addEventListener('click',   () => exportData('burp'));
-
-    // ── Wayback Machine ───────────────────────────────────────────────────────
-    // FIX: Button ID corrected to 'btn-wayback'
-    $('btn-wayback').addEventListener('click', async () => {
-        const rawUrl = urlInput.value.trim();
-        if (!rawUrl) { showToast('⚠ Əvvəlcə URL daxil edin'); return; }
-        let targetUrl = rawUrl;
-        if (!targetUrl.startsWith('http')) targetUrl = 'https://' + targetUrl;
-        let domain;
-        try { domain = new URL(targetUrl).hostname; } catch(e) { showToast('⚠ Düzgün URL daxil edin'); return; }
-
-        waybackStatus.textContent = '⏳ Yüklənir...';
-        waybackList.innerHTML = '<p class="text-gray-500 text-[0.6rem]">Yüklənir...</p>';
-
-        try {
-            const resp = await fetch(`https://web.archive.org/cdx/search/cdx?url=${domain}/*&output=json&limit=100&fl=timestamp,original,statuscode`, { mode:'cors' });
-            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-            const data = await resp.json();
-            if (!data || data.length < 2) {
-                waybackStatus.textContent = '❌ Heç bir nəticə tapılmadı';
-                waybackList.innerHTML = '<p class="text-gray-500 text-[0.6rem]">Wayback-də məlumat yoxdur.</p>';
-                return;
-            }
-            waybackUrls = data.slice(1).map(row => ({ url: row[0]?`https://web.archive.org/web/${row[0]}/${row[1]}`:row[1], original:row[1], timestamp:row[0]||'N/A', status:row[2]||'N/A' }));
-            waybackStatus.textContent = `✅ ${waybackUrls.length} URL tapıldı`;
-            waybackList.innerHTML = waybackUrls.slice(0,50).map(w =>
-                `<div class="flex items-center gap-2 py-1 border-b border-white/5 text-[0.55rem]">
-                  <span class="text-gray-400 shrink-0">${escapeHtml(w.timestamp)}</span>
-                  <span class="text-gray-200 truncate flex-1">${escapeHtml(w.original)}</span>
-                  <span class="ml-auto font-mono-custom shrink-0 ${w.status==='200'?'text-green-400':'text-gray-500'}">${w.status}</span>
-                </div>`
-            ).join('');
-            showToast(`✅ Wayback: ${waybackUrls.length} URL tapıldı`);
-        } catch (e) {
-            waybackStatus.textContent = '❌ Xəta: ' + e.message.substring(0,50);
-            waybackList.innerHTML = '<p class="text-gray-500 text-[0.55rem]">Wayback Machine yüklənə bilmədi.</p>';
-            showToast('❌ Wayback xətası: ' + e.message.substring(0,40));
-        }
-    });
-
-    // ── AI Analysis ───────────────────────────────────────────────────────────
-    $('btn-ai-analyze').addEventListener('click', async () => {
-        if (allResults.length === 0) { showToast('⚠ AI analizi üçün əvvəlcə skan edin'); return; }
-        aiStatus.textContent = '⏳ Analiz edilir...';
-        aiResult.innerHTML   = '<p class="text-gray-500 text-[0.6rem]">Hesablanır...</p>';
-
-        const secrets   = allResults.filter(r => r.type==='secret');
-        const endpoints = allResults.filter(r => r.type==='endpoint');
-        const highRisk  = allResults.filter(r => r.risk && r.risk.level==='high');
-        const vulns     = allVulns;
-
-        let md = '';
-        md += `<p class="text-cyan-400 font-semibold mb-2">📊 Ümumi Statistika</p>`;
-        md += `<p>• ${allResults.length} kəşf (${secrets.length} secret, ${endpoints.length} endpoint)</p>`;
-        md += `<p>• ${highRisk.length} yüksək riskli tapıntı</p>`;
-        md += `<p>• ${vulns.length} potensial zəiflik</p><br>`;
-
-        if (highRisk.length > 0) {
-            md += `<p class="text-red-400 font-semibold mb-1">🔴 Təcili Baxılmalı (${Math.min(highRisk.length,10)})</p>`;
-            for (const hr of highRisk.slice(0,10)) {
-                md += `<p class="text-gray-300">• <strong>${escapeHtml(hr.value.substring(0,60))}</strong></p>`;
-                md += `<p class="text-gray-500 pl-2">${escapeHtml(hr.file||'N/A')}:${hr.line||''}</p>`;
-                md += `<p class="text-gray-400 pl-2 text-[0.55rem] mb-1">${escapeHtml((hr.detail||'').substring(0,120))}</p>`;
-            }
-            md += '<br>';
-        }
-
-        if (secrets.length > 0) {
-            md += `<p class="text-orange-400 font-semibold mb-1">🔑 Secret Analizi</p>`;
-            const tc = {};
-            secrets.forEach(s => { const t=s.secretType||'Unknown'; tc[t]=(tc[t]||0)+1; });
-            for (const [t,c] of Object.entries(tc)) md += `<p>• ${escapeHtml(t)}: ${c}</p>`;
-            md += '<br>';
-        }
-
-        if (vulns.length > 0) {
-            md += `<p class="text-yellow-400 font-semibold mb-1">⚡ Zəiflik Özeti</p>`;
-            const sc = {};
-            vulns.forEach(v => { sc[v.severity]=(sc[v.severity]||0)+1; });
-            for (const [s,c] of Object.entries(sc)) md += `<p>• ${s}: ${c}</p>`;
-            for (const v of vulns.slice(0,10)) md += `<p class="text-gray-500 text-[0.55rem]">  › ${escapeHtml(v.type)} — ${escapeHtml(v.file)}:${v.line}</p>`;
-            md += '<br>';
-        }
-
-        md += `<p class="text-green-400 font-semibold mb-1">💡 Tövsiyələr</p>`;
-        if (secrets.length > 0) md += `<p>1. Tapılan API key-ləri dərhal söndürün və yeniləyin.</p>`;
-        if (highRisk.some(r=>r.type==='endpoint')) md += `<p>2. Admin panellərinə IP məhdudiyyəti qoyun.</p>`;
-        if (vulns.some(v=>v.severity==='critical')) md += `<p>3. Kritik DOM XSS zəifliklərini dərhal yamalayın.</p>`;
-        md += `<p>4. JWT token-ləri decode edib payload-a baxın.</p>`;
-        md += `<p>5. Wayback Machine-dən köhnə URL-ləri yoxlayın.</p>`;
-
-        aiResult.innerHTML  = `<div class="space-y-0.5 text-[0.65rem] leading-relaxed">${md}</div>`;
-        aiStatus.textContent= '✅ Analiz tamamlandı';
-    });
-
-    // ── Report Generator ──────────────────────────────────────────────────────
-    // FIX: Button ID corrected to 'btn-gen-report'
-    $('btn-gen-report').addEventListener('click', () => {
-        if (allResults.length === 0) { showToast('⚠ Report üçün skan edin'); return; }
-        const dateStr   = new Date().toISOString().split('T')[0];
-        const endpoints = allResults.filter(r=>r.type==='endpoint');
-        const secrets   = allResults.filter(r=>r.type==='secret');
-        const highRisk  = allResults.filter(r=>r.risk&&r.risk.level==='high');
-        const vulns     = allVulns;
-
-        let html = `<div class="space-y-3">
-          <div class="bg-white/5 rounded-lg p-3 border border-white/10">
-            <h3 class="text-[0.7rem] font-bold text-cyan-400">BUG BOUNTY REPORT</h3>
-            <p class="text-[0.5rem] text-gray-500">CyberDelve v7.0 · ${dateStr}</p>
+function renderTemplates(){
+  const t=T[currentLang];
+  const isAz=currentLang==='az';
+  templatesList.innerHTML=templates.map((tpl,i)=>
+    `<div class="card rounded-lg p-3">
+      <div class="flex items-start justify-between gap-2">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 mb-1">
+            <h4 class="text-[0.63rem] font-semibold text-gray-200">${escHtml(tpl.name)}</h4>
+            <span class="risk ${tpl.severity==='Critical'?'critical':tpl.severity==='High'?'high':'medium'} shrink-0">${tpl.severity}</span>
           </div>
-          <div class="grid grid-cols-2 gap-2">
-            <div class="bg-white/5 rounded p-2"><p class="text-[0.45rem] text-gray-500">Ümumi Kəşf</p><p class="text-[0.7rem] font-bold text-gray-200">${allResults.length}</p></div>
-            <div class="bg-white/5 rounded p-2"><p class="text-[0.45rem] text-gray-500">Yüksək Risk</p><p class="text-[0.7rem] font-bold text-red-400">${highRisk.length}</p></div>
-            <div class="bg-white/5 rounded p-2"><p class="text-[0.45rem] text-gray-500">Secret</p><p class="text-[0.7rem] font-bold text-orange-400">${secrets.length}</p></div>
-            <div class="bg-white/5 rounded p-2"><p class="text-[0.45rem] text-gray-500">Zəiflik</p><p class="text-[0.7rem] font-bold text-red-400">${vulns.length}</p></div>
-          </div>`;
-
-        if (highRisk.length > 0) {
-            html += `<div class="bg-white/5 rounded-lg p-3 border border-red-500/20"><h4 class="text-[0.6rem] font-bold text-red-400 mb-2">🔴 High Risk Findings</h4>`;
-            for (const hr of highRisk.slice(0,20)) {
-                html += `<div class="py-1 border-b border-white/5 text-[0.55rem]">
-                  <span class="text-red-300">${escapeHtml(hr.value.substring(0,80))}</span>
-                  <span class="text-gray-500 ml-2">${escapeHtml(hr.file||'')}:${hr.line||''}</span>
-                  <p class="text-gray-400 text-[0.5rem]">${escapeHtml((hr.detail||'').substring(0,100))}</p>
-                </div>`;
-            }
-            html += `</div>`;
-        }
-
-        if (vulns.length > 0) {
-            const critical = vulns.filter(v=>v.severity==='critical');
-            const high     = vulns.filter(v=>v.severity==='high');
-            html += `<div class="bg-white/5 rounded-lg p-3 border border-orange-500/20"><h4 class="text-[0.6rem] font-bold text-orange-400 mb-2">⚡ Vulnerabilities</h4>`;
-            if (critical.length) { html += `<p class="text-[0.55rem] text-red-400">Critical (${critical.length}):</p>`; critical.slice(0,10).forEach(v=>{ html+=`<div class="text-[0.5rem] text-gray-300 pl-2">• ${escapeHtml(v.type)} — ${escapeHtml(v.file)}:${v.line}</div>`; }); }
-            if (high.length)     { html += `<p class="text-[0.55rem] text-orange-400 mt-1">High (${high.length}):</p>`;     high.slice(0,10).forEach(v=>{     html+=`<div class="text-[0.5rem] text-gray-300 pl-2">• ${escapeHtml(v.type)} — ${escapeHtml(v.file)}:${v.line}</div>`; }); }
-            html += `</div>`;
-        }
-
-        html += `<div class="bg-white/5 rounded-lg p-3 border border-white/10">
-          <h4 class="text-[0.6rem] font-bold text-gray-300 mb-1">📊 Summary</h4>
-          <p class="text-[0.5rem] text-gray-400">Endpoints: ${endpoints.length} | Secrets: ${secrets.length} | Vulns: ${vulns.length} | Files: ${scannedFiles.size}</p>
-        </div></div>`;
-
-        reportContent.innerHTML = html;
-        showToast('✅ Report yaradıldı');
+          <p class="text-[0.52rem] text-gray-500">${escHtml(isAz?(tpl.desc_az||tpl.desc_en||''):(tpl.desc_en||tpl.desc_az||''))}</p>
+          <code class="text-[0.5rem] text-cyan-400 block mt-1 truncate">${escHtml(tpl.payload)}</code>
+        </div>
+        <button class="btn-dim px-2 py-1 rounded text-[0.55rem] shrink-0 use-tpl" data-idx="${i}">${t.tplUse}</button>
+      </div>
+    </div>`
+  ).join('');
+  templatesList.querySelectorAll('.use-tpl').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const tpl=templates[+btn.dataset.idx];
+      navigator.clipboard.writeText(tpl.payload).catch(()=>{});
+      showToast('📋 '+T[currentLang].tplCopied+' '+tpl.payload.substring(0,40));
     });
+  });
+}
 
-    $('btn-export-report').addEventListener('click', () => {
-        const text = reportContent.textContent;
-        if (!text || text.includes('Report yaratmaq') || text.includes('Scan first')) { showToast('⚠ Əvvəlcə report yaradın'); return; }
-        const blob = new Blob([text], { type:'text/plain' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `cyberdelve-report-${Date.now()}.txt`;
-        a.click();
-        URL.revokeObjectURL(a.href);
-        showToast('✅ Report endirildi');
-    });
+$('btn-add-template').addEventListener('click',()=>{
+  const t=T[currentLang];
+  const name=prompt(t.tplPromptName);const payload=prompt(t.tplPromptPayload);
+  if(name&&payload){
+    templates.push({name,desc_az:'Custom template',desc_en:'Custom template',payload,severity:'Medium'});
+    renderTemplates();showToast('✅ "'+name+'" '+t.tplAdded);
+  }
+});
 
-    // ── Templates ─────────────────────────────────────────────────────────────
-    const DEFAULT_TEMPLATES = [
-        { name:'XSS Scanner',      description:'XSS testi.',                              payload:'<scr\x69pt>alert(1)<\/scr\x69pt>', severity:'Critical' },
-        { name:'SQL Injection',    description:'SQL injection testi.',                    payload:"' OR '1'='1",               severity:'Critical' },
-        { name:'LFI Scanner',      description:'Local File Inclusion testi.',             payload:'../../../etc/passwd',        severity:'High'     },
-        { name:'Open Redirect',    description:'Redirect parametrlərini aşkarlamaq.',     payload:'https://evil.com',           severity:'Medium'   },
-        { name:'SSTI Test',        description:'Server-Side Template Injection testi.',   payload:'{{7*7}}',                    severity:'High'     },
-        { name:'SSRF Test',        description:'Server-Side Request Forgery testi.',      payload:'http://169.254.169.254/',    severity:'High'     },
-    ];
-    templates = [...DEFAULT_TEMPLATES];
+// ── Clear ─────────────────────────────────────────────────────────────────────
+$('btn-clear').addEventListener('click',()=>{
+  const t=T[currentLang];
+  allResults=[];allVulns=[];scannedFiles.clear();
+  resultsBody.innerHTML='';emptyState.classList.remove('hidden');
+  resultCount.textContent='0';
+  vulnsList.innerHTML='<div class="text-center text-gray-600 text-xs py-6" id="vulns-empty">'+t.vulnsEmpty+'</div>';
+  aiResult.innerHTML='<p class="text-gray-500 text-xs italic" id="ai-empty">'+t.aiEmpty+'</p>';
+  reportContent.innerHTML='<p class="text-gray-500 text-center py-4" id="rep-empty">'+t.repEmpty+'</p>';
+  liveStatus.textContent='';liveStatus.classList.add('hidden');
+  renderStats();showToast('🗑 '+t.cleared);
+});
 
-    function renderTemplates() {
-        if (!templates.length) return;
-        $('templates-empty').classList.add('hidden');
-        templatesList.innerHTML = templates.map((t,i) =>
-            `<div class="glass-card rounded-lg p-3 mb-2">
-              <div class="flex items-start justify-between gap-2">
-                <div>
-                  <h4 class="text-[0.6rem] font-semibold text-gray-200">${escapeHtml(t.name)}</h4>
-                  <p class="text-[0.5rem] text-gray-500">${escapeHtml(t.description)}</p>
-                  <p class="text-[0.45rem] text-gray-600 mt-1">Payload: <code class="text-cyan-400">${escapeHtml(t.payload)}</code> · <span class="text-orange-400">${t.severity}</span></p>
-                </div>
-                <button class="btn-ghost-sm px-2 py-1 rounded text-[0.55rem] shrink-0 use-tpl" data-idx="${i}">İstifadə et</button>
-              </div>
-            </div>`
-        ).join('');
-        templatesList.querySelectorAll('.use-tpl').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const t = templates[+btn.dataset.idx];
-                showToast(`⚡ "${t.name}" — Payload: ${t.payload}`);
-            });
-        });
-    }
-    renderTemplates();
-
-    $('btn-add-template').addEventListener('click', () => {
-        const name    = prompt('Template adı:');
-        const payload = prompt('Payload:');
-        if (name && payload) {
-            templates.push({ name, description:'Custom template', payload, severity:'Medium' });
-            renderTemplates();
-            showToast(`✅ "${name}" template əlavə edildi`);
-        }
-    });
-
-    // ── Clear ─────────────────────────────────────────────────────────────────
-    // FIX: btn-clear now exists in HTML
-    $('btn-clear').addEventListener('click', () => {
-        allResults = []; allVulns = []; waybackUrls = [];
-        scannedFiles.clear();
-        resultsBody.innerHTML = '';
-        emptyState.classList.remove('hidden');
-        resultCount.textContent  = '0';
-        vulnsList.innerHTML      = '<div class="text-center text-gray-600 text-xs py-6" id="vulns-empty">Zəiflik aşkarlanmayıb. Əvvəlcə skan edin.</div>';
-        waybackList.innerHTML    = '<p class="text-gray-600 text-xs text-center py-4">Hələ yüklənməyib.</p>';
-        aiResult.innerHTML       = '<p class="text-gray-500 text-xs italic">AI analizi üçün skan edin.</p>';
-        reportContent.innerHTML  = '<p class="text-gray-500 text-center py-4">Report yaratmaq üçün əvvəlcə skan edin.</p>';
-        liveStatus.textContent   = '';
-        liveStatus.classList.add('hidden');
-        renderStats();
-        showToast('🗑 Bütün nəticələr təmizləndi');
-    });
-
-    // ── Init ──────────────────────────────────────────────────────────────────
-    applyLang('az');
-    showToast('🚀 CyberDelve Ultimate BH Pro v7.0 hazırdır! HTML faylını atın və ya URL daxil edin.');
+// ── Init ──────────────────────────────────────────────────────────────────────
+applyLang('az');
+showToast(T.az.welcome);
 })();
 </script>
 </body>
