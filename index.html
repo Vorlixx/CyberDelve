@@ -1322,7 +1322,7 @@
 
     // ── Templates ─────────────────────────────────────────────────────────────
     const DEFAULT_TEMPLATES = [
-        { name:'XSS Scanner',      description:'XSS testi.',                              payload:'<script>alert(1)</script>', severity:'Critical' },
+        { name:'XSS Scanner',      description:'XSS testi.',                              payload:'<scr\x69pt>alert(1)<\/scr\x69pt>', severity:'Critical' },
         { name:'SQL Injection',    description:'SQL injection testi.',                    payload:"' OR '1'='1",               severity:'Critical' },
         { name:'LFI Scanner',      description:'Local File Inclusion testi.',             payload:'../../../etc/passwd',        severity:'High'     },
         { name:'Open Redirect',    description:'Redirect parametrlərini aşkarlamaq.',     payload:'https://evil.com',           severity:'Medium'   },
