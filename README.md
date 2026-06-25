@@ -3,7 +3,8 @@
 **The most powerful client-side bug hunting platform, developed in Azerbaijan 🇦🇿**
 
 A fully client-side JavaScript analysis tool that discovers API endpoints, secrets (API keys, JWT tokens, credit cards), and vulnerabilities (XSS, SQLi, LFI, prototype pollution) from HTML/JS files — **no backend, no installation, no server required.**
-👤 Developer: Elay Mammadli
+
+**👤 Developer: Elay Mammadli**
 ---
 
 ## 🚀 Features
