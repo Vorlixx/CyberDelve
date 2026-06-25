@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberDelve · Ultimate Bug Hunter Pro</title>
+    <script src="https://cdn.tailwindcss.com">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js">
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        :root {
+            --bg-deep: #0a0f1d;
+            --bg-card: #111827;
+            --neon-red: #ff0055;
+            --neon-red-glow: rgba(255, 0, 85, 0.35);
+            --neon-green: #00ff88;
+            --neon-green-glow: rgba(0, 255, 136, 0.30);
+            --neon-cyan: #00d4ff;
+            --neon-orange: #ff8800;
+            --neon-purple: #a855f7;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --border-dim: #1e2a3a;
+        }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            min-height: 100vh;
+            background-image:
+                radial-gradient(ellipse 80% 60% at 50% -10%, rgba(255, 0, 85, 0.05) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 50% at 80% 90%, rgba(0, 255, 136, 0.04) 0%, transparent 70%),
+                radial-gradient(ellipse 40% 40% at 10% 80%, rgba(168, 85, 247, 0.03) 0%, transparent 60%);
+        }
+        .font-mono-custom {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .glass-card {
+            background: rgba(17, 24, 39, 0.75);
+            backdrop-filter: blur(16px) saturate(1.3);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+        }
+        .glass-card:hover {
+            border-color: rgba(255, 0, 85, 0.15);
+        }
+        .btn-scan {
+            background: linear-gradient(135deg, #ff0055 0%, #cc0044 100%);
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 20px rgba(255, 0, 85, 0.25);
+        }
+        .btn-scan:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 35px rgba(255, 0, 85, 0.4);
+        }
+        .btn-scan:disabled {
+            opacity: 0.6;
+            transform: none;
+            cursor: not-allowed;
+        }
+        .btn-primary-sm {
+            background: rgba(255, 0, 85, 0.12);
+            border: 1px solid rgba(255, 0, 85, 0.2);
+            transition: all 0.2s ease;
+            color: #ff3366;
+        }
+        .btn-primary-sm:hover {
+            background: rgba(255, 0, 85, 0.2);
+        }
+        .btn-primary-sm:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .btn-ghost-sm {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.2s ease;
+            color: #ccc;
+        }
+        .btn-ghost-sm:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .btn-live {
+            background: rgba(0, 212, 255, 0.08);
+            border: 1px solid rgba(0, 212, 255, 0.12);
+            transition: all 0.2s ease;
+            color: #00d4ff;
+        }
+        .btn-live:hover {
+            background: rgba(0, 212, 255, 0.16);
+        }
+        .btn-live:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .drop-zone {
+            border: 2px dashed rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .drop-zone:hover {
+            border-color: var(--neon-green);
+            background: rgba(0, 255, 136, 0.03);
+        }
+        .drop-zone.drag-over {
+            border-color: var(--neon-green);
+            background: rgba(0, 255, 136, 0.08);
+            box-shadow: 0 0 40px rgba(0, 255, 136, 0.12);
+        }
+        .badge-endpoint {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-size: 0.6rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            background: rgba(0, 255, 136, 0.10);
+            color: #00ff88;
+            border: 1px solid rgba(0, 255, 136, 0.15);
+        }
+        .badge-secret {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-size: 0.6rem;
+            font-weight: 600;
+            background: rgba(255, 0, 85, 0.10);
+            color: #ff3366;
+            border: 1px solid rgba(255, 0, 85, 0.15);
+        }
+        .badge-risk {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.6rem;
+            font-weight: 600;
+        }
+        .badge-risk.critical {
+            background: rgba(255, 0, 85, 0.15);
+            color: #ff3366;
+            border: 1px solid rgba(255, 0, 85, 0.2);
+        }
+        .badge-risk.high {
+            background: rgba(255, 136, 0, 0.15);
+            color: #ff8800;
+            border: 1px solid rgba(255, 136, 0, 0.2);
+        }
+        .badge-risk.medium {
+            background: rgba(255, 200, 0, 0.10);
+            color: #ffcc00;
+            border: 1px solid rgba(255, 200, 0, 0.15);
+        }
+        .badge-risk.low {
+            background: rgba(255, 255, 255, 0.04);
+            color: #8b949e;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .badge-source {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.55rem;
+            font-weight: 500;
+            background: rgba(0, 212, 255, 0.08);
+            color: #00d4ff;
+            border: 1px solid rgba(0, 212, 255, 0.10);
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .status-dot {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            margin-right: 3px;
+        }
+        .status-dot.online {
+            background: #00ff88;
+            box-shadow: 0 0 6px rgba(0, 255, 136, 0.4);
+        }
+        .status-dot.offline {
+            background: #ff0055;
+            box-shadow: 0 0 6px rgba(255, 0, 85, 0.4);
+        }
+        .status-dot.unknown {
+            background: #555;
+        }
+        .status-dot.loading {
+            background: #ff8800;
+            animation: pulse-orange 0.8s ease-in-out infinite;
+        }
+        @keyframes pulse-orange {
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.3;
+                transform: scale(0.6);
+            }
+        }
+        .value-truncate {
+            max-width: 260px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        @media (max-width: 640px) {
+            .value-truncate {
+                max-width: 120px;
+            }
+        }
+        .toast-alert {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 9999;
+            max-width: 480px;
+            transform: translateX(120%);
+            transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .toast-alert.show {
+            transform: translateX(0);
+        }
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-deep);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2a3a4a;
+            border-radius: 99px;
+        }
+        .pulse-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--neon-red);
+            animation: pulse-red 1.8s ease-in-out infinite;
+            box-shadow: 0 0 12px var(--neon-red-glow);
+        }
+        @keyframes pulse-red {
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.4;
+                transform: scale(0.75);
+            }
+        }
+        .stat-num {
+            font-variant-numeric: tabular-nums;
+        }
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2.5px solid rgba(255, 255, 255, 0.08);
+            border-top-color: var(--neon-red);
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        .fade-in {
+            animation: fadeIn 0.35s ease forwards;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .filter-btn.active-filter {
+            background: rgba(255, 0, 85, 0.15);
+            color: #ff3366;
+            border-color: rgba(255, 0, 85, 0.3);
+        }
+        .risk-filter-btn.active-risk {
+            background: rgba(0, 212, 255, 0.12);
+            color: #00d4ff;
+            border-color: rgba(0, 212, 255, 0.25);
+        }
+        .tab-btn {
+            transition: all 0.2s ease;
+        }
+        .tab-btn.active-tab {
+            background: rgba(255, 0, 85, 0.12);
+            color: #ff3366;
+            border-color: rgba(255, 0, 85, 0.25);
+        }
+        .vuln-critical {
+            border-left: 3px solid #ff0055;
+        }
+        .vuln-high {
+            border-left: 3px solid #ff8800;
+        }
+        .vuln-medium {
+            border-left: 3px solid #ffcc00;
+        }
+        .vuln-low {
+            border-left: 3px solid rgba(255, 255, 255, 0.08);
+        }
+        .ai-thinking {
+            background: rgba(168, 85, 247, 0.05);
+            border: 1px solid rgba(168, 85, 247, 0.1);
+        }
+        .scan-log {
+            max-height: 80px;
+            overflow-y: auto;
+            font-size: 0.6rem;
+            line-height: 1.3;
+        }
+        .scan-log::-webkit-scrollbar {
+            width: 3px;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .pulse-purple {
+            animation: pulse-purple 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse-purple {
+            0%,
+            100% {
+                box-shadow: 0 0 10px rgba(168, 85, 247, 0.1);
+            }
+            50% {
+                box-shadow: 0 0 25px rgba(168, 85, 247, 0.25);
+            }
+        }
+        select {
+            background: rgba(0, 0, 0, 0.3);
+        }
+        select option {
+            background: #111827;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Toast -->
+    <div id="toast" class="toast-alert glass-card rounded-xl p-4 pr-5 border border-red-900/30 shadow-2xl">
+        <div class="flex items-start gap-3">
+            <div class="shrink-0 mt-0.5 text-red-500 text-lg">⚠</div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-red-400">Bildiriş</p>
+                <p id="toast-msg" class="text-xs text-gray-400 mt-1 leading-relaxed"></p>
+            </div>
+            <button onclick="dismissToast()" class="shrink-0 text-gray-500 hover:text-white transition ml-2">&times;</button>
+        </div>
+    </div>
+
+    <!-- Main -->
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8">
+
+        <!-- Header -->
+        <header class="flex flex-col sm:flex-row items-center justify-between gap-3 mb-6 fade-in">
+            <div class="flex items-center gap-4">
+                <div class="relative flex items-center justify-center w-11 h-11 rounded-xl bg-[#111827] border border-white/5 shadow-lg">
+                    <span class="text-xl font-bold font-mono-custom" style="background:linear-gradient(135deg,#ff0055,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">CD</span>
+                    <span class="pulse-dot absolute -top-1 -right-1"></span>
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-2xl font-extrabold tracking-tight">
+                        <span style="background:linear-gradient(135deg,#ff0055 0%,#a855f7 60%,#00ff88 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">CyberDelve</span>
+                        <span class="text-gray-300 font-light hidden sm:inline"> · </span>
+                        <span class="text-sm sm:text-base font-medium text-gray-400 hidden sm:inline">Ultimate BH Pro</span>
+                    </h1>
+                    <p class="text-[0.6rem] text-gray-500 mt-0.5 font-mono-custom">v6.0 · ai-assisted hybrid bug hunting platform</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 text-[0.6rem] text-gray-500 font-mono-custom">
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500 shadow-lg shadow-green-500/30"></span>client-side</span>
+                <span class="hidden sm:inline">|</span>
+                <span class="hidden sm:inline">hybrid engine</span>
+            </div>
+        </header>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-6 gap-2 mb-5 fade-in">
+            <div class="glass-card rounded-xl py-2 px-2 text-center">
+                <p class="text-lg sm:text-2xl font-bold font-mono-custom text-green-400 stat-num" id="stat-endpoints">0</p>
+                <p class="text-[0.5rem] sm:text-[0.65rem] text-gray-500 uppercase tracking-wider">Endpoints</p>
+            </div>
+            <div class="glass-card rounded-xl py-2 px-2 text-center">
+                <p class="text-lg sm:text-2xl font-bold font-mono-custom text-red-400 stat-num" id="stat-secrets">0</p>
+                <p class="text-[0.5rem] sm:text-[0.65rem] text-gray-500 uppercase tracking-wider">Secrets</p>
+            </div>
+            <div class="glass-card rounded-xl py-2 px-2 text-center">
+                <p class="text-lg sm:text-2xl font-bold font-mono-custom text-orange-400 stat-num" id="stat-vulns">0</p>
+                <p class="text-[0.5rem] sm:text-[0.65rem] text-gray-500 uppercase tracking-wider">Zəiflik</p>
+            </div>
+            <div class="glass-card rounded-xl py-2 px-2 text-center">
+                <p class="text-lg sm:text-2xl font-bold font-mono-custom text-purple-400 stat-num" id="stat-highrisk">0</p>
+                <p class="text-[0.5rem] sm:text-[0.65rem] text-gray-500 uppercase tracking-wider">🔥 Yüksək</p>
+            </div>
+            <div class="glass-card rounded-xl py-2 px-2 text-center">
+                <p class="text-lg sm:text-2xl font-bold font-mono-custom text-cyan-400 stat-num" id="stat-files">0</p>
+                <p class="text-[0.5rem] sm:text-[0.65rem] text-gray-500 uppercase tracking-wider">Fayllar</p>
+            </div>
+            <div class="glass-card rounded-xl py-2 px-2 text-center">
+                <p class="text-lg sm:text-2xl font-bold font-mono-custom text-gray-300 stat-num" id="stat-lines">0</p>
+                <p class="text-[0.5rem] sm:text-[0.65rem] text-gray-500 uppercase tracking-wider">Sətirlər</p>
+            </div>
+        </div>
+
+        <!-- Input -->
+        <div class="grid md:grid-cols-2 gap-4 mb-5 fade-in">
+            <div class="glass-card rounded-2xl p-4 sm:p-5">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="text-red-400 text-lg">🌐</span>
+                    <h2 class="text-xs font-semibold uppercase tracking-widest text-gray-400">Sayt URL-i ilə Skandala</h2>
+                </div>
+                <div class="flex gap-2">
+                    <input id="url-input" type="url" placeholder="https://hedef.com" class="flex-1 bg-black/40 border border-white/5 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 outline-none transition focus:border-red-500/40 focus:ring-1 focus:ring-red-500/20 font-mono-custom">
+                    <button id="btn-scan-url" class="btn-scan px-4 py-2.5 rounded-xl text-white text-sm font-semibold tracking-wide flex items-center gap-2 whitespace-nowrap">
+                        <span>Skan</span><span>→</span>
+                    </button>
+                </div>
+            </div>
+            <div class="glass-card rounded-2xl p-4 sm:p-5">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="text-green-400 text-lg">📂</span>
+                    <h2 class="text-xs font-semibold uppercase tracking-widest text-gray-400">Faylı Sürüşdür &amp; Burax</h2>
+                </div>
+                <div id="drop-zone" class="drop-zone rounded-xl p-4 sm:p-6 text-center cursor-pointer transition">
+                    <div class="flex flex-col items-center gap-1 pointer-events-none">
+                        <div class="text-2xl text-gray-600">⬆</div>
+                        <p class="text-xs text-gray-400">HTML/JS faylını atın</p>
+                    </div>
+                    <input id="file-input" type="file" accept=".html,.htm,.js,.mjs,.cjs,.jsx,.ts,.tsx,.json,.apk,.ipa" class="hidden">
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress -->
+        <div id="progress-section" class="hidden glass-card rounded-2xl p-3 mb-4 fade-in">
+            <div class="flex items-center justify-between mb-1">
+                <span class="text-[0.6rem] font-semibold uppercase tracking-widest text-gray-500">Proses</span>
+                <span id="progress-label" class="text-[0.6rem] font-mono-custom text-gray-500">0/0</span>
+            </div>
+            <div class="w-full bg-black/40 rounded-full h-1 mb-1">
+                <div id="progress-bar" class="h-1 rounded-full bg-gradient-to-r from-red-500 to-purple-500 transition-all duration-300" style="width:0%"></div>
+            </div>
+            <div id="scan-log" class="scan-log text-gray-500 font-mono-custom"></div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="flex flex-wrap gap-1 mb-4 border-b border-white/5 pb-2">
+            <button data-tab="results" class="tab-btn active-tab px-3 py-1.5 rounded-lg text-[0.65rem] border border-white/5 text-gray-400">📊 Nəticələr</button>
+            <button data-tab="vulns" class="tab-btn px-3 py-1.5 rounded-lg text-[0.65rem] border border-white/5 text-gray-400">🔴 Zəifliklər</button>
+            <button data-tab="history" class="tab-btn px-3 py-1.5 rounded-lg text-[0.65rem] border border-white/5 text-gray-400">🕰️ Wayback</button>
+            <button data-tab="ai" class="tab-btn px-3 py-1.5 rounded-lg text-[0.65rem] border border-white/5 text-gray-400">🤖 AI Analiz</button>
+            <button data-tab="templates" class="tab-btn px-3 py-1.5 rounded-lg text-[0.65rem] border border-white/5 text-gray-400">📜 Template-lər</button>
+            <button data-tab="report" class="tab-btn px-3 py-1.5 rounded-lg text-[0.65rem] border border-white/5 text-gray-400">📝 Report</button>
+        </div>
+
+        <!-- === TAB: Results === -->
+        <div id="tab-results" class="tab-content fade-in">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-semibold uppercase tracking-widest text-gray-400">Kəşflər</span>
+                    <span id="result-count" class="text-[0.6rem] font-mono-custom text-gray-500 bg-white/5 px-2 py-0.5 rounded-full">0</span>
+                </div>
+                <div class="flex items-center flex-wrap gap-1">
+                    <button data-filter="all" class="filter-btn active-filter text-[0.55rem] px-2 py-1 rounded-lg border border-white/5 text-gray-400">Hamısı</button>
+                    <button data-filter="endpoint" class="filter-btn text-[0.55rem] px-2 py-1 rounded-lg border border-white/5 text-gray-400">Endpoint</button>
+                    <button data-filter="secret" class="filter-btn text-[0.55rem] px-2 py-1 rounded-lg border border-white/5 text-gray-400">Secret</button>
+                    <span class="text-gray-600 mx-0.5">|</span>
+                    <button data-risk="all" class="risk-filter-btn active-risk text-[0.55rem] px-2 py-1 rounded-lg border border-white/5 text-gray-400">Bütün</button>
+                    <button data-risk="high" class="risk-filter-btn text-[0.55rem] px-2 py-1 rounded-lg border border-white/5 text-gray-400">🔥 Yüksək</button>
+                    <button data-risk="medium" class="risk-filter-btn text-[0.55rem] px-2 py-1 rounded-lg border border-white/5 text-gray-400">⚠ Orta</button>
+                    <button data-risk="low" class="risk-filter-btn text-[0.55rem] px-2 py-1 rounded-lg border border-white/5 text-gray-400">● Aşağı</button>
+                    <input id="search-input" type="text" placeholder="Axtar..." class="w-24 sm:w-32 bg-black/40 border border-white/5 rounded-lg px-2 py-1 text-[0.6rem] text-white placeholder-gray-600 outline-none font-mono-custom">
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-1.5 mb-3">
+                <button id="btn-live-all" class="btn-live px-2 py-1 rounded text-[0.6rem] flex items-center gap-1">🔍 Hamısını Yoxla</button>
+                <button id="btn-fuzz-all" class="btn-primary-sm px-2 py-1 rounded text-[0.6rem] flex items-center gap-1">⚡ Param Fuzz</button>
+                <button id="btn-auth-all" class="btn-primary-sm px-2 py-1 rounded text-[0.6rem] flex items-center gap-1">🔐 Auth Bypass</button>
+                <span class="text-gray-600 text-[0.55rem]">|</span>
+                <button id="btn-export-txt" class="btn-ghost-sm px-2 py-1 rounded text-[0.6rem]">📄 .txt</button>
+                <button id="btn-export-json" class="btn-ghost-sm px-2 py-1 rounded text-[0.6rem]">📋 .json</button>
+                <button id="btn-export-csv" class="btn-ghost-sm px-2 py-1 rounded text-[0.6rem]">📊 .csv</button>
+                <button id="btn-export-nuclei" class="btn-ghost-sm px-2 py-1 rounded text-[0.6rem]">⚡ Nuclei YAML</button>
+                <button id="btn-export-burp" class="btn-ghost-sm px-2 py-1 rounded text-[0.6rem]">🕷️ Burp JSON</button>
+                <span id="live-status" class="text-[0.55rem] text-gray-500 hidden"></span>
+            </div>
+
+            <div class="glass-card rounded-2xl overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left" style="border-collapse:separate;border-spacing:0">
+                        <thead>
+                            <tr class="bg-white/[0.02]">
+                                <th class="text-[0.55rem] uppercase tracking-widest text-gray-500 p-2 border-b border-white/5 w-14">Tip</th>
+                                <th class="text-[0.55rem] uppercase tracking-widest text-gray-500 p-2 border-b border-white/5 w-16">Risk</th>
+                                <th class="text-[0.55rem] uppercase tracking-widest text-gray-500 p-2 border-b border-white/5">Dəyər</th>
+                                <th class="text-[0.55rem] uppercase tracking-widest text-gray-500 p-2 border-b border-white/5 w-14">Status</th>
+                                <th class="hidden sm:table-cell text-[0.55rem] uppercase tracking-widest text-gray-500 p-2 border-b border-white/5 w-12">Sətir</th>
+                                <th class="hidden md:table-cell text-[0.55rem] uppercase tracking-widest text-gray-500 p-2 border-b border-white/5 w-28">Mənbə</th>
+                                <th class="text-[0.55rem] uppercase tracking-widest text-gray-500 p-2 border-b border-white/5 w-28">Əməl.</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-body"></tbody>
+                    </table>
+                </div>
+                <div id="empty-state" class="hidden py-10 text-center">
+                    <p class="text-gray-500 text-xs">Nəticə yoxdur</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- === TAB: Vulns === -->
+        <div id="tab-vulns" class="tab-content hidden fade-in">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-xs font-semibold uppercase tracking-widest text-gray-400">🔴 Aşkarlanan Zəifliklər</h3>
+                <span id="vuln-count" class="text-[0.6rem] font-mono-custom text-gray-500 bg-white/5 px-2 py-0.5 rounded-full">0</span>
+            </div>
+            <div id="vulns-list" class="space-y-2">
+                <div class="text-center text-gray-600 text-xs py-6">Zəiflik aşkarlanmayıb. Əvvəlcə skan edin.</div>
+            </div>
+        </div>
+
+        <!-- === TAB: Wayback === -->
+        <div id="tab-history" class="tab-content hidden fade-in">
+            <div class="flex items-center gap-3 mb-3">
+                <h3 class="text-xs font-semibold uppercase tracking-widest text-gray-400">🕰️ Wayback Machine Tarixçəsi</h3>
+                <button id="btn-wayback" class="btn-primary-sm px-3 py-1 rounded text-[0.6rem]">Çək</button>
+                <span id="wayback-status" class="text-[0.55rem] text-gray-500"></span>
+            </div>
+            <div id="wayback-list" class="glass-card rounded-2xl p-4 max-h-80 overflow-y-auto">
+                <p class="text-gray-600 text-xs text-center py-4">Hələ yüklənməyib. "Çək" düyməsinə basın.</p>
+            </div>
+        </div>
+
+        <!-- === TAB: AI === -->
+        <div id="tab-ai" class="tab-content hidden fade-in">
+            <div class="flex items-center gap-3 mb-3">
+                <h3 class="text-xs font-semibold uppercase tracking-widest text-gray-400">🤖 AI Köməkçi</h3>
+                <button id="btn-ai-analyze" class="btn-primary-sm px-3 py-1 rounded text-[0.6rem]">Analiz et</button>
+                <span id="ai-status" class="text-[0.55rem] text-gray-500"></span>
+            </div>
+            <div id="ai-result" class="glass-card rounded-2xl p-4 ai-thinking pulse-purple min-h-[100px]">
+                <p class="text-gray-500 text-xs italic">AI analizi üçün skan edin, sonra "Analiz et" düyməsini basın.</p>
+            </div>
+        </div>
+
+        <!-- === TAB: Templates === -->
+        <div id="tab-templates" class="tab-content hidden fade-in">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-xs font-semibold uppercase tracking-widest text-gray-400">📜 Community Templates</h3>
+                <button id="btn-add-template" class="btn-primary-sm px-3 py-1 rounded text-[0.6rem]">+ Əlavə et</button>
+            </div>
+            <div id="templates-list" class="space-y-1 max-h-80 overflow-y-auto">
+                <div class="text-gray-600 text-xs text-center py-4">Hələ template yoxdur. "Əlavə et" ilə öz template-inizi yaradın.</div>
+            </div>
+        </div>
+
+        <!-- === TAB: Report === -->
+        <div id="tab-report" class="tab-content hidden fade-in">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-xs font-semibold uppercase tracking-widest text-gray-400">📝 Bug Bounty Report</h3>
+                <button id="btn-gen-report" class="btn-primary-sm px-3 py-1 rounded text-[0.6rem]">Yarat</button>
+                <button id="btn-export-report" class="btn-ghost-sm px-3 py-1 rounded text-[0.6rem]">Endir</button>
+            </div>
+            <div id="report-content" class="glass-card rounded-2xl p-4 font-mono-custom text-xs text-gray-300 max-h-96 overflow-y-auto leading-relaxed">
+                <p class="text-gray-500 text-center py-4">Report yaratmaq üçün əvvəlcə skan edin, sonra "Yarat" düyməsini basın.</p>
+            </div>
+        </div>
+
+        <footer class="mt-10 text-center text-[0.55rem] text-gray-700 font-mono-custom border-t border-white/[0.02] pt-4">
+            CyberDelve Ultimate BH Pro v6.0 · İcazəli pentest üçün · Yalnız qanuni məqsədlər üçün istifadə edin
+        </footer>
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // DOM
+            const $ = id => document.getElementById(id);
+            const urlInput = $('url-input');
+            const btnScan = $('btn-scan-url');
+            const dropZone = $('drop-zone');
+            const fileInput = $('file-input');
+            const resultsBody = $('results-body');
+            const emptyState = $('empty-state');
+            const resultCount = $('result-count');
+            const searchInput = $('search-input');
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            const riskFilterBtns = document.querySelectorAll('.risk-filter-btn');
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const toast = document.getElementById('toast');
+            const toastMsg = $('toast-msg');
+            const progressSection = $('progress-section');
+            const progressBar = $('progress-bar');
+            const progressLabel = $('progress-label');
+            const scanLog = $('scan-log');
+            const liveStatus = $('live-status');
+            const waybackList = $('wayback-list');
+            const waybackStatus = $('wayback-status');
+            const vulnsList = $('vulns-list');
+            const vulnCount = $('vuln-count');
+            const aiResult = $('ai-result');
+            const aiStatus = $('ai-status');
+            const reportContent = $('report-content');
+            const templatesList = $('templates-list');
+
+            // Stats
+            const statEndpoints = $('stat-endpoints');
+            const statSecrets = $('stat-secrets');
+            const statVulns = $('stat-vulns');
+            const statHighRisk = $('stat-highrisk');
+            const statFiles = $('stat-files');
+            const statLines = $('stat-lines');
+
+            // State
+            let allResults = [];
+            let allVulns = [];
+            let discoveredParams = new Set();
+            let waybackUrls = [];
+            let currentFilter = 'all';
+            let currentRiskFilter = 'all';
+            let currentSearch = '';
+            let scannedFiles = new Set();
+            let totalFiles = 0,
+                completedFiles = 0;
+            let liveCheckInProgress = false;
+            let templates = [];
+            let scanSource = '';
+
+            // Risk keywords
+            const HIGH_RISK = ['admin', 'delete', 'edit', 'config', 'upload', 'graphql', 'env', 'backup', 'debug', 'panel',
+                'login', 'signup', 'auth', 'token', 'oauth', 'callback', 'webhook', 'reset', 'password', 'grant', 'root',
+                'sudo', 'exec', 'cmd', 'shell', 'database', 'db', 'sql', 'query', 'export', 'import', 'migrate', 'firebase',
+                'aws', 's3', 'bucket', 'storage', 'cdn-admin', 'internal', 'private', 'secret', 'credential', 'key',
+                'api-key', 'payment', 'checkout', 'order', 'invoice', 'billing', 'websocket', 'realtime', 'stream',
+                'swagger', 'openapi', 'api-docs', 'docs', 'health', 'metrics', 'prometheus', 'grafana', 'jenkins', 'jira',
+                'confluence', 'gitlab', 'bitbucket', 'swf', 'flex', 'amf', 'soap', 'xmlrpc', 'actuator', 'swagger-ui',
+                'graphiql', 'voyager', 'playground'
+            ];
+            const MEDIUM_RISK = ['api', 'v1', 'v2', 'v3', 'rest', 'service', 'proxy', 'gateway', 'endpoint', 'data', 'user',
+                'profile', 'account', 'settings', 'search', 'filter', 'list', 'get', 'post', 'put', 'patch', 'update',
+                'create', 'add', 'remove', 'status', 'notification', 'email', 'sms', 'message', 'comment', 'review',
+                'rating', 'feedback', 'report', 'verify', 'validate', 'confirm', 'approve', 'reject', 'session', 'device',
+                'location', 'feature', 'flag', 'toggle', 'config/', 'configuration', 'middleware', 'hook', 'event',
+                'webhook/', 'callback/'
+            ];
+
+            // XSS / SQLI / LFI / SSTI payloads
+            const XSS_PAYLOADS = ['<script>alert(1)</script>', '"><script>alert(1)</script>', '"><img src=x onerror=alert(1)>',
+                '{{constructor.constructor("alert(1)")()}}', 'javascript:alert(1)'
+            ];
+            const SQLI_PAYLOADS = ["' OR '1'='1", "' OR 1=1--", "'; DROP TABLE users--", "' UNION SELECT 1,2,3--",
+                "1' AND 1=1--", "1' AND 1=2--"
+            ];
+            const LFI_PAYLOADS = ['../../../etc/passwd', '..\\..\\..\\windows\\win.ini', '/etc/passwd',
+                '....//....//....//etc/passwd'
+            ];
+            const SSTI_PAYLOADS = ['{{7*7}}', '${7*7}', '#{7*7}', '*{7*7}', '{{config}}', '${system("id")}'];
+            const AUTH_BYPASS_PAYLOADS = ['admin\'--', 'admin\' OR \'1\'=\'1', 'admin\'', 'root\'--', 'test@test.com',
+                'nonexistent@test.com'
+            ];
+            const PARAM_WORDS = ['id', 'user', 'admin', 'debug', 'test', 'token', 'key', 'file', 'page', 'redirect', 'url',
+                'path', 'action', 'mode', 'type', 'cmd', 'exec', 'order', 'limit', 'offset', 'sort', 'filter', 'search',
+                'q', 'query', 'name', 'email', 'password', 'pass', 'secret', 'api', 'callback', 'next', 'prev', 'lang',
+                'locale', 'format', 'raw', 'ajax', 'live', 'preview', 'edit', 'delete', 'create', 'update', 'upload',
+                'download', 'export', 'import', 'config', 'env', 'db', 'sql', 'table', 'schema', 'debug', 'trace', 'log',
+                'error', 'exception', 'stack'
+            ];
+
+            // Utility
+            function escapeHtml(s) { const d = document.createElement('div');
+                d.textContent = s; return d.innerHTML; }
+
+            window.dismissToast = function() { toast.classList.remove('show'); };
+
+            function showToast(m) { toastMsg.textContent = m;
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 7000); }
+
+            function log(m) { const d = document.createElement('div');
+                d.textContent = '> ' + m;
+                scanLog.appendChild(d);
+                scanLog.scrollTop = scanLog.scrollHeight; }
+
+            function resetProgress() {
+                scannedFiles.clear();
+                totalFiles = 0;
+                completedFiles = 0;
+                progressBar.style.width = '0%';
+                progressLabel.textContent = '0/0';
+                scanLog.innerHTML = '';
+                progressSection.classList.remove('hidden');
+            }
+
+            function updateProgress() {
+                const p = totalFiles > 0 ? Math.round((completedFiles / totalFiles) * 100) : 0;
+                progressBar.style.width = p + '%';
+                progressLabel.textContent = completedFiles + '/' + totalFiles;
+            }
+
+            // Risk assessment
+            function assessRisk(v) {
+                const l = v.toLowerCase();
+                for (const k of HIGH_RISK) { if (l.includes(k)) return { level: 'high', label: '🔥 Yüksək Risk',
+                        cls: 'critical' }; }
+                for (const k of MEDIUM_RISK) { if (l.includes(k)) return { level: 'medium', label: '⚠ Orta Risk',
+                        cls: 'high' }; }
+                const staticPat = ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp', '.ico', '.css', '.woff', '.woff2',
+                    '.ttf', '.eot', '.mp4', '.webm', '.mp3', '.pdf', '.zip', '.tar', '.gz', '.rar', 'static/', 'assets/',
+                    'public/', 'dist/', 'build/', 'fonts/', 'images/', 'img/', 'media/', 'favicon', 'robots.txt',
+                    'sitemap.xml', 'manifest.json', 'sw.js', 'service-worker.js'
+                ];
+                for (const p of staticPat) { if (l.includes(p)) return { level: 'low', label: '● Aşağı Risk',
+                        cls: 'low' }; }
+                if (l.includes('/api/') || l.includes('/v1/') || l.includes('/v2/') || l.includes('/rest/')) return { level: 'medium',
+                    label: '⚠ Orta Risk', cls: 'high' };
+                return { level: 'low', label: '● Aşağı Risk', cls: 'low' };
+            }
+
+            // === DROP ZONE ===
+            dropZone.addEventListener('click', () => fileInput.click());
+            dropZone.addEventListener('dragover', e => { e.preventDefault();
+                dropZone.classList.add('drag-over'); });
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+            dropZone.addEventListener('drop', e => {
+                e.preventDefault();
+                dropZone.classList.remove('drag-over');
+                if (e.dataTransfer.files.length) processFile(e.dataTransfer.files[0]);
+            });
+            fileInput.addEventListener('change', () => { if (fileInput.files.length) processFile(fileInput.files[0]); });
+
+            // === URL SCAN ===
+            btnScan.addEventListener('click', handleUrlScan);
+            urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') handleUrlScan(); });
+
+            async function handleUrlScan() {
+                const url = urlInput.value.trim();
+                if (!url) { showToast('URL daxil edin.'); return; }
+                try { new URL(url); } catch { showToast('Düzgün URL daxil edin.'); return; }
+                btnScan.disabled = true;
+                btnScan.innerHTML = '<span class="spinner"></span><span>Yüklənir...</span>';
+                resetProgress();
+                log('🔍 Yüklənir: ' + url);
+                try {
+                    const r = await fetch(url, { mode: 'cors' });
+                    if (!r.ok) throw new Error('HTTP ' + r.status);
+                    const html = await r.text();
+                    log('✅ HTML yükləndi (' + html.length + ' bayt)');
+                    await processHtmlContent(html, url);
+                    scanSource = url;
+                } catch (err) {
+                    showToast('CORS xətası. HTML faylı endirib atın.');
+                    log('❌ Xəta: ' + err.message);
+                    progressSection.classList.add('hidden');
+                }
+                btnScan.disabled = false;
+                btnScan.innerHTML = '<span>Skan</span><span>→</span>';
+            }
+
+            // === FILE PROCESS ===
+            function processFile(file) {
+                const ext = '.' + file.name.split('.').pop().toLowerCase();
+                const htmlE = ['.html', '.htm'];
+                const jsE = ['.js', '.mjs', '.cjs', '.jsx', '.ts', '.tsx', '.json'];
+                const mobileE = ['.apk', '.ipa'];
+                if (![...htmlE, ...jsE, ...mobileE].includes(ext)) {
+                    showToast('Dəstəklənməyən format: ' + ext);
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = async e => {
+                    const text = e.target.result;
+                    resetProgress();
+                    if (htmlE.includes(ext)) { log('📄 HTML: ' + file.name);
+                        await processHtmlContent(text, file.name);
+                        scanSource = file.name; } else if (mobileE.includes(ext)) { log('📱 Mobile: ' + file.name);
+                        await processMobileFile(text, file.name);
+                        scanSource = file.name; } else { log('📜 JS: ' + file.name);
+                        await analyzeText(text, file.name);
+                        scanSource = file.name; }
+                };
+                reader.onerror = () => showToast('Fayl oxunmadı.');
+                reader.readAsText(file);
+            }
+
+            // === MOBILE APK/IPA ===
+            async function processMobileFile(text, name) {
+                // Fake APK parsing: extract strings and URLs
+                log('📱 Mobil fayl analiz olunur...');
+                const urlRegex = /(https?:\/\/[^\s"'`<>]+(?:\.[^\s"'`<>]+)+)|(?:\/[a-zA-Z_][a-zA-Z0-9_\-./]*?(?:api|v[0-9]+|graphql|rest|auth|login|user|admin|config|token|endpoint)[a-zA-Z0-9_\-/.]*)/gi;
+                let urls = [];
+                let m;
+                while ((m = urlRegex.exec(text)) !== null) {
+                    const v = m[0].trim();
+                    if (v.length > 5 && !urls.includes(v)) urls.push(v);
+                }
+                log('📱 ' + urls.length + ' endpoint çıxarıldı.');
+                await analyzeText(urls.join('\n'), name + ' (mobile)');
+            }
+
+            // === EXTRACT SCRIPTS ===
+            function extractScripts(html, baseUrl) {
+                const urls = [];
+                const re1 = /<script[^>]+src\s*=\s*["']([^"']+)["']/gi;
+                let m;
+                while ((m = re1.exec(html)) !== null) {
+                    let s = m[1].trim();
+                    if (baseUrl && !s.startsWith('http') && !s.startsWith('//')) {
+                        try { const b = baseUrl.endsWith('/') ? baseUrl : baseUrl.substring(0, baseUrl.lastIndexOf('/') +
+                            1);
+                            s = new URL(s, b).href; } catch { /* */ }
+                    } else if (s.startsWith('//')) s = 'https:' + s;
+                    if (s) urls.push(s);
+                }
+                const re2 =
+                /(?:import\s+(?:["'][^"']+["']|\{[^}]*\}\s+from\s+["']([^"']+)["'])|import\s+["']([^"']+)["'])/g;
+                re2.lastIndex = 0;
+                while ((m = re2.exec(html)) !== null) {
+                    let s = (m[1] || m[2] || '').trim();
+                    if (s && (s.endsWith('.js') || s.includes('/'))) {
+                        if (baseUrl && !s.startsWith('http') && !s.startsWith('//')) {
+                            try { const b = baseUrl.endsWith('/') ? baseUrl : baseUrl.substring(0, baseUrl.lastIndexOf(
+                                    '/') + 1);
+                                s = new URL(s, b).href; } catch { /* */ }
+                        }
+                        if (s) urls.push(s);
+                    }
+                }
+                const re3 = /import\s*\(\s*["']([^"']+)["']\s*\)/g;
+                re3.lastIndex = 0;
+                while ((m = re3.exec(html)) !== null) {
+                    let s = m[1].trim();
+                    if (baseUrl && !s.startsWith('http') && !s.startsWith('//')) {
+                        try { const b = baseUrl.endsWith('/') ? baseUrl : baseUrl.substring(0, baseUrl.lastIndexOf(
+                                '/') + 1);
+                            s = new URL(s, b).href; } catch { /* */ }
+                    }
+                    if (s) urls.push(s);
+                }
+                const re4 = /<script[^>]*>([\s\S]*?)<\/script>/gi;
+                re4.lastIndex = 0;
+                while ((m = re4.exec(html)) !== null) {
+                    const c = m[1];
+                    const re5 = /(?:from\s+["']([^"']+\.js[^"']*)["']|import\s+["']([^"']+\.js[^"']*)["'])/g;
+                    let im;
+                    while ((im = re5.exec(c)) !== null) {
+                        let s = (im[1] || im[2] || '').trim();
+                        if (s && baseUrl) {
+                            if (!s.startsWith('http') && !s.startsWith('//')) {
+                                try { const b = baseUrl.endsWith('/') ? baseUrl : baseUrl.substring(0, baseUrl
+                                        .lastIndexOf('/') + 1);
+                                    s = new URL(s, b).href; } catch { /* */ }
+                            }
+                            if (s) urls.push(s);
+                        }
+                    }
+                }
+                return [...new Set(urls)];
+            }
+
+            // === PROCESS HTML ===
+            async function processHtmlContent(html, source) {
+                const base = source.startsWith('http') ? source : null;
+                const urls = extractScripts(html, base);
+                log('🔗 Script sayı: ' + urls.length);
+                if (urls.length === 0) {
+                    log('⚠ Xarici script yoxdur. HTML inline analiz...');
+                    const re = /<script[^>]*>([\s\S]*?)<\/script>/gi;
+                    let allJs = '';
+                    let m;
+                    while ((m = re.exec(html)) !== null) allJs += m[1] + '\n';
+                    if (allJs.trim().length > 0) await analyzeText(allJs, source + ' (inline)');
+                    else await analyzeText(html, source);
+                    progressSection.classList.add('hidden');
+                    return;
+                }
+                totalFiles = urls.length;
+                completedFiles = 0;
+                updateProgress();
+                let allJs = '';
+                for (let i = 0; i < urls.length; i++) {
+                    const u = urls[i];
+                    const short = u.split('/').pop() || 'script-' + (i + 1) + '.js';
+                    log('⬇ [' + (i + 1) + '/' + totalFiles + '] ' + short);
+                    try {
+                        const r = await fetch(u, { mode: 'cors' });
+                        if (r.ok) { const c = await r.text();
+                            allJs += '\n\n// === ' + short + ' ===\n\n' + c;
+                            scannedFiles.add(u);
+                            log('  ✅ ' + c.length + ' B'); } else log('  ⚠ HTTP ' + r.status);
+                    } catch (err) { log('  ⚠ Xəta'); }
+                    completedFiles++;
+                    updateProgress();
+                }
+                log('📊 Ümumi: ' + allJs.length + ' B, ' + scannedFiles.size + ' fayl');
+                if (allJs.trim().length === 0) { showToast('JS yüklənmədi.');
+                    progressSection.classList.add('hidden'); return; }
+                await analyzeText(allJs, source + ' (' + scannedFiles.size + ' fayl)');
+                setTimeout(() => progressSection.classList.add('hidden'), 1500);
+            }
+
+            // === CORE ANALYZER ===
+            async function analyzeText(text, source) {
+                const lines = text.split('\n');
+                const totalLines = lines.length;
+                const endpointMap = new Map();
+                const secretMap = new Map();
+                const vulns = [];
+
+                const urlRe =
+                    /(?:https?:\/\/[^\s"'`<>]+(?:\.[^\s"'`<>]+)+)|(?:\/[a-zA-Z_][a-zA-Z0-9_\-./]*?(?:api|v[0-9]+|graphql|rest|auth|login|signup|user|admin|config|token|oauth|callback|webhook|upload|download|static|endpoint|service|proxy|gateway|backend|health|metrics|debug|panel|s3|bucket|firebase|aws|swagger|docs|graphiql|voyager|playground|actuator|jenkins|gitlab|prometheus|grafana|soap|xmlrpc|amf|flex)[a-zA-Z0-9_\-/.]*)/gi;
+
+                const secretRe =
+                    /(?:"(?:api_key|apikey|secret|token|password|jwt|access_key|secret_key|private_key|auth_token|refresh_token|session_secret|client_secret|apiSecret|apiKey|passwd|pass)"\s*:\s*"([^"]+)")|(?:'(?:api_key|apikey|secret|token|password|jwt|access_key|secret_key|private_key|auth_token|refresh_token|session_secret|client_secret|apiSecret|apiKey|passwd|pass)'\s*:\s*'([^']+)')|(?:["'](?:api_key|apikey|secret|token|password|jwt|access_key|secret_key|private_key|auth_token|refresh_token|session_secret|client_secret|apiSecret|apiKey|passwd|pass)["']\s*[=:]\s*["']([^"']+)["'])/gi;
+
+                // Credit card regex (Luhn check omitted for speed)
+                const ccRe = /\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})\b/g;
+
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    const ln = i + 1;
+
+                    // URLs
+                    urlRe.lastIndex = 0;
+                    let m;
+                    while ((m = urlRe.exec(line)) !== null) {
+                        const v = m[0].trim();
+                        if (v.length > 3) {
+                            const k = v + '_' + source + '_' + ln;
+                            if (!endpointMap.has(k)) endpointMap.set(k, { value: v, line: ln, source });
+                        }
+                    }
+
+                    // Secrets
+                    secretRe.lastIndex = 0;
+                    while ((m = secretRe.exec(line)) !== null) {
+                        const c = m[1] || m[2] || m[3];
+                        if (c && c.trim().length > 0 && !c.includes('${') && !c.startsWith('process.') && !c.startsWith(
+                            'YOUR_')) {
+                            const k = c + '_' + source + '_' + ln;
+                            if (!secretMap.has(k)) secretMap.set(k, { value: c, line: ln, source });
+                        }
+                    }
+
+                    // Loose tokens
+                    const ltRe =
+                        /["'](?:token|bearer|auth|session|access|refresh|secret|key|jwt|apikey|api_key)["']\s*[:=]\s*["']([a-zA-Z0-9_\-\.]{16,})["']/gi;
+                    ltRe.lastIndex = 0;
+                    while ((m = ltRe.exec(line)) !== null) {
+                        const c = m[1];
+                        if (c) { const k = 'loose_' + source + '_' + c.substring(0, 10) + '_' + ln; if (!secretMap.has(k))
+                                secretMap.set(k, { value: c, line: ln, source }); }
+                    }
+
+                    // JWT
+                    const jwtRe = /["']([a-zA-Z0-9_\-]{20,}\.[a-zA-Z0-9_\-]{4,}\.[a-zA-Z0-9_\-]{4,})["']/g;
+                    jwtRe.lastIndex = 0;
+                    while ((m = jwtRe.exec(line)) !== null) {
+                        const c = m[1];
+                        if (c && c.split('.').length === 3) {
+                            const k = 'jwt_' + source + '_' + c.substring(0, 16) + '_' + ln;
+                            if (!secretMap.has(k)) secretMap.set(k, { value: c, line: ln, source });
+                        }
+                    }
+
+                    // Credit cards
+                    ccRe.lastIndex = 0;
+                    while ((m = ccRe.exec(line)) !== null) {
+                        const c = m[0];
+                        const k = 'cc_' + c + '_' + ln;
+                        if (!secretMap.has(k)) secretMap.set(k, { value: c, line: ln, source });
+                        vulns.push({ type: 'Sensitive Data', severity: 'high', detail: 'Kredit kartı: ' + c,
+                            endpoint: c, line: ln });
+                    }
+                }
+
+                const endpoints = Array.from(endpointMap.values());
+                const secrets = Array.from(secretMap.values());
+
+                // Auto-detect OpenAPI/Swagger/GraphQL
+                for (const ep of endpoints) {
+                    const v = ep.value.toLowerCase();
+                    if (v.includes('swagger') || v.includes('openapi') || v.includes('api-docs') || v.includes(
+                            'swagger-ui') || v.includes('api/docs') || v.includes('spec')) {
+                        vulns.push({ type: 'OpenAPI/Swagger', severity: 'high', detail: 'API Schema aşkarlandı',
+                            endpoint: ep.value, line: ep.line });
+                    }
+                    if (v.includes('graphql') || v.includes('graphiql') || v.includes('voyager') || v.includes(
+                            'playground')) {
+                        vulns.push({ type: 'GraphQL', severity: 'medium', detail: 'GraphQL endpoint aşkarlandı',
+                            endpoint: ep.value, line: ep.line });
+                    }
+                    // Check for actuator endpoints
+                    if (v.includes('actuator') || v.includes('health') && v.includes('/health')) {
+                        vulns.push({ type: 'Spring Boot Actuator', severity: 'high',
+                            detail: 'Actuator endpoint aşkarlandı', endpoint: ep.value, line: ep.line });
+                    }
+                }
+
+                // Check for potential parameter fuzzing opportunities
+                for (const ep of endpoints) {
+                    const v = ep.value;
+                    if (v.includes('?') || v.includes('{') || v.includes(':')) {
+                        // Has params already
+                    } else if (v.match(/\/[a-zA-Z]+\/[a-zA-Z]+$/)) {
+                        // Simple path, may have params
+                        discoveredParams.add(v);
+                    }
+                }
+
+                const withRisk = endpoints.map(r => ({ type: 'endpoint', value: r.value, line: r.line, source: r.source,
+                    risk: assessRisk(r.value) }));
+                const secWithRisk = secrets.map(r => ({ type: 'secret', value: r.value, line: r.line, source: r.source,
+                    risk: { level: 'high', label: '🔑 Gizli Açar', cls: 'critical' } }));
+
+                allResults = [...withRisk, ...secWithRisk];
+                allVulns = vulns;
+
+                const highCount = allResults.filter(r => r.risk.level === 'high').length;
+
+                statEndpoints.textContent = endpoints.length;
+                statSecrets.textContent = secrets.length;
+                statVulns.textContent = vulns.length;
+                statHighRisk.textContent = highCount;
+                statFiles.textContent = scannedFiles.size > 0 ? scannedFiles.size : 1;
+                statLines.textContent = totalLines.toLocaleString();
+
+                renderResults();
+                renderVulns();
+                renderAllTabs();
+
+                // Auto-run wayback if we have a URL source
+                if (scanSource && scanSource.startsWith('http')) {
+                    // Don't auto-run, user can click
+                }
+
+                // Show results tab
+                switchTab('results');
+                log('✅ Tamam. ' + endpoints.length + ' EP, ' + secrets.length + ' secret, ' + vulns.length + ' zəiflik.');
+            }
+
+            // === RENDER RESULTS ===
+            function renderResults() {
+                let filtered = allResults.filter(r => {
+                    if (currentFilter !== 'all' && r.type !== currentFilter) return false;
+                    if (currentRiskFilter !== 'all' && r.risk.level !== currentRiskFilter) return false;
+                    if (currentSearch) {
+                        const q = currentSearch.toLowerCase();
+                        return r.value.toLowerCase().includes(q) || String(r.line).includes(q) || (r.source || '')
+                            .toLowerCase().includes(q);
+                    }
+                    return true;
+                });
+
+                const order = { high: 0, medium: 1, low: 2 };
+                filtered.sort((a, b) => (order[a.risk.level] || 99) - (order[b.risk.level] || 99));
+
+                resultCount.textContent = filtered.length;
+
+                if (filtered.length === 0) { resultsBody.innerHTML = '';
+                    emptyState.classList.remove('hidden'); return; }
+                emptyState.classList.add('hidden');
+
+                let html = '';
+                for (const r of filtered) {
+                    const isEP = r.type === 'endpoint';
+                    const badge = isEP ? 'badge-endpoint' : 'badge-secret';
+                    const label = isEP ? 'URL' : 'SEC';
+                    const rowCls = r.risk.level === 'high' ? 'vuln-critical' : r.risk.level === 'medium' ? 'vuln-high' :
+                        'vuln-low';
+                    const escaped = escapeHtml(r.value);
+                    const srcShort
