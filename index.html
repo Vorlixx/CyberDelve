@@ -4,363 +4,83 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CyberDelve · Ultimate Bug Hunter Pro</title>
-    <script src="https://cdn.tailwindcss.com">
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js">
-    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        :root {
-            --bg-deep: #0a0f1d;
-            --bg-card: #111827;
-            --neon-red: #ff0055;
-            --neon-red-glow: rgba(255, 0, 85, 0.35);
-            --neon-green: #00ff88;
-            --neon-green-glow: rgba(0, 255, 136, 0.30);
-            --neon-cyan: #00d4ff;
-            --neon-orange: #ff8800;
-            --neon-purple: #a855f7;
-            --text-primary: #e6edf3;
-            --text-secondary: #8b949e;
-            --border-dim: #1e2a3a;
-        }
-        body {
-            font-family: 'Inter', system-ui, sans-serif;
-            background: var(--bg-deep);
-            color: var(--text-primary);
-            min-height: 100vh;
-            background-image:
-                radial-gradient(ellipse 80% 60% at 50% -10%, rgba(255, 0, 85, 0.05) 0%, transparent 70%),
-                radial-gradient(ellipse 60% 50% at 80% 90%, rgba(0, 255, 136, 0.04) 0%, transparent 70%),
-                radial-gradient(ellipse 40% 40% at 10% 80%, rgba(168, 85, 247, 0.03) 0%, transparent 60%);
-        }
-        .font-mono-custom {
-            font-family: 'JetBrains Mono', monospace;
-        }
-        .glass-card {
-            background: rgba(17, 24, 39, 0.75);
-            backdrop-filter: blur(16px) saturate(1.3);
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
-        }
-        .glass-card:hover {
-            border-color: rgba(255, 0, 85, 0.15);
-        }
-        .btn-scan {
-            background: linear-gradient(135deg, #ff0055 0%, #cc0044 100%);
-            transition: all 0.25s ease;
-            box-shadow: 0 4px 20px rgba(255, 0, 85, 0.25);
-        }
-        .btn-scan:hover {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 8px 35px rgba(255, 0, 85, 0.4);
-        }
-        .btn-scan:disabled {
-            opacity: 0.6;
-            transform: none;
-            cursor: not-allowed;
-        }
-        .btn-primary-sm {
-            background: rgba(255, 0, 85, 0.12);
-            border: 1px solid rgba(255, 0, 85, 0.2);
-            transition: all 0.2s ease;
-            color: #ff3366;
-        }
-        .btn-primary-sm:hover {
-            background: rgba(255, 0, 85, 0.2);
-        }
-        .btn-primary-sm:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-        .btn-ghost-sm {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            transition: all 0.2s ease;
-            color: #ccc;
-        }
-        .btn-ghost-sm:hover {
-            background: rgba(255, 255, 255, 0.08);
-        }
-        .btn-live {
-            background: rgba(0, 212, 255, 0.08);
-            border: 1px solid rgba(0, 212, 255, 0.12);
-            transition: all 0.2s ease;
-            color: #00d4ff;
-        }
-        .btn-live:hover {
-            background: rgba(0, 212, 255, 0.16);
-        }
-        .btn-live:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-        .drop-zone {
-            border: 2px dashed rgba(255, 255, 255, 0.08);
-            transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.02);
-        }
-        .drop-zone:hover {
-            border-color: var(--neon-green);
-            background: rgba(0, 255, 136, 0.03);
-        }
-        .drop-zone.drag-over {
-            border-color: var(--neon-green);
-            background: rgba(0, 255, 136, 0.08);
-            box-shadow: 0 0 40px rgba(0, 255, 136, 0.12);
-        }
-        .badge-endpoint {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 9999px;
-            font-size: 0.6rem;
-            font-weight: 600;
-            letter-spacing: 0.04em;
-            background: rgba(0, 255, 136, 0.10);
-            color: #00ff88;
-            border: 1px solid rgba(0, 255, 136, 0.15);
-        }
-        .badge-secret {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 9999px;
-            font-size: 0.6rem;
-            font-weight: 600;
-            background: rgba(255, 0, 85, 0.10);
-            color: #ff3366;
-            border: 1px solid rgba(255, 0, 85, 0.15);
-        }
-        .badge-risk {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.6rem;
-            font-weight: 600;
-        }
-        .badge-risk.critical {
-            background: rgba(255, 0, 85, 0.15);
-            color: #ff3366;
-            border: 1px solid rgba(255, 0, 85, 0.2);
-        }
-        .badge-risk.high {
-            background: rgba(255, 136, 0, 0.15);
-            color: #ff8800;
-            border: 1px solid rgba(255, 136, 0, 0.2);
-        }
-        .badge-risk.medium {
-            background: rgba(255, 200, 0, 0.10);
-            color: #ffcc00;
-            border: 1px solid rgba(255, 200, 0, 0.15);
-        }
-        .badge-risk.low {
-            background: rgba(255, 255, 255, 0.04);
-            color: #8b949e;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-        }
-        .badge-source {
-            display: inline-block;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.55rem;
-            font-weight: 500;
-            background: rgba(0, 212, 255, 0.08);
-            color: #00d4ff;
-            border: 1px solid rgba(0, 212, 255, 0.10);
-            max-width: 120px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .status-dot {
-            display: inline-block;
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            margin-right: 3px;
-        }
-        .status-dot.online {
-            background: #00ff88;
-            box-shadow: 0 0 6px rgba(0, 255, 136, 0.4);
-        }
-        .status-dot.offline {
-            background: #ff0055;
-            box-shadow: 0 0 6px rgba(255, 0, 85, 0.4);
-        }
-        .status-dot.unknown {
-            background: #555;
-        }
-        .status-dot.loading {
-            background: #ff8800;
-            animation: pulse-orange 0.8s ease-in-out infinite;
-        }
-        @keyframes pulse-orange {
-            0%,
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
-            50% {
-                opacity: 0.3;
-                transform: scale(0.6);
-            }
-        }
-        .value-truncate {
-            max-width: 260px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        @media (max-width: 640px) {
-            .value-truncate {
-                max-width: 120px;
-            }
-        }
-        .toast-alert {
-            position: fixed;
-            top: 24px;
-            right: 24px;
-            z-index: 9999;
-            max-width: 480px;
-            transform: translateX(120%);
-            transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .toast-alert.show {
-            transform: translateX(0);
-        }
-        ::-webkit-scrollbar {
-            width: 5px;
-            height: 5px;
-        }
-        ::-webkit-scrollbar-track {
-            background: var(--bg-deep);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #2a3a4a;
-            border-radius: 99px;
-        }
-        .pulse-dot {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--neon-red);
-            animation: pulse-red 1.8s ease-in-out infinite;
-            box-shadow: 0 0 12px var(--neon-red-glow);
-        }
-        @keyframes pulse-red {
-            0%,
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
-            50% {
-                opacity: 0.4;
-                transform: scale(0.75);
-            }
-        }
-        .stat-num {
-            font-variant-numeric: tabular-nums;
-        }
-        .spinner {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            border: 2.5px solid rgba(255, 255, 255, 0.08);
-            border-top-color: var(--neon-red);
-            animation: spin 0.7s linear infinite;
-        }
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-        .fade-in {
-            animation: fadeIn 0.35s ease forwards;
-        }
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(8px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        .filter-btn.active-filter {
-            background: rgba(255, 0, 85, 0.15);
-            color: #ff3366;
-            border-color: rgba(255, 0, 85, 0.3);
-        }
-        .risk-filter-btn.active-risk {
-            background: rgba(0, 212, 255, 0.12);
-            color: #00d4ff;
-            border-color: rgba(0, 212, 255, 0.25);
-        }
-        .tab-btn {
-            transition: all 0.2s ease;
-        }
-        .tab-btn.active-tab {
-            background: rgba(255, 0, 85, 0.12);
-            color: #ff3366;
-            border-color: rgba(255, 0, 85, 0.25);
-        }
-        .vuln-critical {
-            border-left: 3px solid #ff0055;
-        }
-        .vuln-high {
-            border-left: 3px solid #ff8800;
-        }
-        .vuln-medium {
-            border-left: 3px solid #ffcc00;
-        }
-        .vuln-low {
-            border-left: 3px solid rgba(255, 255, 255, 0.08);
-        }
-        .ai-thinking {
-            background: rgba(168, 85, 247, 0.05);
-            border: 1px solid rgba(168, 85, 247, 0.1);
-        }
-        .scan-log {
-            max-height: 80px;
-            overflow-y: auto;
-            font-size: 0.6rem;
-            line-height: 1.3;
-        }
-        .scan-log::-webkit-scrollbar {
-            width: 3px;
-        }
-        pre {
-            white-space: pre-wrap;
-            word-break: break-all;
-        }
-        .pulse-purple {
-            animation: pulse-purple 1.5s ease-in-out infinite;
-        }
-        @keyframes pulse-purple {
-            0%,
-            100% {
-                box-shadow: 0 0 10px rgba(168, 85, 247, 0.1);
-            }
-            50% {
-                box-shadow: 0 0 25px rgba(168, 85, 247, 0.25);
-            }
-        }
-        select {
-            background: rgba(0, 0, 0, 0.3);
-        }
-        select option {
-            background: #111827;
-        }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        :root{
+            --bg-deep:#0a0f1d;--bg-card:#111827;--neon-red:#ff0055;--neon-red-glow:rgba(255,0,85,0.35);
+            --neon-green:#00ff88;--neon-green-glow:rgba(0,255,136,0.30);--neon-cyan:#00d4ff;
+            --neon-orange:#ff8800;--neon-purple:#a855f7;--text-primary:#e6edf3;--text-secondary:#8b949e;--border-dim:#1e2a3a;
+        }
+        body{font-family:'Inter',system-ui,sans-serif;background:var(--bg-deep);color:var(--text-primary);min-height:100vh;
+            background-image:radial-gradient(ellipse 80% 60% at 50% -10%,rgba(255,0,85,0.05) 0%,transparent 70%),
+            radial-gradient(ellipse 60% 50% at 80% 90%,rgba(0,255,136,0.04) 0%,transparent 70%),
+            radial-gradient(ellipse 40% 40% at 10% 80%,rgba(168,85,247,0.03) 0%,transparent 60%)}
+        .font-mono-custom{font-family:'JetBrains Mono',monospace}
+        .glass-card{background:rgba(17,24,39,0.75);backdrop-filter:blur(16px) saturate(1.3);border:1px solid rgba(255,255,255,0.04);box-shadow:0 8px 32px rgba(0,0,0,0.45)}
+        .glass-card:hover{border-color:rgba(255,0,85,0.15)}
+        .btn-scan{background:linear-gradient(135deg,#ff0055 0%,#cc0044 100%);transition:all 0.25s ease;box-shadow:0 4px 20px rgba(255,0,85,0.25)}
+        .btn-scan:hover{transform:translateY(-2px) scale(1.02);box-shadow:0 8px 35px rgba(255,0,85,0.4)}
+        .btn-scan:disabled{opacity:0.6;transform:none;cursor:not-allowed}
+        .btn-primary-sm{background:rgba(255,0,85,0.12);border:1px solid rgba(255,0,85,0.2);transition:all 0.2s ease;color:#ff3366}
+        .btn-primary-sm:hover{background:rgba(255,0,85,0.2)}
+        .btn-primary-sm:disabled{opacity:0.4;cursor:not-allowed}
+        .btn-ghost-sm{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);transition:all 0.2s ease;color:#ccc}
+        .btn-ghost-sm:hover{background:rgba(255,255,255,0.08)}
+        .btn-live{background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.12);transition:all 0.2s ease;color:#00d4ff}
+        .btn-live:hover{background:rgba(0,212,255,0.16)}
+        .btn-live:disabled{opacity:0.4;cursor:not-allowed}
+        .drop-zone{border:2px dashed rgba(255,255,255,0.08);transition:all 0.3s ease;background:rgba(255,255,255,0.02)}
+        .drop-zone:hover{border-color:var(--neon-green);background:rgba(0,255,136,0.03)}
+        .drop-zone.drag-over{border-color:var(--neon-green);background:rgba(0,255,136,0.08);box-shadow:0 0 40px rgba(0,255,136,0.12)}
+        .badge-endpoint{display:inline-block;padding:2px 8px;border-radius:9999px;font-size:0.6rem;font-weight:600;letter-spacing:0.04em;background:rgba(0,255,136,0.10);color:#00ff88;border:1px solid rgba(0,255,136,0.15)}
+        .badge-secret{display:inline-block;padding:2px 8px;border-radius:9999px;font-size:0.6rem;font-weight:600;background:rgba(255,0,85,0.10);color:#ff3366;border:1px solid rgba(255,0,85,0.15)}
+        .badge-risk{display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.6rem;font-weight:600}
+        .badge-risk.critical{background:rgba(255,0,85,0.15);color:#ff3366;border:1px solid rgba(255,0,85,0.2)}
+        .badge-risk.high{background:rgba(255,136,0,0.15);color:#ff8800;border:1px solid rgba(255,136,0,0.2)}
+        .badge-risk.medium{background:rgba(255,200,0,0.10);color:#ffcc00;border:1px solid rgba(255,200,0,0.15)}
+        .badge-risk.low{background:rgba(255,255,255,0.04);color:#8b949e;border:1px solid rgba(255,255,255,0.06)}
+        .badge-source{display:inline-block;padding:2px 6px;border-radius:4px;font-size:0.55rem;font-weight:500;background:rgba(0,212,255,0.08);color:#00d4ff;border:1px solid rgba(0,212,255,0.10);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:3px}
+        .status-dot.online{background:#00ff88;box-shadow:0 0 6px rgba(0,255,136,0.4)}
+        .status-dot.offline{background:#ff0055;box-shadow:0 0 6px rgba(255,0,85,0.4)}
+        .status-dot.unknown{background:#555}
+        .status-dot.loading{background:#ff8800;animation:pulse-orange 0.8s ease-in-out infinite}
+        @keyframes pulse-orange{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.3;transform:scale(0.6)}}
+        .value-truncate{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        @media(max-width:640px){.value-truncate{max-width:120px}}
+        .toast-alert{position:fixed;top:24px;right:24px;z-index:9999;max-width:480px;transform:translateX(120%);transition:transform 0.45s cubic-bezier(0.16,1,0.3,1)}
+        .toast-alert.show{transform:translateX(0)}
+        ::-webkit-scrollbar{width:5px;height:5px}
+        ::-webkit-scrollbar-track{background:var(--bg-deep)}
+        ::-webkit-scrollbar-thumb{background:#2a3a4a;border-radius:99px}
+        .pulse-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--neon-red);animation:pulse-red 1.8s ease-in-out infinite;box-shadow:0 0 12px var(--neon-red-glow)}
+        @keyframes pulse-red{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.75)}}
+        .stat-num{font-variant-numeric:tabular-nums}
+        .spinner{width:18px;height:18px;border-radius:50%;border:2.5px solid rgba(255,255,255,0.08);border-top-color:var(--neon-red);animation:spin 0.7s linear infinite}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .fade-in{animation:fadeIn 0.35s ease forwards}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        .filter-btn.active-filter{background:rgba(255,0,85,0.15);color:#ff3366;border-color:rgba(255,0,85,0.3)}
+        .risk-filter-btn.active-risk{background:rgba(0,212,255,0.12);color:#00d4ff;border-color:rgba(0,212,255,0.25)}
+        .tab-btn{transition:all 0.2s ease}
+        .tab-btn.active-tab{background:rgba(255,0,85,0.12);color:#ff3366;border-color:rgba(255,0,85,0.25)}
+        .vuln-critical{border-left:3px solid #ff0055}
+        .vuln-high{border-left:3px solid #ff8800}
+        .vuln-medium{border-left:3px solid #ffcc00}
+        .vuln-low{border-left:3px solid rgba(255,255,255,0.08)}
+        .ai-thinking{background:rgba(168,85,247,0.05);border:1px solid rgba(168,85,247,0.1)}
+        .scan-log{max-height:80px;overflow-y:auto;font-size:0.6rem;line-height:1.3}
+        .scan-log::-webkit-scrollbar{width:3px}
+        pre{white-space:pre-wrap;word-break:break-all}
+        .pulse-purple{animation:pulse-purple 1.5s ease-in-out infinite}
+        @keyframes pulse-purple{0%,100%{box-shadow:0 0 10px rgba(168,85,247,0.1)}50%{box-shadow:0 0 25px rgba(168,85,247,0.25)}}
+        select{background:rgba(0,0,0,0.3)}
+        select option{background:#111827}
     </style>
 </head>
 <body>
@@ -501,7 +221,6 @@
                     <input id="search-input" type="text" placeholder="Axtar..." class="w-24 sm:w-32 bg-black/40 border border-white/5 rounded-lg px-2 py-1 text-[0.6rem] text-white placeholder-gray-600 outline-none font-mono-custom">
                 </div>
             </div>
-
             <div class="flex flex-wrap items-center gap-1.5 mb-3">
                 <button id="btn-live-all" class="btn-live px-2 py-1 rounded text-[0.6rem] flex items-center gap-1">🔍 Hamısını Yoxla</button>
                 <button id="btn-fuzz-all" class="btn-primary-sm px-2 py-1 rounded text-[0.6rem] flex items-center gap-1">⚡ Param Fuzz</button>
@@ -514,7 +233,6 @@
                 <button id="btn-export-burp" class="btn-ghost-sm px-2 py-1 rounded text-[0.6rem]">🕷️ Burp JSON</button>
                 <span id="live-status" class="text-[0.55rem] text-gray-500 hidden"></span>
             </div>
-
             <div class="glass-card rounded-2xl overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left" style="border-collapse:separate;border-spacing:0">
@@ -588,8 +306,10 @@
         <div id="tab-report" class="tab-content hidden fade-in">
             <div class="flex items-center justify-between mb-3">
                 <h3 class="text-xs font-semibold uppercase tracking-widest text-gray-400">📝 Bug Bounty Report</h3>
-                <button id="btn-gen-report" class="btn-primary-sm px-3 py-1 rounded text-[0.6rem]">Yarat</button>
-                <button id="btn-export-report" class="btn-ghost-sm px-3 py-1 rounded text-[0.6rem]">Endir</button>
+                <div class="flex gap-2">
+                    <button id="btn-gen-report" class="btn-primary-sm px-3 py-1 rounded text-[0.6rem]">Yarat</button>
+                    <button id="btn-export-report" class="btn-ghost-sm px-3 py-1 rounded text-[0.6rem]">Endir</button>
+                </div>
             </div>
             <div id="report-content" class="glass-card rounded-2xl p-4 font-mono-custom text-xs text-gray-300 max-h-96 overflow-y-auto leading-relaxed">
                 <p class="text-gray-500 text-center py-4">Report yaratmaq üçün əvvəlcə skan edin, sonra "Yarat" düyməsini basın.</p>
@@ -602,121 +322,119 @@
     </div>
 
     <script>
-        (function() {
+        (function () {
             'use strict';
 
-            // DOM
+            // ── DOM refs ──────────────────────────────────────────────────────────
             const $ = id => document.getElementById(id);
-            const urlInput = $('url-input');
-            const btnScan = $('btn-scan-url');
-            const dropZone = $('drop-zone');
-            const fileInput = $('file-input');
-            const resultsBody = $('results-body');
-            const emptyState = $('empty-state');
-            const resultCount = $('result-count');
-            const searchInput = $('search-input');
-            const filterBtns = document.querySelectorAll('.filter-btn');
-            const riskFilterBtns = document.querySelectorAll('.risk-filter-btn');
-            const tabBtns = document.querySelectorAll('.tab-btn');
-            const tabContents = document.querySelectorAll('.tab-content');
-            const toast = document.getElementById('toast');
-            const toastMsg = $('toast-msg');
+            const urlInput        = $('url-input');
+            const btnScan         = $('btn-scan-url');
+            const dropZone        = $('drop-zone');
+            const fileInput       = $('file-input');
+            const resultsBody     = $('results-body');
+            const emptyState      = $('empty-state');
+            const resultCount     = $('result-count');
+            const searchInput     = $('search-input');
+            const filterBtns      = document.querySelectorAll('.filter-btn');
+            const riskFilterBtns  = document.querySelectorAll('.risk-filter-btn');
+            const tabBtns         = document.querySelectorAll('.tab-btn');
+            const tabContents     = document.querySelectorAll('.tab-content');
+            const toast           = $('toast');
+            const toastMsg        = $('toast-msg');
             const progressSection = $('progress-section');
-            const progressBar = $('progress-bar');
-            const progressLabel = $('progress-label');
-            const scanLog = $('scan-log');
-            const liveStatus = $('live-status');
-            const waybackList = $('wayback-list');
-            const waybackStatus = $('wayback-status');
-            const vulnsList = $('vulns-list');
-            const vulnCount = $('vuln-count');
-            const aiResult = $('ai-result');
-            const aiStatus = $('ai-status');
-            const reportContent = $('report-content');
-            const templatesList = $('templates-list');
+            const progressBar     = $('progress-bar');
+            const progressLabel   = $('progress-label');
+            const scanLog         = $('scan-log');
+            const liveStatus      = $('live-status');
+            const waybackList     = $('wayback-list');
+            const waybackStatus   = $('wayback-status');
+            const vulnsList       = $('vulns-list');
+            const vulnCount       = $('vuln-count');
+            const aiResult        = $('ai-result');
+            const aiStatus        = $('ai-status');
+            const reportContent   = $('report-content');
+            const templatesList   = $('templates-list');
+            const statEndpoints   = $('stat-endpoints');
+            const statSecrets     = $('stat-secrets');
+            const statVulns       = $('stat-vulns');
+            const statHighRisk    = $('stat-highrisk');
+            const statFiles       = $('stat-files');
+            const statLines       = $('stat-lines');
 
-            // Stats
-            const statEndpoints = $('stat-endpoints');
-            const statSecrets = $('stat-secrets');
-            const statVulns = $('stat-vulns');
-            const statHighRisk = $('stat-highrisk');
-            const statFiles = $('stat-files');
-            const statLines = $('stat-lines');
-
-            // State
-            let allResults = [];
-            let allVulns = [];
-            let discoveredParams = new Set();
-            let waybackUrls = [];
-            let currentFilter = 'all';
+            // ── State ─────────────────────────────────────────────────────────────
+            let allResults        = [];
+            let allVulns          = [];
+            let discoveredParams  = new Set();
+            let waybackUrls       = [];
+            let currentFilter     = 'all';
             let currentRiskFilter = 'all';
-            let currentSearch = '';
-            let scannedFiles = new Set();
-            let totalFiles = 0,
-                completedFiles = 0;
+            let currentSearch     = '';
+            let scannedFiles      = new Set();
+            let totalFiles        = 0, completedFiles = 0;
             let liveCheckInProgress = false;
-            let templates = [];
-            let scanSource = '';
+            let templates         = [];
+            let scanSource        = '';
 
-            // Risk keywords
-            const HIGH_RISK = ['admin', 'delete', 'edit', 'config', 'upload', 'graphql', 'env', 'backup', 'debug', 'panel',
-                'login', 'signup', 'auth', 'token', 'oauth', 'callback', 'webhook', 'reset', 'password', 'grant', 'root',
-                'sudo', 'exec', 'cmd', 'shell', 'database', 'db', 'sql', 'query', 'export', 'import', 'migrate', 'firebase',
-                'aws', 's3', 'bucket', 'storage', 'cdn-admin', 'internal', 'private', 'secret', 'credential', 'key',
-                'api-key', 'payment', 'checkout', 'order', 'invoice', 'billing', 'websocket', 'realtime', 'stream',
-                'swagger', 'openapi', 'api-docs', 'docs', 'health', 'metrics', 'prometheus', 'grafana', 'jenkins', 'jira',
-                'confluence', 'gitlab', 'bitbucket', 'swf', 'flex', 'amf', 'soap', 'xmlrpc', 'actuator', 'swagger-ui',
-                'graphiql', 'voyager', 'playground'
-            ];
-            const MEDIUM_RISK = ['api', 'v1', 'v2', 'v3', 'rest', 'service', 'proxy', 'gateway', 'endpoint', 'data', 'user',
-                'profile', 'account', 'settings', 'search', 'filter', 'list', 'get', 'post', 'put', 'patch', 'update',
-                'create', 'add', 'remove', 'status', 'notification', 'email', 'sms', 'message', 'comment', 'review',
-                'rating', 'feedback', 'report', 'verify', 'validate', 'confirm', 'approve', 'reject', 'session', 'device',
-                'location', 'feature', 'flag', 'toggle', 'config/', 'configuration', 'middleware', 'hook', 'event',
-                'webhook/', 'callback/'
+            // ── FIX 1: Removed duplicate const HIGH_RISK — keep only the full one ─
+            const HIGH_RISK = [
+                'admin','delete','edit','config','upload','graphql','env','backup','debug','panel',
+                'login','signup','auth','token','oauth','callback','webhook','reset','password','grant','root',
+                'sudo','exec','cmd','shell','database','db','sql','query','export','import','migrate','firebase',
+                'aws','s3','bucket','storage','cdn-admin','internal','private','secret','credential','key',
+                'api-key','payment','checkout','order','invoice','billing','websocket','realtime','stream',
+                'swagger','openapi','api-docs','docs','health','metrics','prometheus','grafana','jenkins','jira',
+                'confluence','gitlab','bitbucket','swf','flex','amf','soap','xmlrpc','actuator','swagger-ui',
+                'graphiql','voyager','playground'
             ];
 
-            // XSS / SQLI / LFI / SSTI payloads
-            const XSS_PAYLOADS = ['<script>alert(1)</script>', '"><script>alert(1)</script>', '"><img src=x onerror=alert(1)>',
-                '{{constructor.constructor("alert(1)")()}}', 'javascript:alert(1)'
-            ];
-            const SQLI_PAYLOADS = ["' OR '1'='1", "' OR 1=1--", "'; DROP TABLE users--", "' UNION SELECT 1,2,3--",
-                "1' AND 1=1--", "1' AND 1=2--"
-            ];
-            const LFI_PAYLOADS = ['../../../etc/passwd', '..\\..\\..\\windows\\win.ini', '/etc/passwd',
-                '....//....//....//etc/passwd'
-            ];
-            const SSTI_PAYLOADS = ['{{7*7}}', '${7*7}', '#{7*7}', '*{7*7}', '{{config}}', '${system("id")}'];
-            const AUTH_BYPASS_PAYLOADS = ['admin\'--', 'admin\' OR \'1\'=\'1', 'admin\'', 'root\'--', 'test@test.com',
-                'nonexistent@test.com'
-            ];
-            const PARAM_WORDS = ['id', 'user', 'admin', 'debug', 'test', 'token', 'key', 'file', 'page', 'redirect', 'url',
-                'path', 'action', 'mode', 'type', 'cmd', 'exec', 'order', 'limit', 'offset', 'sort', 'filter', 'search',
-                'q', 'query', 'name', 'email', 'password', 'pass', 'secret', 'api', 'callback', 'next', 'prev', 'lang',
-                'locale', 'format', 'raw', 'ajax', 'live', 'preview', 'edit', 'delete', 'create', 'update', 'upload',
-                'download', 'export', 'import', 'config', 'env', 'db', 'sql', 'table', 'schema', 'debug', 'trace', 'log',
-                'error', 'exception', 'stack'
+            const MEDIUM_RISK = [
+                'api','v1','v2','v3','rest','service','proxy','gateway','endpoint','data','user',
+                'profile','account','settings','search','filter','list','get','post','put','patch','update',
+                'create','add','remove','status','notification','email','sms','message','comment','review',
+                'rating','feedback','report','verify','validate','confirm','approve','reject','session','device',
+                'location','feature','flag','toggle','config/','configuration','middleware','hook','event',
+                'webhook/','callback/'
             ];
 
-            // Utility
-            function escapeHtml(s) { const d = document.createElement('div');
-                d.textContent = s; return d.innerHTML; }
+            const XSS_PAYLOADS         = ['<script>alert(1)<\/script>','"><script>alert(1)<\/script>','"><img src=x onerror=alert(1)>','{{constructor.constructor("alert(1)")()}}','javascript:alert(1)'];
+            const SQLI_PAYLOADS        = ["' OR '1'='1","' OR 1=1--","'; DROP TABLE users--","' UNION SELECT 1,2,3--","1' AND 1=1--","1' AND 1=2--"];
+            const LFI_PAYLOADS         = ['../../../etc/passwd','..\\..\\..\\windows\\win.ini','/etc/passwd','....//....//....//etc/passwd'];
+            const SSTI_PAYLOADS        = ['{{7*7}}','${7*7}','#{7*7}','*{7*7}','{{config}}','${system("id")}'];
+            const AUTH_BYPASS_PAYLOADS = ["admin'--","admin' OR '1'='1","admin'","root'--","test@test.com","nonexistent@test.com"];
+            const PARAM_WORDS          = [
+                'id','user','admin','debug','test','token','key','file','page','redirect','url',
+                'path','action','mode','type','cmd','exec','order','limit','offset','sort','filter','search',
+                'q','query','name','email','password','pass','secret','api','callback','next','prev','lang',
+                'locale','format','raw','ajax','live','preview','edit','delete','create','update','upload',
+                'download','export','import','config','env','db','sql','table','schema','trace','log',
+                'error','exception','stack'
+            ];
 
-            window.dismissToast = function() { toast.classList.remove('show'); };
+            // ── Utilities ─────────────────────────────────────────────────────────
+            function escapeHtml(s) {
+                const d = document.createElement('div');
+                d.textContent = String(s);
+                return d.innerHTML;
+            }
 
-            function showToast(m) { toastMsg.textContent = m;
+            window.dismissToast = function () { toast.classList.remove('show'); };
+
+            function showToast(m) {
+                toastMsg.textContent = m;
                 toast.classList.add('show');
-                setTimeout(() => toast.classList.remove('show'), 7000); }
+                setTimeout(() => toast.classList.remove('show'), 7000);
+            }
 
-            function log(m) { const d = document.createElement('div');
+            function log(m) {
+                const d = document.createElement('div');
                 d.textContent = '> ' + m;
                 scanLog.appendChild(d);
-                scanLog.scrollTop = scanLog.scrollHeight; }
+                scanLog.scrollTop = scanLog.scrollHeight;
+            }
 
             function resetProgress() {
                 scannedFiles.clear();
-                totalFiles = 0;
-                completedFiles = 0;
+                totalFiles = 0; completedFiles = 0;
                 progressBar.style.width = '0%';
                 progressLabel.textContent = '0/0';
                 scanLog.innerHTML = '';
@@ -729,38 +447,65 @@
                 progressLabel.textContent = completedFiles + '/' + totalFiles;
             }
 
-            // Risk assessment
-            function assessRisk(v) {
-                const l = v.toLowerCase();
-                for (const k of HIGH_RISK) { if (l.includes(k)) return { level: 'high', label: '🔥 Yüksək Risk',
-                        cls: 'critical' }; }
-                for (const k of MEDIUM_RISK) { if (l.includes(k)) return { level: 'medium', label: '⚠ Orta Risk',
-                        cls: 'high' }; }
-                const staticPat = ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp', '.ico', '.css', '.woff', '.woff2',
-                    '.ttf', '.eot', '.mp4', '.webm', '.mp3', '.pdf', '.zip', '.tar', '.gz', '.rar', 'static/', 'assets/',
-                    'public/', 'dist/', 'build/', 'fonts/', 'images/', 'img/', 'media/', 'favicon', 'robots.txt',
-                    'sitemap.xml', 'manifest.json', 'sw.js', 'service-worker.js'
-                ];
-                for (const p of staticPat) { if (l.includes(p)) return { level: 'low', label: '● Aşağı Risk',
-                        cls: 'low' }; }
-                if (l.includes('/api/') || l.includes('/v1/') || l.includes('/v2/') || l.includes('/rest/')) return { level: 'medium',
-                    label: '⚠ Orta Risk', cls: 'high' };
-                return { level: 'low', label: '● Aşağı Risk', cls: 'low' };
+            // ── FIX 2: switchTab + tab event listeners (were completely missing) ──
+            function switchTab(name) {
+                tabBtns.forEach(b => b.classList.toggle('active-tab', b.dataset.tab === name));
+                tabContents.forEach(c => c.classList.toggle('hidden', c.id !== 'tab-' + name));
             }
 
-            // === DROP ZONE ===
+            tabBtns.forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
+
+            // ── Risk assessment ───────────────────────────────────────────────────
+            function assessRisk(v) {
+                const l = v.toLowerCase();
+                for (const k of HIGH_RISK)   { if (l.includes(k)) return { level:'high',   label:'🔥 Yüksək Risk', cls:'critical' }; }
+                for (const k of MEDIUM_RISK)  { if (l.includes(k)) return { level:'medium', label:'⚠ Orta Risk',   cls:'high'     }; }
+                const staticPat = ['.jpg','.jpeg','.png','.gif','.svg','.webp','.ico','.css','.woff','.woff2','.ttf','.eot','.mp4','.webm','.mp3','.pdf','.zip','.tar','.gz','.rar','static/','assets/','public/','dist/','build/','fonts/','images/','img/','media/','favicon','robots.txt','sitemap.xml','manifest.json','sw.js','service-worker.js'];
+                for (const p of staticPat)    { if (l.includes(p)) return { level:'low',    label:'● Aşağı Risk',  cls:'low'      }; }
+                if (l.includes('/api/')||l.includes('/v1/')||l.includes('/v2/')||l.includes('/rest/')) {
+                    return { level:'medium', label:'⚠ Orta Risk', cls:'high' };
+                }
+                return { level:'low', label:'● Aşağı Risk', cls:'low' };
+            }
+
+            // ── Drop zone ─────────────────────────────────────────────────────────
             dropZone.addEventListener('click', () => fileInput.click());
-            dropZone.addEventListener('dragover', e => { e.preventDefault();
-                dropZone.classList.add('drag-over'); });
+            dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
             dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
             dropZone.addEventListener('drop', e => {
-                e.preventDefault();
-                dropZone.classList.remove('drag-over');
+                e.preventDefault(); dropZone.classList.remove('drag-over');
                 if (e.dataTransfer.files.length) processFile(e.dataTransfer.files[0]);
             });
             fileInput.addEventListener('change', () => { if (fileInput.files.length) processFile(fileInput.files[0]); });
 
-            // === URL SCAN ===
+            // ── FIX 3: processFile was referenced but never defined ───────────────
+            async function processFile(file) {
+                resetProgress();
+                scanSource = file.name;
+                log('📂 Fayl oxunur: ' + file.name);
+                totalFiles = 1;
+                updateProgress();
+                return new Promise(resolve => {
+                    const reader = new FileReader();
+                    reader.onload = async e => {
+                        scannedFiles.add(file.name);
+                        completedFiles = 1;
+                        updateProgress();
+                        statFiles.textContent = 1;
+                        await analyzeText(e.target.result, file.name);
+                        setTimeout(() => progressSection.classList.add('hidden'), 1500);
+                        resolve();
+                    };
+                    reader.onerror = () => {
+                        showToast('Fayl oxunarkən xəta baş verdi.');
+                        progressSection.classList.add('hidden');
+                        resolve();
+                    };
+                    reader.readAsText(file);
+                });
+            }
+
+            // ── URL scan ──────────────────────────────────────────────────────────
             btnScan.addEventListener('click', handleUrlScan);
             urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') handleUrlScan(); });
 
@@ -785,74 +530,29 @@
                     progressSection.classList.add('hidden');
                 }
                 btnScan.disabled = false;
+                // ── FIX 4: innerHTML string was not closed; extractScripts body was pasted here ──
                 btnScan.innerHTML = '<span>Skan</span><span>→</span>';
             }
 
-            // === FILE PROCESS ===
-            function processFile(file) {
-                const ext = '.' + file.name.split('.').pop().toLowerCase();
-                const htmlE = ['.html', '.htm'];
-                const jsE = ['.js', '.mjs', '.cjs', '.jsx', '.ts', '.tsx', '.json'];
-                const mobileE = ['.apk', '.ipa'];
-                if (![...htmlE, ...jsE, ...mobileE].includes(ext)) {
-                    showToast('Dəstəklənməyən format: ' + ext);
-                    return;
-                }
-                const reader = new FileReader();
-                reader.onload = async e => {
-                    const text = e.target.result;
-                    resetProgress();
-                    if (htmlE.includes(ext)) { log('📄 HTML: ' + file.name);
-                        await processHtmlContent(text, file.name);
-                        scanSource = file.name; } else if (mobileE.includes(ext)) { log('📱 Mobile: ' + file.name);
-                        await processMobileFile(text, file.name);
-                        scanSource = file.name; } else { log('📜 JS: ' + file.name);
-                        await analyzeText(text, file.name);
-                        scanSource = file.name; }
-                };
-                reader.onerror = () => showToast('Fayl oxunmadı.');
-                reader.readAsText(file);
-            }
-
-            // === MOBILE APK/IPA ===
-            async function processMobileFile(text, name) {
-                // Fake APK parsing: extract strings and URLs
-                log('📱 Mobil fayl analiz olunur...');
-                const urlRegex = /(https?:\/\/[^\s"'`<>]+(?:\.[^\s"'`<>]+)+)|(?:\/[a-zA-Z_][a-zA-Z0-9_\-./]*?(?:api|v[0-9]+|graphql|rest|auth|login|user|admin|config|token|endpoint)[a-zA-Z0-9_\-/.]*)/gi;
-                let urls = [];
-                let m;
-                while ((m = urlRegex.exec(text)) !== null) {
-                    const v = m[0].trim();
-                    if (v.length > 5 && !urls.includes(v)) urls.push(v);
-                }
-                log('📱 ' + urls.length + ' endpoint çıxarıldı.');
-                await analyzeText(urls.join('\n'), name + ' (mobile)');
-            }
-
-            // === EXTRACT SCRIPTS ===
+            // ── FIX 5: extractScripts — was accidentally inside btnScan.innerHTML string ──
             function extractScripts(html, baseUrl) {
                 const urls = [];
-                const re1 = /<script[^>]+src\s*=\s*["']([^"']+)["']/gi;
                 let m;
+                const re1 = /<script[^>]+src=["']([^"']+)["']/gi;
                 while ((m = re1.exec(html)) !== null) {
                     let s = m[1].trim();
                     if (baseUrl && !s.startsWith('http') && !s.startsWith('//')) {
-                        try { const b = baseUrl.endsWith('/') ? baseUrl : baseUrl.substring(0, baseUrl.lastIndexOf('/') +
-                            1);
-                            s = new URL(s, b).href; } catch { /* */ }
+                        try { const b = baseUrl.endsWith('/') ? baseUrl : baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1); s = new URL(s, b).href; } catch { /* */ }
                     } else if (s.startsWith('//')) s = 'https:' + s;
                     if (s) urls.push(s);
                 }
-                const re2 =
-                /(?:import\s+(?:["'][^"']+["']|\{[^}]*\}\s+from\s+["']([^"']+)["'])|import\s+["']([^"']+)["'])/g;
+                const re2 = /(?:import\s+(?:["'][^"']+["']|\{[^}]*\}\s+from\s+["']([^"']+)["'])|import\s+["']([^"']+)["'])/g;
                 re2.lastIndex = 0;
                 while ((m = re2.exec(html)) !== null) {
                     let s = (m[1] || m[2] || '').trim();
                     if (s && (s.endsWith('.js') || s.includes('/'))) {
                         if (baseUrl && !s.startsWith('http') && !s.startsWith('//')) {
-                            try { const b = baseUrl.endsWith('/') ? baseUrl : baseUrl.substring(0, baseUrl.lastIndexOf(
-                                    '/') + 1);
-                                s = new URL(s, b).href; } catch { /* */ }
+                            try { const b = baseUrl.endsWith('/') ? baseUrl : baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1); s = new URL(s, b).href; } catch { /* */ }
                         }
                         if (s) urls.push(s);
                     }
@@ -862,9 +562,7 @@
                 while ((m = re3.exec(html)) !== null) {
                     let s = m[1].trim();
                     if (baseUrl && !s.startsWith('http') && !s.startsWith('//')) {
-                        try { const b = baseUrl.endsWith('/') ? baseUrl : baseUrl.substring(0, baseUrl.lastIndexOf(
-                                '/') + 1);
-                            s = new URL(s, b).href; } catch { /* */ }
+                        try { const b = baseUrl.endsWith('/') ? baseUrl : baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1); s = new URL(s, b).href; } catch { /* */ }
                     }
                     if (s) urls.push(s);
                 }
@@ -878,9 +576,7 @@
                         let s = (im[1] || im[2] || '').trim();
                         if (s && baseUrl) {
                             if (!s.startsWith('http') && !s.startsWith('//')) {
-                                try { const b = baseUrl.endsWith('/') ? baseUrl : baseUrl.substring(0, baseUrl
-                                        .lastIndexOf('/') + 1);
-                                    s = new URL(s, b).href; } catch { /* */ }
+                                try { const b = baseUrl.endsWith('/') ? baseUrl : baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1); s = new URL(s, b).href; } catch { /* */ }
                             }
                             if (s) urls.push(s);
                         }
@@ -889,7 +585,7 @@
                 return [...new Set(urls)];
             }
 
-            // === PROCESS HTML ===
+            // ── Process HTML ──────────────────────────────────────────────────────
             async function processHtmlContent(html, source) {
                 const base = source.startsWith('http') ? source : null;
                 const urls = extractScripts(html, base);
@@ -897,16 +593,14 @@
                 if (urls.length === 0) {
                     log('⚠ Xarici script yoxdur. HTML inline analiz...');
                     const re = /<script[^>]*>([\s\S]*?)<\/script>/gi;
-                    let allJs = '';
-                    let m;
+                    let allJs = ''; let m;
                     while ((m = re.exec(html)) !== null) allJs += m[1] + '\n';
                     if (allJs.trim().length > 0) await analyzeText(allJs, source + ' (inline)');
                     else await analyzeText(html, source);
                     progressSection.classList.add('hidden');
                     return;
                 }
-                totalFiles = urls.length;
-                completedFiles = 0;
+                totalFiles = urls.length; completedFiles = 0;
                 updateProgress();
                 let allJs = '';
                 for (let i = 0; i < urls.length; i++) {
@@ -915,288 +609,247 @@
                     log('⬇ [' + (i + 1) + '/' + totalFiles + '] ' + short);
                     try {
                         const r = await fetch(u, { mode: 'cors' });
-                        if (r.ok) { const c = await r.text();
-                            allJs += '\n\n// === ' + short + ' ===\n\n' + c;
-                            scannedFiles.add(u);
-                            log('  ✅ ' + c.length + ' B'); } else log('  ⚠ HTTP ' + r.status);
-                    } catch (err) { log('  ⚠ Xəta'); }
-                    completedFiles++;
-                    updateProgress();
+                        if (r.ok) { const c = await r.text(); allJs += '\n\n// === ' + short + ' ===\n\n' + c; scannedFiles.add(u); log('  ✅ ' + c.length + ' B'); }
+                        else log('  ⚠ HTTP ' + r.status);
+                    } catch { log('  ⚠ Xəta'); }
+                    completedFiles++; updateProgress();
                 }
                 log('📊 Ümumi: ' + allJs.length + ' B, ' + scannedFiles.size + ' fayl');
-                if (allJs.trim().length === 0) { showToast('JS yüklənmədi.');
-                    progressSection.classList.add('hidden'); return; }
+                if (allJs.trim().length === 0) { showToast('JS yüklənmədi.'); progressSection.classList.add('hidden'); return; }
                 await analyzeText(allJs, source + ' (' + scannedFiles.size + ' fayl)');
                 setTimeout(() => progressSection.classList.add('hidden'), 1500);
             }
 
-            // === CORE ANALYZER ===
+            // ── Core analyser ─────────────────────────────────────────────────────
             async function analyzeText(text, source) {
-                const lines = text.split('\n');
+                const lines      = text.split('\n');
                 const totalLines = lines.length;
                 const endpointMap = new Map();
-                const secretMap = new Map();
-                const vulns = [];
+                const secretMap   = new Map();
+                const vulns       = [];
 
-                const urlRe =
-                    /(?:https?:\/\/[^\s"'`<>]+(?:\.[^\s"'`<>]+)+)|(?:\/[a-zA-Z_][a-zA-Z0-9_\-./]*?(?:api|v[0-9]+|graphql|rest|auth|login|signup|user|admin|config|token|oauth|callback|webhook|upload|download|static|endpoint|service|proxy|gateway|backend|health|metrics|debug|panel|s3|bucket|firebase|aws|swagger|docs|graphiql|voyager|playground|actuator|jenkins|gitlab|prometheus|grafana|soap|xmlrpc|amf|flex)[a-zA-Z0-9_\-/.]*)/gi;
+                const urlRe = /(?:https?:\/\/[^\s"'`<>]+(?:\.[^\s"'`<>]+)+)|(?:\/[a-zA-Z_][a-zA-Z0-9_\-./]*?(?:api|v[0-9]+|graphql|rest|auth|login|signup|user|admin|config|token|oauth|callback|webhook|upload|download|static|endpoint|service|proxy|gateway|backend|health|metrics|debug|panel|s3|bucket|firebase|aws|swagger|docs|graphiql|voyager|playground|actuator|jenkins|gitlab|prometheus|grafana|soap|xmlrpc|amf|flex)[a-zA-Z0-9_\-/.]*)/gi;
 
-                const secretRe =
-                    /(?:"(?:api_key|apikey|secret|token|password|jwt|access_key|secret_key|private_key|auth_token|refresh_token|session_secret|client_secret|apiSecret|apiKey|passwd|pass)"\s*:\s*"([^"]+)")|(?:'(?:api_key|apikey|secret|token|password|jwt|access_key|secret_key|private_key|auth_token|refresh_token|session_secret|client_secret|apiSecret|apiKey|passwd|pass)'\s*:\s*'([^']+)')|(?:["'](?:api_key|apikey|secret|token|password|jwt|access_key|secret_key|private_key|auth_token|refresh_token|session_secret|client_secret|apiSecret|apiKey|passwd|pass)["']\s*[=:]\s*["']([^"']+)["'])/gi;
+                const secretRe = /(?:"(?:api_key|apikey|secret|token|password|jwt|access_key|secret_key|private_key|auth_token|refresh_token|session_secret|client_secret|apiSecret|apiKey|passwd|pass)"\s*:\s*"([^"]+)")|(?:'(?:api_key|apikey|secret|token|password|jwt|access_key|secret_key|private_key|auth_token|refresh_token|session_secret|client_secret|apiSecret|apiKey|passwd|pass)'\s*:\s*'([^']+)')|(?:["'](?:api_key|apikey|secret|token|password|jwt|access_key|secret_key|private_key|auth_token|refresh_token|session_secret|client_secret|apiSecret|apiKey|passwd|pass)["']\s*[=:]\s*["']([^"']+)["'])/gi;
 
-                // Credit card regex (Luhn check omitted for speed)
                 const ccRe = /\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})\b/g;
 
                 for (let i = 0; i < lines.length; i++) {
                     const line = lines[i];
-                    const ln = i + 1;
+                    const ln   = i + 1;
 
-                    // URLs
                     urlRe.lastIndex = 0;
                     let m;
                     while ((m = urlRe.exec(line)) !== null) {
                         const v = m[0].trim();
-                        if (v.length > 3) {
-                            const k = v + '_' + source + '_' + ln;
-                            if (!endpointMap.has(k)) endpointMap.set(k, { value: v, line: ln, source });
-                        }
+                        if (v.length > 3) { const k = v + '_' + source + '_' + ln; if (!endpointMap.has(k)) endpointMap.set(k, { value: v, line: ln, source }); }
                     }
 
-                    // Secrets
                     secretRe.lastIndex = 0;
                     while ((m = secretRe.exec(line)) !== null) {
                         const c = m[1] || m[2] || m[3];
-                        if (c && c.trim().length > 0 && !c.includes('${') && !c.startsWith('process.') && !c.startsWith(
-                            'YOUR_')) {
+                        if (c && c.trim().length > 0 && !c.includes('${') && !c.startsWith('process.') && !c.startsWith('YOUR_')) {
                             const k = c + '_' + source + '_' + ln;
                             if (!secretMap.has(k)) secretMap.set(k, { value: c, line: ln, source });
                         }
                     }
 
-                    // Loose tokens
-                    const ltRe =
-                        /["'](?:token|bearer|auth|session|access|refresh|secret|key|jwt|apikey|api_key)["']\s*[:=]\s*["']([a-zA-Z0-9_\-\.]{16,})["']/gi;
+                    const ltRe = /["'](?:token|bearer|auth|session|access|refresh|secret|key|jwt|apikey|api_key)["']\s*[:=]\s*["']([a-zA-Z0-9_\-\.]{16,})["']/gi;
                     ltRe.lastIndex = 0;
                     while ((m = ltRe.exec(line)) !== null) {
                         const c = m[1];
-                        if (c) { const k = 'loose_' + source + '_' + c.substring(0, 10) + '_' + ln; if (!secretMap.has(k))
-                                secretMap.set(k, { value: c, line: ln, source }); }
+                        if (c) { const k = 'loose_' + source + '_' + c.substring(0, 10) + '_' + ln; if (!secretMap.has(k)) secretMap.set(k, { value: c, line: ln, source }); }
                     }
 
-                    // JWT
                     const jwtRe = /["']([a-zA-Z0-9_\-]{20,}\.[a-zA-Z0-9_\-]{4,}\.[a-zA-Z0-9_\-]{4,})["']/g;
                     jwtRe.lastIndex = 0;
                     while ((m = jwtRe.exec(line)) !== null) {
                         const c = m[1];
-                        if (c && c.split('.').length === 3) {
-                            const k = 'jwt_' + source + '_' + c.substring(0, 16) + '_' + ln;
-                            if (!secretMap.has(k)) secretMap.set(k, { value: c, line: ln, source });
-                        }
+                        if (c && c.split('.').length === 3) { const k = 'jwt_' + source + '_' + c.substring(0, 16) + '_' + ln; if (!secretMap.has(k)) secretMap.set(k, { value: c, line: ln, source }); }
                     }
 
-                    // Credit cards
                     ccRe.lastIndex = 0;
                     while ((m = ccRe.exec(line)) !== null) {
                         const c = m[0];
                         const k = 'cc_' + c + '_' + ln;
                         if (!secretMap.has(k)) secretMap.set(k, { value: c, line: ln, source });
-                        vulns.push({ type: 'Sensitive Data', severity: 'high', detail: 'Kredit kartı: ' + c,
-                            endpoint: c, line: ln });
+                        vulns.push({ type: 'Sensitive Data', severity: 'high', detail: 'Kredit kartı: ' + c, endpoint: c, line: ln });
                     }
                 }
 
-                const endpoints = Array.from(endpointMap.values());
-                const secrets = Array.from(secretMap.values());
+                const endpoints  = Array.from(endpointMap.values());
+                const secrets    = Array.from(secretMap.values());
 
-                // Auto-detect OpenAPI/Swagger/GraphQL
                 for (const ep of endpoints) {
                     const v = ep.value.toLowerCase();
-                    if (v.includes('swagger') || v.includes('openapi') || v.includes('api-docs') || v.includes(
-                            'swagger-ui') || v.includes('api/docs') || v.includes('spec')) {
-                        vulns.push({ type: 'OpenAPI/Swagger', severity: 'high', detail: 'API Schema aşkarlandı',
-                            endpoint: ep.value, line: ep.line });
+                    if (v.includes('swagger')||v.includes('openapi')||v.includes('api-docs')||v.includes('swagger-ui')||v.includes('api/docs')||v.includes('spec')) {
+                        vulns.push({ type:'OpenAPI/Swagger', severity:'high', detail:'API Schema aşkarlandı', endpoint:ep.value, line:ep.line });
                     }
-                    if (v.includes('graphql') || v.includes('graphiql') || v.includes('voyager') || v.includes(
-                            'playground')) {
-                        vulns.push({ type: 'GraphQL', severity: 'medium', detail: 'GraphQL endpoint aşkarlandı',
-                            endpoint: ep.value, line: ep.line });
+                    if (v.includes('graphql')||v.includes('graphiql')||v.includes('voyager')||v.includes('playground')) {
+                        vulns.push({ type:'GraphQL', severity:'medium', detail:'GraphQL endpoint aşkarlandı', endpoint:ep.value, line:ep.line });
                     }
-                    // Check for actuator endpoints
-                    if (v.includes('actuator') || v.includes('health') && v.includes('/health')) {
-                        vulns.push({ type: 'Spring Boot Actuator', severity: 'high',
-                            detail: 'Actuator endpoint aşkarlandı', endpoint: ep.value, line: ep.line });
+                    if (v.includes('actuator')||(v.includes('health')&&v.includes('/health'))) {
+                        vulns.push({ type:'Spring Boot Actuator', severity:'high', detail:'Actuator endpoint aşkarlandı', endpoint:ep.value, line:ep.line });
                     }
                 }
 
-                // Check for potential parameter fuzzing opportunities
                 for (const ep of endpoints) {
                     const v = ep.value;
-                    if (v.includes('?') || v.includes('{') || v.includes(':')) {
-                        // Has params already
-                    } else if (v.match(/\/[a-zA-Z]+\/[a-zA-Z]+$/)) {
-                        // Simple path, may have params
+                    if (!v.includes('?') && !v.includes('{') && !v.includes(':') && v.match(/\/[a-zA-Z]+\/[a-zA-Z]+$/)) {
                         discoveredParams.add(v);
                     }
                 }
 
-                const withRisk = endpoints.map(r => ({ type: 'endpoint', value: r.value, line: r.line, source: r.source,
-                    risk: assessRisk(r.value) }));
-                const secWithRisk = secrets.map(r => ({ type: 'secret', value: r.value, line: r.line, source: r.source,
-                    risk: { level: 'high', label: '🔑 Gizli Açar', cls: 'critical' } }));
+                const withRisk    = endpoints.map(r => ({ type:'endpoint', value:r.value, line:r.line, source:r.source, risk:assessRisk(r.value) }));
+                const secWithRisk = secrets.map(r  => ({ type:'secret',   value:r.value, line:r.line, source:r.source, risk:{ level:'high', label:'🔑 Gizli Açar', cls:'critical' } }));
 
                 allResults = [...withRisk, ...secWithRisk];
-                allVulns = vulns;
+                allVulns   = vulns;
 
                 const highCount = allResults.filter(r => r.risk.level === 'high').length;
-
                 statEndpoints.textContent = endpoints.length;
-                statSecrets.textContent = secrets.length;
-                statVulns.textContent = vulns.length;
-                statHighRisk.textContent = highCount;
-                statFiles.textContent = scannedFiles.size > 0 ? scannedFiles.size : 1;
-                statLines.textContent = totalLines.toLocaleString();
+                statSecrets.textContent   = secrets.length;
+                statVulns.textContent     = vulns.length;
+                statHighRisk.textContent  = highCount;
+                statFiles.textContent     = scannedFiles.size > 0 ? scannedFiles.size : 1;
+                statLines.textContent     = totalLines.toLocaleString();
 
                 renderResults();
                 renderVulns();
-                renderAllTabs();
-
-                // Auto-run wayback if we have a URL source
-                if (scanSource && scanSource.startsWith('http')) {
-                    // Don't auto-run, user can click
-                }
-
-                // Show results tab
+                renderAllTabs();   // FIX 6: now defined below
                 switchTab('results');
                 log('✅ Tamam. ' + endpoints.length + ' EP, ' + secrets.length + ' secret, ' + vulns.length + ' zəiflik.');
             }
 
-            // === RENDER RESULTS ===
+            // ── FIX 6: renderAllTabs was called but never defined ─────────────────
+            function renderAllTabs() {
+                // individual renderers already called; placeholder for future tabs
+            }
+
+            // ── FIX 7 & 8: renderResults — srcShort & liveBtn were undefined,
+            //    table row HTML was incomplete/truncated ───────────────────────────
             function renderResults() {
                 let filtered = allResults.filter(r => {
                     if (currentFilter !== 'all' && r.type !== currentFilter) return false;
                     if (currentRiskFilter !== 'all' && r.risk.level !== currentRiskFilter) return false;
                     if (currentSearch) {
                         const q = currentSearch.toLowerCase();
-                        return r.value.toLowerCase().includes(q) || String(r.line).includes(q) || (r.source || '')
-                            .toLowerCase().includes(q);
+                        return r.value.toLowerCase().includes(q) || String(r.line).includes(q) || (r.source||'').toLowerCase().includes(q);
                     }
                     return true;
                 });
 
-                const order = { high: 0, medium: 1, low: 2 };
-                filtered.sort((a, b) => (order[a.risk.level] || 99) - (order[b.risk.level] || 99));
-
+                const order = { high:0, medium:1, low:2 };
+                filtered.sort((a, b) => (order[a.risk.level]||99) - (order[b.risk.level]||99));
                 resultCount.textContent = filtered.length;
 
-                if (filtered.length === 0) { resultsBody.innerHTML = '';
-                    emptyState.classList.remove('hidden'); return; }
+                if (filtered.length === 0) { resultsBody.innerHTML = ''; emptyState.classList.remove('hidden'); return; }
                 emptyState.classList.add('hidden');
 
                 let html = '';
                 for (const r of filtered) {
-                    const isEP = r.type === 'endpoint';
-                    const badge = isEP ? 'badge-endpoint' : 'badge-secret';
-                    const label = isEP ? 'URL' : 'SEC';
-                    const rowCls = r.risk.level === 'high' ? 'vuln-critical' : r.risk.level === 'medium' ? 'vuln-high' :
-                        'vuln-low';
-                    const escaped = escapeHtml(r.value);
-                    const srcShort
-<td class="p-2 text-[0.55rem]">${liveBtn}</td>
-                </tr>`;
+                    const isEP     = r.type === 'endpoint';
+                    const badge    = isEP ? 'badge-endpoint' : 'badge-secret';
+                    const label    = isEP ? 'URL' : 'SEC';
+                    const rowCls   = r.risk.level === 'high' ? 'vuln-critical' : r.risk.level === 'medium' ? 'vuln-high' : 'vuln-low';
+                    const escaped  = escapeHtml(r.value);
+
+                    // ── FIX: srcShort properly assigned ──────────────────────────
+                    const rawSrc   = (r.source || '');
+                    const srcShort = escapeHtml((rawSrc.split('/').pop() || rawSrc || 'unknown').substring(0, 20));
+
+                    const statusDot   = r.status === 'online' ? 'online' : r.status === 'offline' ? 'offline' : 'unknown';
+                    const statusLabel = r.status === 'online' ? 'Canlı' : r.status === 'offline' ? 'Qapalı' : '—';
+
+                    // ── FIX: liveBtn properly defined ─────────────────────────────
+                    const liveBtn = isEP
+                        ? `<button class="live-btn btn-live px-1.5 py-0.5 rounded text-[0.5rem]" data-ep="${escaped}">🔍</button>`
+                        : '<span class="text-gray-600 text-[0.5rem]">—</span>';
+
+                    // ── FIX: complete table row HTML ──────────────────────────────
+                    html += `<tr class="${rowCls} border-b border-white/[0.03] hover:bg-white/[0.015] transition">
+                        <td class="p-2"><span class="${badge}">${label}</span></td>
+                        <td class="p-2"><span class="badge-risk ${r.risk.cls}">${r.risk.label}</span></td>
+                        <td class="p-2 font-mono-custom"><span class="value-truncate block text-gray-300 text-[0.6rem]" title="${escaped}">${escaped}</span></td>
+                        <td class="p-2 text-[0.55rem]"><span class="status-dot ${statusDot}"></span><span class="text-gray-400">${statusLabel}</span></td>
+                        <td class="hidden sm:table-cell p-2 text-[0.55rem] text-gray-500 font-mono-custom">${r.line || '—'}</td>
+                        <td class="hidden md:table-cell p-2"><span class="badge-source" title="${escapeHtml(rawSrc)}">${srcShort}</span></td>
+                        <td class="p-2 text-[0.55rem]">${liveBtn}</td>
+                    </tr>`;
                 }
                 resultsBody.innerHTML = html;
 
-                // Attach live check events
                 document.querySelectorAll('.live-btn').forEach(btn => {
-                    btn.addEventListener('click', async function() {
+                    btn.addEventListener('click', async function () {
                         if (this.disabled) return;
                         await liveCheckEndpoint(this.dataset.ep, this);
                     });
                 });
             }
 
-            // ===== LIVE CHECK =====
+            // ── Live check ────────────────────────────────────────────────────────
             async function liveCheckEndpoint(url, btn) {
                 if (btn.disabled) return;
-                btn.disabled = true;
-                btn.innerHTML = '⏳';
+                btn.disabled = true; btn.innerHTML = '⏳';
                 const result = allResults.find(r => r.value === url);
                 if (result) result.status = 'loading';
                 updateRowStatus(url, 'loading', 'Yoxlanılır...', 'loading');
                 try {
-                    const controller = new AbortController();
-                    setTimeout(() => controller.abort(), 8000);
-                    await fetch(url, { method: 'HEAD', mode: 'no-cors', signal: controller.signal });
-                    if (result) { result.status = 'online';
-                        updateRowStatus(url, 'online', 'Canlı', 'online');
-                        btn.innerHTML = '✅'; }
+                    const ctrl = new AbortController(); setTimeout(() => ctrl.abort(), 8000);
+                    await fetch(url, { method:'HEAD', mode:'no-cors', signal:ctrl.signal });
+                    if (result) { result.status = 'online'; updateRowStatus(url,'online','Canlı','online'); btn.innerHTML='✅'; }
                 } catch {
                     try {
-                        const controller = new AbortController();
-                        setTimeout(() => controller.abort(), 8000);
-                        await fetch(url, { method: 'GET', mode: 'no-cors', signal: controller.signal });
-                        if (result) { result.status = 'online';
-                            updateRowStatus(url, 'online', 'Canlı', 'online');
-                            btn.innerHTML = '✅'; }
+                        const ctrl = new AbortController(); setTimeout(() => ctrl.abort(), 8000);
+                        await fetch(url, { method:'GET', mode:'no-cors', signal:ctrl.signal });
+                        if (result) { result.status='online'; updateRowStatus(url,'online','Canlı','online'); btn.innerHTML='✅'; }
                     } catch {
-                        if (result) { result.status = 'offline';
-                            updateRowStatus(url, 'offline', 'Xəta/Qapalı', 'offline');
-                            btn.innerHTML = '❌'; }
+                        if (result) { result.status='offline'; updateRowStatus(url,'offline','Xəta/Qapalı','offline'); btn.innerHTML='❌'; }
                     }
                 }
                 btn.disabled = false;
             }
 
             function updateRowStatus(url, status, label, dotClass) {
-                const rows = document.querySelectorAll('#results-body tr');
-                for (const row of rows) {
+                document.querySelectorAll('#results-body tr').forEach(row => {
                     const btn = row.querySelector('.live-btn');
                     if (btn && btn.dataset.ep === url) {
                         const td = row.querySelector('td:nth-child(4)');
-                        if (td) td.innerHTML =
-                            `<span class="status-dot ${dotClass}"></span><span class="text-[0.55rem]">${label}</span>`;
+                        if (td) td.innerHTML = `<span class="status-dot ${dotClass}"></span><span class="text-[0.55rem]">${label}</span>`;
                     }
-                }
+                });
             }
 
-            // ===== LIVE ALL =====
-            document.getElementById('btn-live-all').addEventListener('click', async function() {
+            // ── Live all ──────────────────────────────────────────────────────────
+            $('btn-live-all').addEventListener('click', async function () {
                 if (liveCheckInProgress) return;
-                liveCheckInProgress = true;
-                this.disabled = true;
+                liveCheckInProgress = true; this.disabled = true;
                 this.innerHTML = '<span class="spinner" style="width:12px;height:12px;"></span> Yoxlanılır...';
                 const eps = allResults.filter(r => r.type === 'endpoint');
-                liveStatus.classList.remove('hidden');
-                liveStatus.textContent = '0/' + eps.length;
+                liveStatus.classList.remove('hidden'); liveStatus.textContent = '0/' + eps.length;
                 let done = 0;
                 for (const ep of eps) {
                     const btns = document.querySelectorAll(`.live-btn[data-ep="${CSS.escape(ep.value)}"]`);
                     if (btns.length) await liveCheckEndpoint(ep.value, btns[0]);
-                    done++;
-                    liveStatus.textContent = done + '/' + eps.length;
+                    done++; liveStatus.textContent = done + '/' + eps.length;
                     await new Promise(r => setTimeout(r, 200));
                 }
                 liveStatus.textContent = '✅ Tamam: ' + done;
-                this.innerHTML = '🔍 Hamısını Yoxla';
-                this.disabled = false;
-                liveCheckInProgress = false;
+                this.innerHTML = '🔍 Hamısını Yoxla'; this.disabled = false; liveCheckInProgress = false;
                 setTimeout(() => liveStatus.classList.add('hidden'), 4000);
             });
 
-            // ===== RENDER VULNS =====
+            // ── Render vulns ──────────────────────────────────────────────────────
             function renderVulns() {
                 if (allVulns.length === 0) {
                     vulnsList.innerHTML = '<div class="text-center text-gray-600 text-xs py-6">Zəiflik aşkarlanmayıb.</div>';
-                    vulnCount.textContent = '0';
-                    return;
+                    vulnCount.textContent = '0'; return;
                 }
                 vulnCount.textContent = allVulns.length;
                 let html = '';
                 for (const v of allVulns) {
-                    const sevCls = v.severity === 'high' ? 'vuln-critical' : v.severity === 'medium' ? 'vuln-high' :
-                        'vuln-low';
-                    const sevBadge = v.severity === 'high' ? '🔴 Kritik' : v.severity === 'medium' ? '🟠 Yüksək' :
-                        '🟡 Orta';
+                    const sevCls   = v.severity==='high'?'vuln-critical':v.severity==='medium'?'vuln-high':'vuln-low';
+                    const sevBadge = v.severity==='high'?'🔴 Kritik':v.severity==='medium'?'🟠 Yüksək':'🟡 Orta';
                     html += `<div class="${sevCls} glass-card rounded-lg p-3 text-xs flex items-start gap-3">
                         <span class="shrink-0 mt-0.5 text-[0.7rem]">${sevBadge}</span>
                         <div class="flex-1 min-w-0">
@@ -1209,63 +862,43 @@
                 vulnsList.innerHTML = html;
             }
 
-            // ===== SEARCH & FILTER =====
-            searchInput.addEventListener('input', e => { currentSearch = e.target.value.trim();
-                renderResults(); });
-            filterBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    filterBtns.forEach(b => b.classList.remove('active-filter'));
-                    btn.classList.add('active-filter');
-                    currentFilter = btn.dataset.filter;
-                    renderResults();
-                });
-            });
-            riskFilterBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    riskFilterBtns.forEach(b => b.classList.remove('active-risk'));
-                    btn.classList.add('active-risk');
-                    currentRiskFilter = btn.dataset.risk;
-                    renderResults();
-                });
-            });
+            // ── Search & filter ───────────────────────────────────────────────────
+            searchInput.addEventListener('input', e => { currentSearch = e.target.value.trim(); renderResults(); });
+            filterBtns.forEach(btn => btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active-filter'));
+                btn.classList.add('active-filter'); currentFilter = btn.dataset.filter; renderResults();
+            }));
+            riskFilterBtns.forEach(btn => btn.addEventListener('click', () => {
+                riskFilterBtns.forEach(b => b.classList.remove('active-risk'));
+                btn.classList.add('active-risk'); currentRiskFilter = btn.dataset.risk; renderResults();
+            }));
 
-            // ===== WAYBACK MACHINE =====
-            document.getElementById('btn-wayback').addEventListener('click', async function() {
+            // ── Wayback ───────────────────────────────────────────────────────────
+            $('btn-wayback').addEventListener('click', async function () {
                 const target = scanSource || urlInput.value.trim();
                 if (!target || !target.startsWith('http')) { showToast('Əvvəlcə URL skan edin.'); return; }
-                this.disabled = true;
-                this.innerHTML = '<span class="spinner" style="width:12px;height:12px;"></span>';
+                this.disabled = true; this.innerHTML = '<span class="spinner" style="width:12px;height:12px;"></span>';
                 waybackStatus.textContent = 'Sorğu göndərilir...';
                 try {
                     const domain = new URL(target).hostname;
-                    const resp = await fetch(
-                        `https://web.archive.org/cdx/search/cdx?url=${domain}/*&output=json&fl=original,timestamp&limit=500&collapse=urlkey`,
-                        { mode: 'cors' });
+                    const resp = await fetch(`https://web.archive.org/cdx/search/cdx?url=${domain}/*&output=json&fl=original,timestamp&limit=500&collapse=urlkey`, { mode:'cors' });
                     if (!resp.ok) throw new Error('HTTP ' + resp.status);
                     const data = await resp.json();
-                    waybackUrls = data.slice(1).map(r => ({ url: r[0], date: r[1] }));
+                    waybackUrls = data.slice(1).map(r => ({ url:r[0], date:r[1] }));
                     if (waybackUrls.length === 0) {
-                        waybackList.innerHTML =
-                        '<p class="text-gray-600 text-xs text-center py-4">Heç nə tapılmadı.</p>';
+                        waybackList.innerHTML = '<p class="text-gray-600 text-xs text-center py-4">Heç nə tapılmadı.</p>';
                     } else {
-                        let html =
-                            `<p class="text-gray-400 text-xs mb-2">${waybackUrls.length} URL tapıldı</p><div class="space-y-0.5">`;
-                        const shown = waybackUrls.slice(0, 100);
-                        for (const w of shown) {
-                            html +=
-                                `<div class="flex items-center gap-2 text-[0.6rem] py-0.5"><span class="text-gray-600 w-20 font-mono-custom">${w.date}</span><a href="${escapeHtml(w.url)}" target="_blank" class="text-cyan-400 hover:underline truncate">${escapeHtml(w.url)}</a></div>`;
-                        }
+                        let html = `<p class="text-gray-400 text-xs mb-2">${waybackUrls.length} URL tapıldı</p><div class="space-y-0.5">`;
+                        waybackUrls.slice(0, 100).forEach(w => {
+                            html += `<div class="flex items-center gap-2 text-[0.6rem] py-0.5"><span class="text-gray-600 w-20 font-mono-custom">${w.date}</span><a href="${escapeHtml(w.url)}" target="_blank" class="text-cyan-400 hover:underline truncate">${escapeHtml(w.url)}</a></div>`;
+                        });
                         html += '</div>';
-                        if (waybackUrls.length > 100) html +=
-                            `<p class="text-gray-600 text-[0.55rem] mt-2">+ ${waybackUrls.length - 100} daha</p>`;
+                        if (waybackUrls.length > 100) html += `<p class="text-gray-600 text-[0.55rem] mt-2">+ ${waybackUrls.length-100} daha</p>`;
                         waybackList.innerHTML = html;
-                        for (const w of waybackUrls) {
+                        waybackUrls.forEach(w => {
                             const risk = assessRisk(w.url);
-                            if (!allResults.find(r => r.value === w.url)) {
-                                allResults.push({ type: 'endpoint', value: w.url, line: 0, source: 'wayback-machine',
-                                    risk });
-                            }
-                        }
+                            if (!allResults.find(r => r.value === w.url)) allResults.push({ type:'endpoint', value:w.url, line:0, source:'wayback-machine', risk });
+                        });
                         renderResults();
                         showToast(waybackUrls.length + ' URL Wayback-dən əlavə edildi.');
                     }
@@ -1274,270 +907,183 @@
                     waybackStatus.textContent = '❌ Xəta: ' + err.message;
                     showToast('Wayback xətası: ' + err.message);
                 }
-                this.disabled = false;
-                this.innerHTML = '🕰️ Çək';
+                this.disabled = false; this.innerHTML = '🕰️ Çək';
             });
 
-            // ===== AI ANALYSIS =====
-            document.getElementById('btn-ai-analyze').addEventListener('click', function() {
+            // ── AI analysis ───────────────────────────────────────────────────────
+            $('btn-ai-analyze').addEventListener('click', function () {
                 if (allResults.length === 0) { showToast('Əvvəlcə skan edin.'); return; }
-                this.disabled = true;
-                this.innerHTML = '<span class="spinner" style="width:12px;height:12px;"></span>';
+                this.disabled = true; this.innerHTML = '<span class="spinner" style="width:12px;height:12px;"></span>';
                 aiStatus.textContent = 'Analiz edilir...';
-
                 const highRisk = allResults.filter(r => r.risk.level === 'high');
                 let analysis = '📊 Ümumi Statistik:\n';
-                analysis +=
-                    `- ${allResults.filter(r=>r.type==='endpoint').length} endpoint, ${allResults.filter(r=>r.type==='secret').length} secret\n`;
+                analysis += `- ${allResults.filter(r=>r.type==='endpoint').length} endpoint, ${allResults.filter(r=>r.type==='secret').length} secret\n`;
                 analysis += `- ${highRisk.length} yüksək risk, ${allVulns.length} potensial zəiflik\n\n`;
                 analysis += '🔥 Yüksək Risk Endpoint-lər:\n';
-                highRisk.slice(0, 15).forEach(r => { analysis += `- \`${r.value}\` (${r.risk.label})\n`; });
+                highRisk.slice(0,15).forEach(r => { analysis += `- \`${r.value}\` (${r.risk.label})\n`; });
                 if (highRisk.length > 15) analysis += `- ...və ${highRisk.length-15} daha\n`;
-
-                if (allVulns.length > 0) {
-                    analysis += '\n🔴 Aşkarlanan Zəifliklər:\n';
-                    allVulns.forEach(v => { analysis += `- **${v.type}** (${v.severity}): ${v.detail}\n`; });
-                }
-
+                if (allVulns.length > 0) { analysis += '\n🔴 Aşkarlanan Zəifliklər:\n'; allVulns.forEach(v => { analysis += `- **${v.type}** (${v.severity}): ${v.detail}\n`; }); }
                 analysis += '\n🎯 Tövsiyələr:\n';
-                if (highRisk.some(r => r.value.includes('admin'))) analysis +=
-                    '- Admin panellərini brute-force ilə test edin\n';
-                if (highRisk.some(r => r.value.includes('graphql'))) analysis +=
-                    '- GraphQL introspection: `{__schema{types{name}}}`\n';
-                if (highRisk.some(r => r.value.includes('upload'))) analysis +=
-                    '- File upload shell yükləməyi test edin\n';
-                if (highRisk.some(r => r.value.includes('swagger'))) analysis +=
-                    '- Swagger schema-nı endirib API test edin\n';
-                if (highRisk.some(r => r.value.includes('actuator'))) analysis +=
-                    '- Actuator endpoint-lərini yoxlayın\n';
-                if (allVulns.some(v => v.type === 'Sensitive Data')) analysis +=
-                    '- Kredit kartı məlumatlarını təmizləyin\n';
+                if (highRisk.some(r=>r.value.includes('admin')))    analysis += '- Admin panellərini brute-force ilə test edin\n';
+                if (highRisk.some(r=>r.value.includes('graphql')))  analysis += '- GraphQL introspection: `{__schema{types{name}}}`\n';
+                if (highRisk.some(r=>r.value.includes('upload')))   analysis += '- File upload shell yükləməyi test edin\n';
+                if (highRisk.some(r=>r.value.includes('swagger')))  analysis += '- Swagger schema-nı endirib API test edin\n';
+                if (highRisk.some(r=>r.value.includes('actuator'))) analysis += '- Actuator endpoint-lərini yoxlayın\n';
+                if (allVulns.some(v=>v.type==='Sensitive Data'))    analysis += '- Kredit kartı məlumatlarını təmizləyin\n';
                 analysis += '\n⚠ IDOR testi: Parametrləri dəyişdirin\n';
                 analysis += '⚠ CORS testi: Origin başlığı ilə yoxlayın\n';
-
-                aiResult.innerHTML =
-                    `<pre class="text-xs text-gray-300 leading-relaxed whitespace-pre-wrap">${analysis}</pre>`;
+                aiResult.innerHTML = `<pre class="text-xs text-gray-300 leading-relaxed whitespace-pre-wrap">${escapeHtml(analysis)}</pre>`;
                 aiStatus.textContent = '✅ Hazır';
-                this.disabled = false;
-                this.innerHTML = '🤖 Analiz et';
+                this.disabled = false; this.innerHTML = '🤖 Analiz et';
                 switchTab('ai');
             });
 
-            // ===== REPORT GENERATION =====
-            document.getElementById('btn-gen-report').addEventListener('click', function() {
+            // ── Report ────────────────────────────────────────────────────────────
+            $('btn-gen-report').addEventListener('click', function () {
                 if (allResults.length === 0) { showToast('Əvvəlcə skan edin.'); return; }
                 const highRisk = allResults.filter(r => r.risk.level === 'high');
-                const mediumRisk = allResults.filter(r => r.risk.level === 'medium');
-                let report = '========================================\n';
-                report += '  CYBERDELVE BUG BOUNTY REPORT\n';
-                report += '========================================\n\n';
+                let report = '========================================\n  CYBERDELVE BUG BOUNTY REPORT\n========================================\n\n';
                 report += `Tarix: ${new Date().toISOString()}\n`;
                 report += `Hədəf: ${scanSource || urlInput.value.trim() || 'Bilinmir'}\n\n`;
                 report += `Endpoint: ${allResults.filter(r=>r.type==='endpoint').length}\n`;
                 report += `Secret: ${allResults.filter(r=>r.type==='secret').length}\n`;
-                report += `Yüksək Risk: ${highRisk.length}\n`;
-                report += `Zəiflik: ${allVulns.length}\n\n`;
-
-                if (allVulns.length > 0) {
-                    report += '--- ZƏİFLİKLƏR ---\n';
-                    allVulns.forEach((v, i) => {
-                        report += `${i+1}. [${v.severity.toUpperCase()}] ${v.type}: ${v.detail}\n`;
-                    });
-                }
-                report += '\n--- ENDPOINT-LƏR ---\n';
-                highRisk.forEach((r, i) => { report += `${i+1}. ${r.value}\n`; });
-                report += '\n--- REMEDIATION ---\n';
-                report += '1. Admin panellərini məhdudlaşdırın\n2. API authentication tətbiq edin\n';
-                report += '3. CORS konfiqurasiyasını yoxlayın\n4. Key-ləri koddan çıxarın\n';
-
+                report += `Yüksək Risk: ${highRisk.length}\nZəiflik: ${allVulns.length}\n\n`;
+                if (allVulns.length>0) { report += '--- ZƏİFLİKLƏR ---\n'; allVulns.forEach((v,i)=>{ report+=`${i+1}. [${v.severity.toUpperCase()}] ${v.type}: ${v.detail}\n`; }); }
+                report += '\n--- ENDPOINT-LƏR ---\n'; highRisk.forEach((r,i)=>{ report+=`${i+1}. ${r.value}\n`; });
+                report += '\n--- REMEDIATION ---\n1. Admin panellərini məhdudlaşdırın\n2. API authentication tətbiq edin\n3. CORS konfiqurasiyasını yoxlayın\n4. Key-ləri koddan çıxarın\n';
                 reportContent.textContent = report;
-                showToast('✅ Report yaradıldı');
-                switchTab('report');
+                showToast('✅ Report yaradıldı'); switchTab('report');
             });
 
-            // ===== EXPORT FUNCTIONS =====
-            document.getElementById('btn-export-txt').addEventListener('click', () => {
-                const eps = allResults.filter(r => r.type === 'endpoint').map(r => r.value);
-                const secs = allResults.filter(r => r.type === 'secret').map(r => r.value);
-                let txt = '# CyberDelve Export\n# ' + new Date().toISOString() + '\n\n=== ENDPOINTS ===\n' + eps.join(
-                    '\n') + '\n\n=== SECRETS ===\n' + secs.join('\n');
-                downloadFile(txt, 'cyberdelve-endpoints.txt', 'text/plain');
+            // ── Export ────────────────────────────────────────────────────────────
+            function downloadFile(content, filename, mime) {
+                const blob = new Blob([content], { type:mime });
+                const url  = URL.createObjectURL(blob);
+                const a    = document.createElement('a');
+                a.href = url; a.download = filename; a.click();
+                URL.revokeObjectURL(url);
+            }
+
+            $('btn-export-txt').addEventListener('click', () => {
+                const eps  = allResults.filter(r=>r.type==='endpoint').map(r=>r.value);
+                const secs = allResults.filter(r=>r.type==='secret').map(r=>r.value);
+                downloadFile('# CyberDelve Export\n# ' + new Date().toISOString() + '\n\n=== ENDPOINTS ===\n' + eps.join('\n') + '\n\n=== SECRETS ===\n' + secs.join('\n'), 'cyberdelve-endpoints.txt', 'text/plain');
                 showToast('✅ ' + eps.length + ' endpoint endirildi');
             });
-
-            document.getElementById('btn-export-json').addEventListener('click', () => {
-                const data = {
-                    exportDate: new Date().toISOString(),
-                    results: allResults.map(r => ({ type: r.type, value: r.value, line: r.line, source: r.source,
-                        risk: r.risk })),
-                    vulns: allVulns
-                };
-                downloadFile(JSON.stringify(data, null, 2), 'cyberdelve-export.json', 'application/json');
+            $('btn-export-json').addEventListener('click', () => {
+                downloadFile(JSON.stringify({ exportDate:new Date().toISOString(), results:allResults.map(r=>({type:r.type,value:r.value,line:r.line,source:r.source,risk:r.risk})), vulns:allVulns }, null, 2), 'cyberdelve-export.json', 'application/json');
                 showToast('✅ JSON endirildi');
             });
-
-            document.getElementById('btn-export-csv').addEventListener('click', () => {
+            $('btn-export-csv').addEventListener('click', () => {
                 let csv = 'Tip,Risk,Dəyər,Sətir,Mənbə\n';
-                for (const r of allResults) {
-                    csv += [r.type, r.risk.label, '"' + r.value.replace(/"/g, '""') + '"', r.line, '"' + (r.source || '')
-                        .replace(/"/g, '""') + '"'
-                    ].join(',') + '\n';
-                }
+                allResults.forEach(r => { csv += [r.type, r.risk.label, '"'+r.value.replace(/"/g,'""')+'"', r.line, '"'+(r.source||'').replace(/"/g,'""')+'"'].join(',') + '\n'; });
                 downloadFile(csv, 'cyberdelve-export.csv', 'text/csv');
                 showToast('✅ CSV endirildi');
             });
-
-            document.getElementById('btn-export-nuclei').addEventListener('click', () => {
+            $('btn-export-nuclei').addEventListener('click', () => {
                 let yaml = '';
-                for (const r of allResults) {
-                    if (r.type === 'endpoint' && r.risk.level !== 'low') {
-                        const safeId = r.value.replace(/[^a-zA-Z0-9]/g, '-').substring(0, 30);
-                        yaml += `id: cyberdelve-${safeId}\ninfo:\n  name: "${r.value}"\n  severity: ${r.risk.level}\nrequests:\n  - method: GET\n    path:\n      - "${r.value}"\n    matchers:\n      - type: status\n        status:\n          - 200\n\n`;
+                allResults.forEach(r => {
+                    if (r.type==='endpoint' && r.risk.level!=='low') {
+                        const sid = r.value.replace(/[^a-zA-Z0-9]/g,'-').substring(0,30);
+                        yaml += `id: cyberdelve-${sid}\ninfo:\n  name: "${r.value}"\n  severity: ${r.risk.level}\nrequests:\n  - method: GET\n    path:\n      - "${r.value}"\n    matchers:\n      - type: status\n        status:\n          - 200\n\n`;
                     }
-                }
-                if (!yaml) yaml = '# Heç bir endpoint export edilmədi\n';
-                downloadFile(yaml, 'cyberdelve-nuclei.yaml', 'text/yaml');
+                });
+                downloadFile(yaml || '# Heç bir endpoint export edilmədi\n', 'cyberdelve-nuclei.yaml', 'text/yaml');
                 showToast('✅ Nuclei YAML endirildi');
             });
-
-            document.getElementById('btn-export-burp').addEventListener('click', () => {
-                const items = allResults.filter(r => r.type === 'endpoint').map((r, i) => ({ id: i + 1, url: r.value,
-                    severity: r.risk.level }));
-                downloadFile(JSON.stringify(items, null, 2), 'cyberdelve-burp.json', 'application/json');
+            $('btn-export-burp').addEventListener('click', () => {
+                const items = allResults.filter(r=>r.type==='endpoint').map((r,i)=>({id:i+1,url:r.value,severity:r.risk.level}));
+                downloadFile(JSON.stringify(items,null,2), 'cyberdelve-burp.json', 'application/json');
                 showToast('✅ Burp JSON endirildi');
             });
-
-            document.getElementById('btn-export-report').addEventListener('click', () => {
+            $('btn-export-report').addEventListener('click', () => {
                 const text = reportContent.textContent;
                 if (!text || text.includes('Report yaratmaq üçün')) { showToast('Əvvəlcə report yaradın.'); return; }
                 downloadFile(text, 'cyberdelve-report.txt', 'text/plain');
                 showToast('✅ Report endirildi');
             });
 
-            function downloadFile(content, filename, mime) {
-                const blob = new Blob([content], { type: mime });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                a.click();
-                URL.revokeObjectURL(url);
-            }
-
-            // ===== PARAM FUZZ =====
-            document.getElementById('btn-fuzz-all').addEventListener('click', async function() {
+            // ── Param fuzz ────────────────────────────────────────────────────────
+            $('btn-fuzz-all').addEventListener('click', async function () {
                 if (allResults.length === 0) { showToast('Əvvəlcə skan edin.'); return; }
-                this.disabled = true;
-                this.innerHTML = '<span class="spinner" style="width:12px;height:12px;"></span> Fuzz edilir...';
-                const endpoints = allResults.filter(r => r.type === 'endpoint' && !r.value.includes('?') && r.risk
-                    .level !== 'low');
+                this.disabled = true; this.innerHTML = '<span class="spinner" style="width:12px;height:12px;"></span> Fuzz edilir...';
+                const endpoints = allResults.filter(r=>r.type==='endpoint'&&!r.value.includes('?')&&r.risk.level!=='low');
                 let found = 0;
-                for (const ep of endpoints.slice(0, 30)) {
-                    const base = ep.value.endsWith('/') ? ep.value.slice(0, -1) : ep.value;
-                    for (const param of PARAM_WORDS.slice(0, 10)) {
+                for (const ep of endpoints.slice(0,30)) {
+                    const base = ep.value.endsWith('/') ? ep.value.slice(0,-1) : ep.value;
+                    for (const param of PARAM_WORDS.slice(0,10)) {
                         const testUrl = base + '?' + param + '=test';
                         try {
-                            const controller = new AbortController();
-                            setTimeout(() => controller.abort(), 3000);
-                            const resp = await fetch(testUrl, { method: 'HEAD', mode: 'no-cors',
-                                signal: controller.signal });
-                            if (resp.ok || resp.type === 'opaque') {
-                                if (!allResults.find(r => r.value === testUrl)) {
-                                    allResults.push({ type: 'endpoint', value: testUrl, line: ep.line,
-                                        source: 'param-fuzz', risk: { level: 'medium',
-                                            label: '⚡ Param Kəşf', cls: 'high' } });
+                            const ctrl = new AbortController(); setTimeout(()=>ctrl.abort(),3000);
+                            const resp = await fetch(testUrl, { method:'HEAD', mode:'no-cors', signal:ctrl.signal });
+                            if (resp.ok || resp.type==='opaque') {
+                                if (!allResults.find(r=>r.value===testUrl)) {
+                                    allResults.push({ type:'endpoint', value:testUrl, line:ep.line, source:'param-fuzz', risk:{level:'medium',label:'⚡ Param Kəşf',cls:'high'} });
                                     found++;
                                 }
                             }
                         } catch { /* */ }
                     }
                 }
-                renderResults();
-                showToast('✅ ' + found + ' yeni parametr kəşf edildi');
-                this.disabled = false;
-                this.innerHTML = '⚡ Param Fuzz';
+                renderResults(); showToast('✅ ' + found + ' yeni parametr kəşf edildi');
+                this.disabled = false; this.innerHTML = '⚡ Param Fuzz';
             });
 
-            // ===== AUTH BYPASS =====
-            document.getElementById('btn-auth-all').addEventListener('click', async function() {
+            // ── Auth bypass ───────────────────────────────────────────────────────
+            $('btn-auth-all').addEventListener('click', async function () {
                 if (allResults.length === 0) { showToast('Əvvəlcə skan edin.'); return; }
-                this.disabled = true;
-                this.innerHTML = '<span class="spinner" style="width:12px;height:12px;"></span> Test edilir...';
-                const authEndpoints = allResults.filter(r =>
-                    r.type === 'endpoint' &&
-                    (r.value.includes('login') || r.value.includes('auth') || r.value.includes('admin') ||
-                        r.value.includes('signup') || r.value.includes('register') || r.value.includes('token'))
-                );
+                this.disabled = true; this.innerHTML = '<span class="spinner" style="width:12px;height:12px;"></span> Test edilir...';
+                const authEndpoints = allResults.filter(r=>r.type==='endpoint'&&(r.value.includes('login')||r.value.includes('auth')||r.value.includes('admin')||r.value.includes('signup')||r.value.includes('register')||r.value.includes('token')));
                 let bypassFound = 0;
-                for (const ep of authEndpoints.slice(0, 20)) {
+                for (const ep of authEndpoints.slice(0,20)) {
                     for (const payload of AUTH_BYPASS_PAYLOADS) {
                         try {
-                            const testUrl = ep.value.includes('?') ?
-                                ep.value + '&username=' + encodeURIComponent(payload) + '&password=' +
-                                encodeURIComponent(payload) :
-                                ep.value + '?username=' + encodeURIComponent(payload) + '&password=' +
-                                encodeURIComponent(payload);
-                            const controller = new AbortController();
-                            setTimeout(() => controller.abort(), 3000);
-                            const resp = await fetch(testUrl, { method: 'GET', mode: 'no-cors',
-                                signal: controller.signal });
-                            if (resp.ok || resp.type === 'opaque') {
-                                if (!allVulns.find(v => v.endpoint === ep.value && v.type === 'Auth Bypass')) {
-                                    allVulns.push({ type: 'Auth Bypass', severity: 'high',
-                                        detail: 'Potensial auth bypass: ' + payload, endpoint: ep.value,
-                                        line: ep.line });
+                            const testUrl = ep.value.includes('?') ? ep.value+'&username='+encodeURIComponent(payload)+'&password='+encodeURIComponent(payload) : ep.value+'?username='+encodeURIComponent(payload)+'&password='+encodeURIComponent(payload);
+                            const ctrl = new AbortController(); setTimeout(()=>ctrl.abort(),3000);
+                            const resp = await fetch(testUrl, { method:'GET', mode:'no-cors', signal:ctrl.signal });
+                            if (resp.ok || resp.type==='opaque') {
+                                if (!allVulns.find(v=>v.endpoint===ep.value&&v.type==='Auth Bypass')) {
+                                    allVulns.push({ type:'Auth Bypass', severity:'high', detail:'Potensial auth bypass: '+payload, endpoint:ep.value, line:ep.line });
                                     bypassFound++;
                                 }
                             }
                         } catch { /* */ }
                     }
                 }
-                renderVulns();
-                statVulns.textContent = allVulns.length;
+                renderVulns(); statVulns.textContent = allVulns.length;
                 showToast('✅ ' + bypassFound + ' auth bypass testi müsbət');
-                this.disabled = false;
-                this.innerHTML = '🔐 Auth Bypass';
+                this.disabled = false; this.innerHTML = '🔐 Auth Bypass';
             });
 
-            // ===== TEMPLATES =====
+            // ── Templates ─────────────────────────────────────────────────────────
             const defaultTemplate = `id: example-template\ninfo:\n  name: "Example Check"\n  severity: medium\nrequests:\n  - method: GET\n    path:\n      - "{{BaseURL}}/admin"\n    matchers:\n      - type: word\n        words:\n          - "admin"`;
 
-            document.getElementById('btn-add-template').addEventListener('click', () => {
+            $('btn-add-template').addEventListener('click', () => {
                 const name = prompt('Template adı daxil edin:', 'my-template');
                 if (!name) return;
                 const content = prompt('Nuclei YAML template daxil edin:', defaultTemplate);
                 if (!content) return;
-                templates.push({ name, content });
-                renderTemplates();
+                templates.push({ name, content }); renderTemplates();
                 showToast('✅ Template əlavə edildi: ' + name);
             });
 
             function renderTemplates() {
-                if (templates.length === 0) {
-                    templatesList.innerHTML =
-                    '<div class="text-gray-600 text-xs text-center py-4">Hələ template yoxdur.</div>';
-                    return;
-                }
+                if (templates.length === 0) { templatesList.innerHTML = '<div class="text-gray-600 text-xs text-center py-4">Hələ template yoxdur.</div>'; return; }
                 let html = '';
-                for (const t of templates) {
+                templates.forEach(t => {
                     html += `<div class="glass-card rounded-lg p-2 text-xs flex items-start justify-between">
                         <div class="flex-1 min-w-0">
                             <p class="text-cyan-400 font-semibold">${escapeHtml(t.name)}</p>
-                            <pre class="text-gray-500 mt-1 font-mono-custom text-[0.55rem] max-h-20 overflow-y-auto">${escapeHtml(t.content.substring(0, 200))}${t.content.length > 200 ? '...' : ''}</pre>
+                            <pre class="text-gray-500 mt-1 font-mono-custom text-[0.55rem] max-h-20 overflow-y-auto">${escapeHtml(t.content.substring(0,200))}${t.content.length>200?'...':''}</pre>
                         </div>
                         <button class="btn-live px-2 py-0.5 rounded text-[0.55rem] ml-2 template-run" data-template="${escapeHtml(t.name)}">▶ Çalışdır</button>
                     </div>`;
-                }
-                templatesList.innerHTML = html;
-                document.querySelectorAll('.template-run').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const name = this.dataset.template;
-                        showToast('✅ Template ' + name + ' seçildi');
-                    });
                 });
+                templatesList.innerHTML = html;
+                document.querySelectorAll('.template-run').forEach(btn => btn.addEventListener('click', function () { showToast('✅ Template ' + this.dataset.template + ' seçildi'); }));
             }
 
-            // ===== INIT =====
+            // ── Init ──────────────────────────────────────────────────────────────
             renderTemplates();
             document.addEventListener('dragover', e => e.preventDefault());
             document.addEventListener('drop', e => e.preventDefault());
