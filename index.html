@@ -1541,3 +1541,125 @@ found++;
 
 renderResults();
 showToast
+}
+            }
+            renderResults();
+            showToast('✅ ' + found + ' yeni parametr kəşf edildi');
+            this.disabled = false;
+            this.innerHTML = '⚡ Param Fuzz';
+        });
+
+        // === AUTH BYPASS ===
+        document.getElementById('btn-auth-all').addEventListener('click', async function() {
+            if (allResults.length === 0) { showToast('Əvvəlcə skan edin.'); return; }
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner" style="width:12px;height:12px;"></span> Test edilir...';
+
+            const authEndpoints = allResults.filter(r =>
+                r.type === 'endpoint' &&
+                (r.value.includes('login') || r.value.includes('auth') || r.value.includes('admin') ||
+                 r.value.includes('signup') || r.value.includes('register') || r.value.includes('token'))
+            );
+
+            let bypassFound = 0;
+            for (const ep of authEndpoints.slice(0, 20)) {
+                for (const payload of AUTH_BYPASS_PAYLOADS) {
+                    try {
+                        const testUrl = ep.value.includes('?') ?
+                            ep.value + '&username=' + encodeURIComponent(payload) + '&password=' + encodeURIComponent(payload) :
+                            ep.value + '?username=' + encodeURIComponent(payload) + '&password=' + encodeURIComponent(payload);
+                        const controller = new AbortController();
+                        setTimeout(() => controller.abort(), 3000);
+                        const resp = await fetch(testUrl, { method: 'GET', mode: 'no-cors', signal: controller.signal });
+                        if (resp.ok || resp.type === 'opaque') {
+                            const vulnKey = 'auth-bypass_' + ep.value;
+                            if (!allVulns.find(v => v.endpoint === ep.value && v.type === 'Auth Bypass')) {
+                                allVulns.push({
+                                    type: 'Auth Bypass',
+                                    severity: 'high',
+                                    detail: 'Potensial auth bypass: ' + payload,
+                                    endpoint: ep.value,
+                                    line: ep.line
+                                });
+                                bypassFound++;
+                            }
+                        }
+                    } catch { /* */ }
+                }
+            }
+            renderVulns();
+            statVulns.textContent = allVulns.length;
+            showToast('✅ ' + bypassFound + ' auth bypass testi müsbət');
+            this.disabled = false;
+            this.innerHTML = '🔐 Auth Bypass';
+        });
+
+        // === TEMPLATES ===
+        const defaultTemplate = `id: example-template
+info:
+  name: "Example Check"
+  severity: medium
+requests:
+  - method: GET
+    path:
+      - "{{BaseURL}}/admin"
+    matchers:
+      - type: word
+        words:
+          - "admin"`;
+
+        document.getElementById('btn-add-template').addEventListener('click', () => {
+            const name = prompt('Template adı daxil edin:', 'my-template');
+            if (!name) return;
+            const content = prompt('Nuclei YAML template daxil edin:', defaultTemplate);
+            if (!content) return;
+            templates.push({ name, content });
+            renderTemplates();
+            showToast('✅ Template əlavə edildi: ' + name);
+        });
+
+        function renderTemplates() {
+            if (templates.length === 0) {
+                templatesList.innerHTML = '<div class="text-gray-600 text-xs text-center py-4">Hələ template yoxdur.</div>';
+                return;
+            }
+            let html = '';
+            for (const t of templates) {
+                html += `<div class="glass-card rounded-lg p-2 text-xs flex items-start justify-between">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-cyan-400 font-semibold">${escapeHtml(t.name)}</p>
+                        <pre class="text-gray-500 mt-1 font-mono-custom text-[0.55rem] max-h-20 overflow-y-auto">${escapeHtml(t.content.substring(0, 200))}${t.content.length > 200 ? '...' : ''}</pre>
+                    </div>
+                    <button class="btn-live px-2 py-0.5 rounded text-[0.55rem] ml-2 template-run" data-template="${escapeHtml(t.name)}">▶ Çalışdır</button>
+                </div>`;
+            }
+            templatesList.innerHTML = html;
+
+            document.querySelectorAll('.template-run').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const name = this.dataset.template;
+                    const tmpl = templates.find(t => t.name === name);
+                    if (tmpl) {
+                        showToast('✅ Template ' + name + ' seçildi (Nuclei-də işlədin)');
+                        // In real scenario, we'd execute the template
+                    }
+                });
+            });
+        }
+
+        // === MOBILE SUPPORT NOTE ===
+        // APK/IPA support: when a mobile file is uploaded, the text is scanned
+        // In production, use apktool or jadx to extract strings first
+
+        // Prevent page reload
+        document.addEventListener('dragover', e => e.preventDefault());
+        document.addEventListener('drop', e => e.preventDefault());
+
+        // Initial render
+        renderTemplates();
+        console.log('🚀 CyberDelve Ultimate BH Pro v6.0 hazırdır');
+        console.log('📌 GitHub: https://github.com/your-username/cyberdelve');
+    })();
+</script>
+</body>
+</html>
