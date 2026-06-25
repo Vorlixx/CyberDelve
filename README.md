@@ -1,59 +1,59 @@
 # CyberDelve 🔥 Ultimate Bug Hunter Tool
 
-**Azərbaycanda hazırlanmış ən güclü client-side bug hunting platforması.**
+**The most powerful client-side bug hunting platform, developed in Azerbaijan.**
 
-## 🚀 Xüsusiyyətlər
+## 🚀 Features
 
-- ✅ JS Artifact Analyzer (bütün JS fayllarını skan edir)
-- ✅ Smart Risk Tagging (🔥 Yüksək / ⚠ Orta / ● Aşağı)
-- ✅ Live Endpoint Check (canlı yoxlama)
-- ✅ XSS / SQLI / LFI Scanner
+- ✅ JS Artifact Analyzer (scans all JS files)
+- ✅ Smart Risk Tagging (🔥 High / ⚠ Medium / ● Low)
+- ✅ Live Endpoint Check
+- ✅ XSS / SQLi / LFI Scanner
 - ✅ Auth Bypass Test
-- ✅ Parameter Fuzzing (gizli parametrlər)
+- ✅ Parameter Fuzzing (hidden parameters)
 - ✅ Wayback Machine Integration
 - ✅ OpenAPI / Swagger / GraphQL Auto-Discovery
-- ✅ JWT Token Analiz
+- ✅ JWT Token Analysis
 - ✅ Credit Card / PII Scanner
-- ✅ AI Assistant (tapıntıları analiz edir)
+- ✅ AI Assistant (analyzes findings)
 - ✅ Bug Bounty Report Generator
 - ✅ Export: TXT, JSON, CSV, Nuclei YAML, Burp Suite
-- ✅ Community Templates (Nuclei formatında)
+- ✅ Community Templates (in Nuclei format)
 - ✅ Mobile API Support (APK/IPA)
 - ✅ Multi-threaded Scanning
-- ✅ **100% Client-side** (heç bir backend yoxdur)
+- ✅ **100% Client-side** (no backend required)
 
-## 🛠 İstifadə
+## 🛠 Usage
 
-1. **URL ilə:** Saytın ünvanını yazın → "Skan et"
-2. **Fayl ilə:** HTML/JS faylını Drag & Drop edin
-3. **Nəticələr:** Avtomatik risk səviyyəsinə görə sıralanır
-4. **Canlı yoxla:** Hər endpoint-i ayrıca və ya hamısını birdən
-5. **Export:** İstədiyin formatda endir
+1. **Via URL:** Enter the target website URL → Click "Scan"
+2. **Via File:** Drag & Drop your HTML/JS files
+3. **Results:** Automatically sorted by risk severity
+4. **Live Check:** Test each endpoint individually or all at once
+5. **Export:** Download reports in your preferred format
 
 ## 📸 Screenshot
 
 ![CyberDelve](screenshot.png)
 
-## ⚡ Tələblər və Quraşdırma
+## ⚡ Requirements & Installation
 
-Tool 100% client-side işlədiyi üçün hər hansı bir quraşdırmaya ehtiyac yoxdur. Sadəcə layihəni yükləyin və `index.html` faylını brauzerdə açın.
+Since the tool runs 100% client-side, no installation is required. Simply download the project and open the `index.html` file in your browser.
 
-- Müasir brauzer (Chrome, Firefox, Edge, Safari)
-- İnternet bağlantısı (Xarici kitabxanalar və CDN üçün)
-- **Heç bir backend tələb olunmur**
+- Modern browser (Chrome, Firefox, Edge, Safari)
+- Internet connection (for external libraries and CDNs)
+- **No backend required**
 
-## 📜 Lisenziya
+## 📜 License
 
-**MIT License** — Bu layihənin kodlarının sərbəst şəkildə istifadə edilməsinə, dəyişdirilməsinə və paylanılmasına tam icazə verilir.
+**MIT License** — Full permission is granted to freely use, modify, and distribute the code of this project.
 
-## 🤝 Töhfə
+## 🤝 Contributing
 
-Pull request-lər açıqdır! Bug hunter-lar, gəlin birlikdə inkişaf etdirək.
+Pull requests are welcome! Bug hunters, let's build and improve this together.
 
-## ⚠️ Məsuliyyət
+## ⚠️ Disclaimer
 
-Bu tool yalnız **icazəli pentest** və **təhsil məqsədləri** üçün nəzərdə tutulub. Qanunsuz istifadə qəti qadağandır. Yarana biləcək hər hansı bir məsuliyyət istifadəçinin öz üzərinə düşür.
+This tool is intended for **authorized penetration testing** and **educational purposes** only. Illegal use is strictly prohibited. Any liability resulting from misuse lies solely with the user.
 
 ---
 
-**Hazırlayan:** [Sizin Adınız] · Azərbaycan 🇦🇿
+**Developed by:** [Elay Mammadli] · Azerbaijan 🇦🇿
