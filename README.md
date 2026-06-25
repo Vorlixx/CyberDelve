@@ -34,15 +34,17 @@
 
 ![CyberDelve](screenshot.png)
 
-## ⚡ Tələblər
+## ⚡ Tələblər və Quraşdırma
+
+Tool 100% client-side işlədiyi üçün hər hansı bir quraşdırmaya ehtiyac yoxdur. Sadəcə layihəni yükləyin və `index.html` faylını brauzerdə açın.
 
 - Müasir brauzer (Chrome, Firefox, Edge, Safari)
-- İnternet bağlantısı (CDN üçün)
+- İnternet bağlantısı (Xarici kitabxanalar və CDN üçün)
 - **Heç bir backend tələb olunmur**
 
 ## 📜 Lisenziya
 
-MIT License - İstifadə etmək, dəyişdirmək, paylaşmaq sərbəstdir.
+**MIT License** — Bu layihənin kodlarının sərbəst şəkildə istifadə edilməsinə, dəyişdirilməsinə və paylanılmasına tam icazə verilir.
 
 ## 🤝 Töhfə
 
@@ -50,7 +52,7 @@ Pull request-lər açıqdır! Bug hunter-lar, gəlin birlikdə inkişaf etdirək
 
 ## ⚠️ Məsuliyyət
 
-Bu tool yalnız **icazəli pentest** və **təhsil məqsədləri** üçün nəzərdə tutulub. Qanunsuz istifadə qəti qadağandır.
+Bu tool yalnız **icazəli pentest** və **təhsil məqsədləri** üçün nəzərdə tutulub. Qanunsuz istifadə qəti qadağandır. Yarana biləcək hər hansı bir məsuliyyət istifadəçinin öz üzərinə düşür.
 
 ---
 
